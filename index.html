@@ -707,7 +707,9 @@ lb_unreach_opp:'Rakibe ulaşılamadı.',lb_sendfail:'Hamle gönderilemedi.',lb_c
 lb_copied:'Kod kopyalandı.',lb_selected:'Kod seçildi.',
 rl_ok:'bağlandı',rl_drop:'koptu',rl_fail:'ulaşılamadı',
 a_caesar:'Julius Caesar',a_ataturk:'Mustafa Kemal Atatürk',a_suntzu:'Sun Tzu',a_tolstoy:'Tolstoy',
-s_zela:'Zela Savaşı sonrası',s_suetonius:'Suetonius',s_aug30:'30 Ağustos 1922',s_artofwar:'Savaş Sanatı',s_warpeace:'Savaş ve Barış'
+s_zela:'Zela Savaşı sonrası',s_suetonius:'Suetonius',s_aug30:'30 Ağustos 1922',s_artofwar:'Savaş Sanatı',s_warpeace:'Savaş ve Barış',
+a_seneca:'Seneca',a_confucius:'Konfüçyüs',a_aurelius:'Marcus Aurelius',a_epictetus:'Epiktetos',a_franklin:'Benjamin Franklin',a_virgil:'Vergilius',a_napoleon:'Napolyon Bonapart',a_heraclitus:'Herakleitos',a_aristotle:'Aristoteles',
+s_meditations:'Kendime Düşünceler',s_aeneid:'Aeneis'
 },
 en:{
 title:'Dice Chess',
@@ -766,7 +768,9 @@ lb_unreach_opp:'Opponent unreachable.',lb_sendfail:'Send failed.',lb_closed_ok:'
 lb_copied:'Copied.',lb_selected:'Selected.',
 rl_ok:'ok',rl_drop:'dropped',rl_fail:'failed',
 a_caesar:'Julius Caesar',a_ataturk:'Mustafa Kemal Atatürk',a_suntzu:'Sun Tzu',a_tolstoy:'Leo Tolstoy',
-s_zela:'After Battle of Zela',s_suetonius:'Suetonius',s_aug30:'30 August 1922',s_artofwar:'The Art of War',s_warpeace:'War and Peace'
+s_zela:'After Battle of Zela',s_suetonius:'Suetonius',s_aug30:'30 August 1922',s_artofwar:'The Art of War',s_warpeace:'War and Peace',
+a_seneca:'Seneca',a_confucius:'Confucius',a_aurelius:'Marcus Aurelius',a_epictetus:'Epictetus',a_franklin:'Benjamin Franklin',a_virgil:'Virgil',a_napoleon:'Napoleon Bonaparte',a_heraclitus:'Heraclitus',a_aristotle:'Aristotle',
+s_meditations:'Meditations',s_aeneid:'Aeneid'
 },
 zh:{
 title:'骰子国际象棋',
@@ -825,7 +829,9 @@ lb_unreach_opp:'无法联系对手。',lb_sendfail:'发送失败。',lb_closed_o
 lb_copied:'已复制。',lb_selected:'已选中。',
 rl_ok:'已连接',rl_drop:'已断开',rl_fail:'失败',
 a_caesar:'尤利乌斯·凯撒',a_ataturk:'穆斯塔法·凯末尔·阿塔图尔克',a_suntzu:'孙子',a_tolstoy:'列夫·托尔斯泰',
-s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》'
+s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》',
+a_seneca:'塞涅卡',a_confucius:'孔子',a_aurelius:'马可·奥勒留',a_epictetus:'爱比克泰德',a_franklin:'本杰明·富兰克林',a_virgil:'维吉尔',a_napoleon:'拿破仑·波拿巴',a_heraclitus:'赫拉克利特',a_aristotle:'亚里士多德',
+s_meditations:'《沉思录》',s_aeneid:'《埃涅阿斯纪》'
 }};
 
 let LANG='tr',BOARD_THEME='green';
@@ -842,16 +848,57 @@ function t(k,v){
 }
 
 const QD={
-l:[['tolstoy','warpeace',0,'Savaşta en güçlü iki savaşçı sabır ve zamandır.','The two most powerful warriors are patience and time.','最强大的两位战士，是耐心与时间。']],
+l:[
+  ['tolstoy','warpeace',0,'Savaşta en güçlü iki savaşçı sabır ve zamandır.','The two most powerful warriors are patience and time.','最强大的两位战士，是耐心与时间。'],
+  ['seneca','',0,'Zorluklar zihni güçlendirir, tıpkı emeğin bedeni güçlendirdiği gibi.','Difficulties strengthen the mind, as labor does the body.','困难磨砺心智，正如劳作强健体魄。'],
+  ['confucius','',0,'En büyük zafer hiç düşmemek değil, her düştüğünde yeniden kalkabilmektir.','Our greatest glory is not in never falling, but in rising every time we fall.','最大的荣耀不在于永不跌倒，而在于每次跌倒后都能重新站起。'],
+  ['suntzu','artofwar',0,'Kendini de rakibini de tanırsan yüz savaşta bile tehlikeye düşmezsin.','Know the enemy and know yourself; in a hundred battles you will never be in peril.','知彼知己，百战不殆。'],
+  ['aurelius','meditations',0,'Eylemin önündeki engel eylemi ilerletir; yolun üstündeki şey, yolun kendisi olur.','The impediment to action advances action. What stands in the way becomes the way.','行动的障碍会推动行动，挡路之物终成前路。'],
+  ['epictetus','',0,'İnsanı sarsan olayların kendisi değil, onlara verdiği tepkidir.','It is not what happens to you, but how you react to it that matters.','困扰人的并非事物本身，而是你对它的反应。'],
+  ['franklin','',0,'Enerji ve sebat her şeyin üstesinden gelir.','Energy and persistence conquer all things.','精力与毅力可以战胜一切。']
+],
 w:[
   ['caesar','suetonius',0,'Zar atıldı.','The die is cast.','骰子已经掷下。'],
   ['caesar','zela',0,'Geldim, gördüm, yendim.','I came, I saw, I conquered.','我来了，我看见了，我征服了。'],
   ['ataturk','aug30',0,'Ordular! İlk hedefiniz Akdeniz\'dir, ileri!','Armies! Your first target is the Mediterranean. Forward!','军队！你们的第一个目标是地中海，前进！'],
-  ['suntzu','artofwar',0,'Hız, savaşın özüdür.','Speed is the essence of war.','兵之情主速。']
-]};
+  ['suntzu','artofwar',0,'Hız, savaşın özüdür.','Speed is the essence of war.','兵之情主速。'],
+  ['suntzu','artofwar',0,'Zafer kazananlar önce kazanır, sonra savaşa girer.','Victorious warriors win first and then go to war.','胜兵先胜而后求战。'],
+  ['seneca','',0,'Şans, hazırlığın fırsatla buluştuğu andır.','Luck is what happens when preparation meets opportunity.','运气是准备与机遇相遇的结果。'],
+  ['virgil','aeneid',0,'Talih cesur olanın yanındadır.','Fortune favors the bold.','命运眷顾勇者。'],
+  ['napoleon','',0,'Zafer en çok direnenlerindir.','Victory belongs to the most persevering.','胜利属于最坚韧不拔的人。']
+],
+d:[
+  ['heraclitus','',0,'Zıtların uyumundan en güzel denge doğar.','From what differs comes the fairest harmony.','对立之中诞生最美的和谐。'],
+  ['suntzu','artofwar',0,'Savaşmadan üstünlük kurmak, hünerin zirvesidir.','Supreme excellence consists of breaking resistance without fighting.','不战而屈人之兵，善之善者也。'],
+  ['aristotle','',0,'Ölçü ve denge, aklın en sağlam kalesidir.','Moderation in all things is the surest strength.','凡事适度，方为稳固之力。']
+]
+};
+const Q_BAG={};
 function pickQuote(kind){
-  const pool=QD[kind];if(!pool||!pool.length)return null;
-  return {kind,i:Math.floor(Math.random()*pool.length)};
+  const pool=QD[kind];
+  if(!pool||!pool.length)return null;
+  if(pool.length===1)return {kind,i:0};
+  const key='zs-last-q-'+kind;
+  let last=-1;
+  try{
+    const saved=localStorage.getItem(key);
+    if(saved!==null)last=Number(saved);
+  }catch(e){}
+  if(!Q_BAG[kind]||Q_BAG[kind].length===0){
+    const arr=pool.map((_,idx)=>idx);
+    for(let j=arr.length-1;j>0;j--){
+      const k=Math.floor(Math.random()*(j+1));
+      [arr[j],arr[k]]=[arr[k],arr[j]];
+    }
+    if(arr[arr.length-1]===last){
+      const sw=Math.floor(Math.random()*(arr.length-1));
+      [arr[arr.length-1],arr[sw]]=[arr[sw],arr[arr.length-1]];
+    }
+    Q_BAG[kind]=arr;
+  }
+  const i=Q_BAG[kind].pop();
+  try{localStorage.setItem(key,String(i));}catch(e){}
+  return {kind,i};
 }
 function quoteParts(q){
   const d=QD[q.kind][q.i],ix={tr:3,en:4,zh:5}[LANG]||3;
@@ -1362,7 +1409,7 @@ function render(){
     const et=endTexts();
     $('endT').textContent=et.title;$('endS').textContent=et.sub;
     end.className='end '+et.kind;
-    if(G.quote===undefined)G.quote=et.kind==='win'?pickQuote('w'):et.kind==='lose'?pickQuote('l'):null;
+    if(G.quote===undefined)G.quote=pickQuote(et.kind==='win'?'w':et.kind==='lose'?'l':'d');
     const q=G.quote;
     $('endQ').hidden=!q;
     if(q){const p=quoteParts(q);$('endQt').textContent='“'+p.text+'”';$('endQa').textContent='— '+p.by+(p.src?(LANG==='zh'?'，':', ')+p.src:'')+(p.att?' ('+p.att+')':'');}
