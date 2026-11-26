@@ -32,6 +32,19 @@
   --last:rgba(230,162,58,.4); --sel:rgba(230,162,58,.65); --dot:rgba(8,12,11,.45);
   color-scheme:dark;
 }
+/* Tahta Renk Temaları */
+:root[data-board="wood"]{--sq-l:#f0d9b5;--sq-d:#b58863}
+:root[data-board="blue"]{--sq-l:#dee3e6;--sq-d:#6c8ca8}
+:root[data-board="slate"]{--sq-l:#d4d6d8;--sq-d:#6e7378}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"])[data-board="wood"]{--sq-l:#cbb089;--sq-d:#7d5a3c}
+  :root:not([data-theme="light"])[data-board="blue"]{--sq-l:#97abbd;--sq-d:#456078}
+  :root:not([data-theme="light"])[data-board="slate"]{--sq-l:#95999e;--sq-d:#4a4e52}
+}
+:root[data-theme="dark"][data-board="wood"]{--sq-l:#cbb089;--sq-d:#7d5a3c}
+:root[data-theme="dark"][data-board="blue"]{--sq-l:#97abbd;--sq-d:#456078}
+:root[data-theme="dark"][data-board="slate"]{--sq-l:#95999e;--sq-d:#4a4e52}
+
 *{box-sizing:border-box}
 html{scrollbar-gutter:stable}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5}
@@ -64,7 +77,7 @@ header p{margin:0;color:var(--muted);max-width:60ch}
 .promo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:5}
 .promo[hidden]{display:none}
 .promo button{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:500 12px var(--font-body);cursor:pointer}
-.promo button span{font-size:34px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif}
+.promo button span{font-size:34px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif}
 .promo button:hover{border-color:var(--accent)}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
 .sec{padding:16px;border-top:1px solid var(--line)}
@@ -170,6 +183,12 @@ details ul b{color:var(--fg);font-weight:600}
 .seg button{flex:1;font:600 14px var(--font-head);padding:10px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
 .seg button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.bgrid button{display:flex;align-items:center;gap:8px;font:600 13.5px var(--font-head);padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;text-align:left}
+.bgrid button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.bgrid button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.swatch{display:inline-grid;grid-template-columns:1fr 1fr;width:20px;height:20px;border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,.22);flex:none}
+.swatch i{display:block;width:100%;height:100%}
 </style>
 
 <div class="app">
@@ -294,6 +313,7 @@ details ul b{color:var(--fg);font-weight:600}
     <div class="modalbox" role="dialog" aria-modal="true" aria-labelledby="setT">
       <h2 id="setT" data-i18n="settings"></h2>
       <div class="setrow"><p class="big" data-i18n="lang"></p><div class="seg" id="langSeg"></div></div>
+      <div class="setrow"><p class="big" data-i18n="board_color"></p><div class="bgrid" id="boardSeg"></div></div>
       <div class="setrow"><p class="big" data-i18n="sound"></p><div class="seg"><button type="button" id="sndOn"></button><button type="button" id="sndOff"></button></div></div>
       <button class="btn primary" id="setClose" data-i18n="close"></button>
     </div>
@@ -605,13 +625,19 @@ function aiChoose(s,color,moves,left,level,sp){
 
 // ---- Diller: Türkçe, İngilizce, Çince ----
 const LANGS=[['tr','Türkçe'],['en','English'],['zh','中文']];
+const BOARDS=[
+  ['classic','bd_classic','#d3ded6','#6c8d83'],
+  ['wood','bd_wood','#f0d9b5','#b58863'],
+  ['blue','bd_blue','#dee3e6','#6c8ca8'],
+  ['slate','bd_slate','#d4d6d8','#6e7378']
+];
 const I18N={
 tr:{
 title:'Zarlı Satranç',
 tagline:'Klasik satranç kuralları geçerli. Sıra gelince 7 yüzlü zarı at. Zar kadar puanın olur, her hamle gittiği kare kadar puan harcar. Puanlar bitmeden sıra geçmez.',
 mode:'Rakip',mode_cpu:'Bilgisayar',mode_pvp:'İki kişi (aynı ekran)',mode_online:'Çevrimiçi (kod ile)',
 side:'Rengin',level:'Zorluk',lv_easy:'Kolay',lv_medium:'Orta',lv_hard:'Zor',lv_expert:'Çok zor',
-start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',lang:'Dil',sound:'Ses',on:'Açık',off:'Kapalı',close:'Kapat',
+start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',lang:'Dil',sound:'Ses',board_color:'Tahta rengi',bd_classic:'Yeşil',bd_wood:'Ahşap',bd_blue:'Mavi',bd_slate:'Gri',on:'Açık',off:'Kapalı',close:'Kapat',
 w:'Beyaz',b:'Siyah',you:'sen',computer:'bilgisayar',Computer:'Bilgisayar',
 roll:'Zarı at',menu:'Ana menüye dön',captured:'Alınan taşlar',moves:'Hamleler',nomoves:'Henüz hamle yok',
 rules:'Zar kuralları',
@@ -668,7 +694,7 @@ title:'Dice Chess',
 tagline:'Classic chess rules apply. On your turn, roll the 7-sided die. The roll is your point pool, and each move costs as many points as the squares it moves. Your turn does not end until the points are spent.',
 mode:'Opponent',mode_cpu:'Computer',mode_pvp:'Two players (same screen)',mode_online:'Online (with code)',
 side:'Your color',level:'Difficulty',lv_easy:'Easy',lv_medium:'Medium',lv_hard:'Hard',lv_expert:'Very hard',
-start:'Start game',start_online:'Go to lobby',settings:'Settings',lang:'Language',sound:'Sound',on:'On',off:'Off',close:'Close',
+start:'Start game',start_online:'Go to lobby',settings:'Settings',lang:'Language',sound:'Sound',board_color:'Board color',bd_classic:'Green',bd_wood:'Wood',bd_blue:'Blue',bd_slate:'Gray',on:'On',off:'Off',close:'Close',
 w:'White',b:'Black',you:'you',computer:'computer',Computer:'Computer',
 roll:'Roll the die',menu:'Back to main menu',captured:'Captured pieces',moves:'Moves',nomoves:'No moves yet',
 rules:'Dice rules',
@@ -725,7 +751,7 @@ title:'骰子国际象棋',
 tagline:'遵循经典国际象棋规则。轮到你时掷一个7面骰子。点数就是你的点数池，每步棋消耗的点数等于移动的格数。点数用完前不会换对手。',
 mode:'对手',mode_cpu:'电脑',mode_pvp:'双人（同一屏幕）',mode_online:'在线（输入代码）',
 side:'你的颜色',level:'难度',lv_easy:'简单',lv_medium:'中等',lv_hard:'困难',lv_expert:'极难',
-start:'开始游戏',start_online:'进入大厅',settings:'设置',lang:'语言',sound:'声音',on:'开',off:'关',close:'关闭',
+start:'开始游戏',start_online:'进入大厅',settings:'设置',lang:'语言',sound:'声音',board_color:'棋盘颜色',bd_classic:'绿色',bd_wood:'木纹',bd_blue:'蓝色',bd_slate:'灰色',on:'开',off:'关',close:'关闭',
 w:'白方',b:'黑方',you:'你',computer:'电脑',Computer:'电脑',
 roll:'掷骰子',menu:'返回主菜单',captured:'被吃的棋子',moves:'走法',nomoves:'还没有走棋',
 rules:'骰子规则',
@@ -777,8 +803,10 @@ rl_ok:'已连接',rl_drop:'已断开',rl_fail:'无法访问',
 a_tolstoy:'列夫·托尔斯泰',a_suntzu:'孙子',a_clausewitz:'克劳塞维茨',a_napoleon:'拿破仑·波拿巴',a_ataturk:'穆斯塔法·凯末尔·阿塔图尔克',a_fatih:'征服者穆罕默德',a_marcus:'马可·奥勒留',a_epictetus:'爱比克泰德',a_seneca:'塞涅卡',a_nietzsche:'尼采',a_laotzu:'老子',a_japanese:'日本谚语',a_musashi:'宫本武藏',a_hannibal:'汉尼拔',a_leonidas:'列奥尼达国王',a_terence:'泰伦提乌斯',a_churchill:'温斯顿·丘吉尔',a_ovid:'奥维德',a_shakespeare:'威廉·莎士比亚',a_kipling:'鲁德亚德·吉卜林',a_rumi:'鲁米',a_caesar:'尤利乌斯·凯撒',a_wellington:'威灵顿公爵',a_machiavelli:'马基雅维利',a_thucydides:'修昔底德',a_dhammapada:'《法句经》',a_vegetius:'维吉提乌斯',
 s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》',s_onwar:'《战争论》',s_sakarya:'1921年萨卡里亚战役',s_meditations:'《沉思录》',s_enchiridion:'《手册》',s_discourses:'《论说集》',s_letters:'《道德书简》',s_twilight:'《偶像的黄昏》',s_tao:'《道德经》',s_fivering:'《五轮书》',s_plutarch:'普鲁塔克《斯巴达人箴言》',s_phormio:'《福尔弥奥》',s_harrow:'1941年哈罗公学演讲',s_amores:'《恋歌》',s_henryv:'《亨利五世》',s_if:'《如果》',s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_waterloo:'滑铁卢战役之后',s_prince:'《君主论》',s_ww2:'《第二次世界大战》',s_peloponnese:'《伯罗奔尼撒战争史》，相传为伯里克利所言',s_vegetius:'《论军事》'
 }};
-let LANG='tr';
+let LANG='tr',BOARD='classic';
 try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
+try{const b=localStorage.getItem('zs-board');if(b&&BOARDS.some(x=>x[0]===b))BOARD=b;}catch(e){}
+document.documentElement.dataset.board=BOARD;
 function t(k,v){
   let s=(I18N[LANG]&&I18N[LANG][k]);
   if(s===undefined)s=I18N.tr[k];
@@ -973,6 +1001,8 @@ function syncModes(){
 function renderSettings(){
   const seg=$('langSeg');
   seg.innerHTML=LANGS.map(([c,n])=>`<button type="button" data-l="${c}" aria-pressed="${c===LANG}">${n}</button>`).join('');
+  const bseg=$('boardSeg');
+  bseg.innerHTML=BOARDS.map(([id,lbl,l,d])=>`<button type="button" data-b="${id}" aria-pressed="${id===BOARD}"><span class="swatch" aria-hidden="true"><i style="background:${l}"></i><i style="background:${d}"></i><i style="background:${d}"></i><i style="background:${l}"></i></span>${t(lbl)}</button>`).join('');
   $('sndOn').textContent=t('on');$('sndOff').textContent=t('off');
   $('sndOn').setAttribute('aria-pressed',String(Snd.isOn()));
   $('sndOff').setAttribute('aria-pressed',String(!Snd.isOn()));
@@ -993,6 +1023,13 @@ function setLang(l){
   LANG=l;
   try{localStorage.setItem('zs-lang',l);}catch(e){}
   applyI18n();
+}
+function setBoard(b){
+  if(!BOARDS.some(x=>x[0]===b))return;
+  BOARD=b;
+  document.documentElement.dataset.board=b;
+  try{localStorage.setItem('zs-board',b);}catch(e){}
+  renderSettings();
 }
 function showView(v){
   $('menuView').hidden=v!=='menu';
@@ -1872,6 +1909,7 @@ $('setClose').addEventListener('click',closeSettings);
 $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').hidden)closeSettings();});
 $('langSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(b)setLang(b.dataset.l);});
+$('boardSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)setBoard(b.dataset.b);});
 $('sndOn').addEventListener('click',()=>{if(!Snd.isOn())Snd.toggle();renderSettings();Snd.unlock();});
 $('sndOff').addEventListener('click',()=>{if(Snd.isOn())Snd.toggle();renderSettings();});
 if(window.ResizeObserver)new ResizeObserver(fitBoard).observe($('boardcol'));
