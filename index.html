@@ -1,0 +1,1473 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Zarlı Satranç</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Yerleşim: tahta solda, zar ve durum paneli sağda; dar ekranda alt alta. */
+:root{
+  --bg:#eef2ef; --surface:#fafcfa; --fg:#18211f; --muted:#586763; --line:#d0d9d5;
+  --sq-l:#d3ded6; --sq-d:#6c8d83; --accent:#d9901c; --accent-fg:#1d1405;
+  --w-fill:#fffef9; --w-line:#1b2523; --b-fill:#1c2624; --b-line:#cfdad5;
+  --die:#fffef8; --pip:#1c2624; --check:#c9402f;
+  --last:rgba(217,144,28,.38); --sel:rgba(217,144,28,.62); --dot:rgba(20,30,28,.38);
+  --font-head:'Space Grotesk',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1514; --surface:#172120; --fg:#e8efec; --muted:#97aaa5; --line:#2a3836;
+    --sq-l:#8da59c; --sq-d:#41605a; --accent:#e6a23a; --accent-fg:#1d1405;
+    --w-fill:#fffef9; --w-line:#0e1514; --b-fill:#141c1b; --b-line:#c8d4cf;
+    --die:#eef2ee; --pip:#18211f; --check:#e0584a;
+    --last:rgba(230,162,58,.4); --sel:rgba(230,162,58,.65); --dot:rgba(8,12,11,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1514; --surface:#172120; --fg:#e8efec; --muted:#97aaa5; --line:#2a3836;
+  --sq-l:#8da59c; --sq-d:#41605a; --accent:#e6a23a; --accent-fg:#1d1405;
+  --w-fill:#fffef9; --w-line:#0e1514; --b-fill:#141c1b; --b-line:#c8d4cf;
+  --die:#eef2ee; --pip:#18211f; --check:#e0584a;
+  --last:rgba(230,162,58,.4); --sel:rgba(230,162,58,.65); --dot:rgba(8,12,11,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scrollbar-gutter:stable}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.app{max-width:1100px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{margin-bottom:18px}
+h1{font-family:var(--font-head);font-weight:700;font-size:28px;line-height:1.15;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:60ch}
+.layout{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.layout{grid-template-columns:minmax(0,1fr) 340px;align-items:start}}
+.boardwrap{position:relative;width:100%;max-width:700px}
+.boardcol{min-width:0}
+.board{container-type:inline-size;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:1;width:100%;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.sq{position:relative;display:flex;align-items:center;justify-content:center;border:0;padding:0;margin:0;cursor:default;font:inherit;color:inherit;background:var(--sq-l);min-width:0;min-height:0;width:100%;height:100%;overflow:hidden}
+.sq.d{background:var(--sq-d)}
+.sq::before{content:"";position:absolute;inset:0;pointer-events:none}
+.sq.last::before{background:var(--last)}
+.sq.sel::before{background:var(--sel)}
+.sq.chk::before{background:radial-gradient(circle,var(--check) 0,transparent 72%)}
+.sq.mv{cursor:pointer;box-shadow:inset 0 -.8cqw 0 var(--accent)}
+.sq.tgt{cursor:pointer}
+.sq.tgt::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--dot);pointer-events:none}
+.sq.tgt.cap::after{inset:5%;background:none;border:.9cqw solid var(--dot)}
+.sq:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
+.pc{position:relative;z-index:1;font-size:10.4cqw;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif;paint-order:stroke fill;pointer-events:none}
+.pc.w{color:var(--w-fill);-webkit-text-stroke:.45cqw var(--w-line)}
+.pc.b{color:var(--b-fill);-webkit-text-stroke:.2cqw var(--b-line)}
+.co{position:absolute;font-size:clamp(8px,1.9cqw,12px);font-weight:600;opacity:.75;pointer-events:none;z-index:1;color:var(--fg)}
+.co.rk{top:2px;left:3px}
+.co.fl{bottom:1px;right:3px}
+.promo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:5}
+.promo[hidden]{display:none}
+.promo button{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:500 12px var(--font-body);cursor:pointer}
+.promo button span{font-size:34px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif}
+.promo button:hover{border-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
+.sec{padding:16px;border-top:1px solid var(--line)}
+.sec:first-child{border-top:0}
+.chips{display:flex;gap:8px;margin-bottom:14px}
+.chip{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-head);font-weight:500;color:var(--muted)}
+.chip i{width:14px;height:14px;border-radius:50%;border:2px solid var(--w-line);flex:none}
+.chip.w i{background:var(--w-fill)}
+.chip.b i{background:var(--b-fill);border-color:var(--b-line)}
+.chip.on{border-color:var(--accent);color:var(--fg);box-shadow:inset 0 0 0 1px var(--accent)}
+.rollrow{display:flex;gap:16px;align-items:center}
+.die{width:92px;height:92px;flex:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.16))}
+.die svg{display:block;width:100%;height:100%}
+.die .face{fill:var(--die);stroke:var(--line);stroke-width:2}
+.die .tri{fill:none;stroke:var(--line);stroke-width:1.5}
+.die text{fill:var(--pip);font-family:var(--font-head);font-weight:700;text-anchor:middle;dominant-baseline:central}
+.die.empty{opacity:.55}
+.die.rolling{animation:shake .16s linear infinite}
+@keyframes shake{0%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}100%{transform:rotate(-5deg) translateY(0)}}
+@media (prefers-reduced-motion:reduce){.die.rolling{animation:none}}
+.rollcol{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.btn{font:600 15px var(--font-head);padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.big{font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+#status{margin:14px 0 0;font-weight:500;min-height:3em}
+#hint{margin:6px 0 0;color:var(--muted);font-size:13.5px;min-height:4.6em}
+.cap{display:flex;gap:8px;align-items:center;min-height:28px;font-size:13px;color:var(--muted)}
+.cap b{width:52px;font-weight:500;flex:none}
+.cap span.g{font-size:20px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;letter-spacing:1px}
+.cap .g.w{color:var(--w-fill);-webkit-text-stroke:.6px var(--w-line)}
+.cap .g.b{color:var(--b-fill)}
+#log{list-style:none;margin:0;padding:0;max-height:210px;overflow:auto;font-size:13.5px;font-variant-numeric:tabular-nums}
+#log li{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px dashed var(--line)}
+#log li:last-child{border-bottom:0}
+#log .n{width:24px;color:var(--muted);flex:none}
+#log .r{width:62px;color:var(--muted);flex:none}
+#log .e{color:var(--muted);text-align:center;padding:6px 0}
+#log i{width:10px;height:10px;border-radius:50%;flex:none;border:2px solid var(--w-line);align-self:center}
+#log li.w i{background:var(--w-fill)}
+#log li.b i{background:var(--b-fill);border-color:var(--b-line)}
+details{font-size:14px}
+summary{cursor:pointer;font-family:var(--font-head);font-weight:500}
+details ul{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
+details ul b{color:var(--fg);font-weight:600}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.modes label{display:grid;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+.modes label.off{visibility:hidden}
+.modes select{width:100%;min-width:0;font:500 13px var(--font-body);padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{flex:1;padding-inline:10px}
+.end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,16,15,.55);border-radius:6px;z-index:6;animation:endin .35s .7s both}
+.end[hidden]{display:none}
+.chip{min-width:0;overflow-wrap:anywhere}
+.lobby{display:grid;gap:10px;margin-bottom:4px}
+.lobby [hidden]{display:none!important}
+#lbEntry,#lbHost,#lbGuest,#lbCount{display:grid;gap:10px}
+.lobby .big{margin:0}
+.field{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.lobby input{font:500 15px var(--font-body);padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;min-width:0}
+.lobby input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.lbcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lbcard{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;align-content:start;min-width:0}
+.lbcode{font-family:var(--font-head);font-weight:700;font-size:38px;letter-spacing:.12em;text-align:center;font-variant-numeric:tabular-nums;padding:10px 6px;border:1px dashed var(--accent);border-radius:12px;user-select:all}
+.lbnote{margin:0;color:var(--muted);font-size:14px}
+.lbreq{display:grid;gap:8px;padding:12px;border:1px solid var(--accent);border-radius:10px}
+.lbreq .lbnote{color:var(--fg)}
+.lbmsg{margin:0;min-height:2.6em;color:var(--muted);font-size:13.5px}
+.lbnum{font-family:var(--font-head);font-weight:700;font-size:96px;line-height:1;text-align:center;color:var(--accent);font-variant-numeric:tabular-nums}
+@media (max-width:420px){.lbcols{grid-template-columns:minmax(0,1fr)}}
+.endbox{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--muted);border-radius:14px;padding:22px 24px;text-align:center;width:min(360px,100%);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.end.win .endbox{border-top-color:var(--accent)}
+.end.lose .endbox{border-top-color:var(--check)}
+.endbox h2{font-family:var(--font-head);font-weight:700;font-size:clamp(28px,7vw,42px);line-height:1.1;margin:0 0 8px;text-wrap:balance}
+.endbox p{margin:0 0 18px;color:var(--muted)}
+@keyframes endin{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.end{animation:none}}
+.modes select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+</style>
+
+<div class="app">
+  <header>
+    <h1>Zarlı Satranç</h1>
+    <p>Klasik satranç kuralları geçerli. Sıra gelince 8 yüzlü zarı at. Zar kadar puanın olur, her hamle gittiği kare kadar puan harcar. Puanlar bitmeden sıra geçmez.</p>
+  </header>
+  <div class="layout">
+    <div class="boardcol" id="boardcol">
+      <div class="boardwrap" id="bw">
+        <div class="board" id="board"></div>
+        <div class="promo" id="promo" hidden></div>
+        <div class="end" id="end" hidden>
+          <div class="endbox">
+            <h2 id="endT"></h2>
+            <p id="endS"></p>
+            <div class="btnrow">
+              <button class="btn primary" id="endNew">Yeni oyun</button>
+              <button class="btn" id="endView">Tahtayı gör</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="panel">
+      <div class="sec">
+        <div class="modes">
+          <label>Rakip
+            <select id="mode"><option value="cpu" selected>Bilgisayar</option><option value="pvp">İki kişi (aynı ekran)</option><option value="online">Çevrimiçi (kod ile)</option></select>
+          </label>
+          <label id="sidel">Rengin
+            <select id="side"><option value="w" selected>Beyaz</option><option value="b">Siyah</option></select>
+          </label>
+          <label id="levl">Zorluk
+            <select id="level"><option value="easy">Kolay</option><option value="medium" selected>Orta</option><option value="hard">Zor</option></select>
+          </label>
+        </div>
+        <div class="lobby" id="lobby" hidden>
+          <div id="lbEntry">
+            <label class="field">Oyun adın
+              <input id="lbName" maxlength="16" autocomplete="off" placeholder="örn. KaraAt">
+            </label>
+            <div class="lbcols">
+              <div class="lbcard"><p class="big">Lobi kur</p><button class="btn primary" id="lbCreate">Lobi oluştur</button></div>
+              <div class="lbcard"><p class="big">Lobiye katıl</p><input id="lbCode" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6 haneli kod" aria-label="Lobi kodu"><button class="btn" id="lbJoin">Katıl</button></div>
+            </div>
+          </div>
+          <div id="lbHost" hidden>
+            <p class="big">Lobi kodun</p>
+            <div class="lbcode" id="lbCodeBig"></div>
+            <div class="btnrow"><button class="btn" id="lbCopy">Kodu kopyala</button><button class="btn" id="lbRegen">Yeni kod</button></div>
+            <p id="lbHostWait" class="lbnote">Rakip bekleniyor. Kodu oynayacağın kişiyle paylaş.</p>
+            <div id="lbHostReq" class="lbreq" hidden>
+              <p class="lbnote"><b id="lbReqName"></b> katılmak istiyor.</p>
+              <div class="btnrow"><button class="btn primary" id="lbApprove">Onayla</button><button class="btn" id="lbReject">Reddet</button></div>
+            </div>
+            <button class="btn" id="lbClose">Lobiyi kapat</button>
+          </div>
+          <div id="lbGuest" hidden>
+            <p class="big">Onay bekleniyor</p>
+            <p class="lbnote">Lobi sahibi isteğini görünce kabul edebilir. Kabul edilirsen oyun 3 saniye sonra başlar.</p>
+            <button class="btn" id="lbCancel">İsteği geri çek</button>
+          </div>
+          <div id="lbCount" hidden>
+            <p class="big">Oyun başlıyor</p>
+            <div class="lbnum" id="lbNum">3</div>
+            <p class="lbnote" id="lbCountInfo"></p>
+          </div>
+          <p class="lbmsg" id="lbMsg" aria-live="polite"></p>
+        </div>
+        <div id="gamectl">
+        <div class="chips" id="chips"></div>
+        <div class="rollrow">
+          <div class="die empty" id="die" aria-live="polite"></div>
+          <div class="rollcol">
+            <button class="btn primary" id="roll">Zarı at</button>
+            <div class="btnrow">
+              <button class="btn" id="new">Yeni oyun</button>
+              <button class="btn" id="snd" aria-pressed="true">Ses: açık</button>
+            </div>
+          </div>
+        </div>
+        <p id="status" aria-live="polite"></p>
+        <p id="hint"></p>
+        </div>
+      </div>
+      <div class="sec">
+        <p class="big">Alınan taşlar</p>
+        <div class="cap"><b>Beyaz</b><span id="capW"></span></div>
+        <div class="cap"><b>Siyah</b><span id="capB"></span></div>
+      </div>
+      <div class="sec">
+        <p class="big">Hamleler</p>
+        <ol id="log"></ol>
+      </div>
+      <div class="sec">
+        <details>
+          <summary>Zar kuralları</summary>
+          <ul>
+            <li><b>Zar bir puan havuzudur.</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.</li>
+            <li><b>At</b> 4 puan harcar, yani kalan puanın en az 4 olmalı.</li>
+            <li><b>Kalan puan</b> başka hamlelerle harcanır. Oynanabilecek hamle kalmadıysa sıra biter.</li>
+            <li><b>Piyonun iki karesi</b> ve <b>rok</b> en az 2 gerektirir.</li>
+            <li><b>Hamle yoksa</b> sıra rakibe geçer.</li>
+            <li><b>Şah çekildiyse</b> ve zar kurtarmaya yetmiyorsa sıra geçer. Şah alınmaz, oyun yalnızca mat ile biter.</li>
+            <li><b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir.</li>
+          </ul>
+        </details>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ENGINE START
+const N_OFF=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+const K_OFF=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+const DIAG=[[-1,-1],[-1,1],[1,-1],[1,1]];
+const ORTH=[[-1,0],[1,0],[0,-1],[0,1]];
+const opp=c=>c==='w'?'b':'w';
+const on=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+
+function startBoard(){
+  const b=Array(64).fill(null);
+  const back=['r','n','b','q','k','b','n','r'];
+  for(let c=0;c<8;c++){b[c]='b'+back[c];b[8+c]='bp';b[48+c]='wp';b[56+c]='w'+back[c];}
+  return b;
+}
+function newState(){return {board:startBoard(),turn:'w',castle:{wk:true,wq:true,bk:true,bq:true},ep:-1,half:0};}
+function cloneS(s){return {board:s.board.slice(),turn:s.turn,castle:{...s.castle},ep:s.ep,half:s.half};}
+
+function attacked(b,i,by){
+  const r=i>>3,c=i&7;
+  const pr=by==='w'?r+1:r-1;
+  for(const dc of [-1,1]){if(on(pr,c+dc)&&b[pr*8+c+dc]===by+'p')return true;}
+  for(const [dr,dc] of N_OFF){const rr=r+dr,cc=c+dc;if(on(rr,cc)&&b[rr*8+cc]===by+'n')return true;}
+  for(const [dr,dc] of K_OFF){const rr=r+dr,cc=c+dc;if(on(rr,cc)&&b[rr*8+cc]===by+'k')return true;}
+  for(const [dr,dc] of DIAG){
+    let rr=r+dr,cc=c+dc;
+    while(on(rr,cc)){const p=b[rr*8+cc];if(p){if(p[0]===by&&(p[1]==='b'||p[1]==='q'))return true;break;}rr+=dr;cc+=dc;}
+  }
+  for(const [dr,dc] of ORTH){
+    let rr=r+dr,cc=c+dc;
+    while(on(rr,cc)){const p=b[rr*8+cc];if(p){if(p[0]===by&&(p[1]==='r'||p[1]==='q'))return true;break;}rr+=dr;cc+=dc;}
+  }
+  return false;
+}
+
+function genPseudo(s,color){
+  const b=s.board,out=[];
+  const add=(from,to,piece,cost,extra)=>out.push({from,to,piece,cost,cap:b[to]||null,ep:false,castle:null,dbl:false,promo:false,...extra});
+  const en=opp(color);
+  for(let i=0;i<64;i++){
+    const p=b[i];if(!p||p[0]!==color)continue;
+    const t=p[1],r=i>>3,c=i&7;
+    if(t==='p'){
+      const dir=color==='w'?-1:1,start=color==='w'?6:1,last=color==='w'?0:7;
+      const r1=r+dir;
+      if(on(r1,c)&&!b[r1*8+c]){
+        add(i,r1*8+c,p,1,{promo:r1===last});
+        if(r===start&&!b[(r+2*dir)*8+c])add(i,(r+2*dir)*8+c,p,2,{dbl:true});
+      }
+      for(const dc of [-1,1]){
+        const cc=c+dc;if(!on(r1,cc))continue;
+        const to=r1*8+cc,q=b[to];
+        if(q&&q[0]!==color)add(i,to,p,1,{promo:r1===last});
+        else if(!q&&to===s.ep&&b[(r*8)+cc]===en+'p')add(i,to,p,1,{ep:true,cap:en+'p'});
+      }
+    }else if(t==='n'){
+      for(const [dr,dc] of N_OFF){
+        const rr=r+dr,cc=c+dc;if(!on(rr,cc))continue;
+        const to=rr*8+cc,q=b[to];
+        if(!q||q[0]!==color)add(i,to,p,4);
+      }
+    }else{
+      const dirs=t==='b'?DIAG:t==='r'?ORTH:t==='q'?DIAG.concat(ORTH):K_OFF;
+      const maxk=t==='k'?1:7;
+      for(const [dr,dc] of dirs){
+        for(let k=1;k<=maxk;k++){
+          const rr=r+dr*k,cc=c+dc*k;if(!on(rr,cc))break;
+          const to=rr*8+cc,q=b[to];
+          if(!q)add(i,to,p,k);
+          else{if(q[0]!==color)add(i,to,p,k);break;}
+        }
+      }
+      if(t==='k'){
+        const home=color==='w'?60:4;
+        if(i===home&&!attacked(b,i,en)){
+          const rk=color+'r';
+          if(s.castle[color+'k']&&!b[home+1]&&!b[home+2]&&b[home+3]===rk&&!attacked(b,home+1,en)&&!attacked(b,home+2,en))
+            add(i,home+2,p,2,{castle:'k'});
+          if(s.castle[color+'q']&&!b[home-1]&&!b[home-2]&&!b[home-3]&&b[home-4]===rk&&!attacked(b,home-1,en)&&!attacked(b,home-2,en))
+            add(i,home-2,p,2,{castle:'q'});
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function applyMove(s,m,promoType){
+  const n=cloneS(s),b=n.board,color=m.piece[0],t=m.piece[1];
+  b[m.from]=null;
+  if(m.ep)b[(m.from>>3)*8+(m.to&7)]=null;
+  if(m.castle){
+    const base=(m.from>>3)*8;
+    if(m.castle==='k'){b[base+5]=color+'r';b[base+7]=null;}
+    else{b[base+3]=color+'r';b[base]=null;}
+  }
+  b[m.to]=m.promo?color+(promoType||'q'):m.piece;
+  if(t==='k'){n.castle[color+'k']=false;n.castle[color+'q']=false;}
+  const corner={56:'wq',63:'wk',0:'bq',7:'bk'};
+  if(corner[m.from])n.castle[corner[m.from]]=false;
+  if(corner[m.to])n.castle[corner[m.to]]=false;
+  n.ep=m.dbl?(m.from+m.to)/2:-1;
+  n.half=(t==='p'||m.cap)?0:n.half+1;
+  return n;
+}
+
+function legalMoves(s,color){
+  return genPseudo(s,color).filter(m=>{
+    if(m.cap&&m.cap[1]==='k')return false;
+    const n=applyMove(s,m,'q');
+    return !attacked(n.board,n.board.indexOf(color+'k'),opp(color));
+  });
+}
+
+function playable(s,color,left){
+  return legalMoves(s,color).filter(m=>m.cost<=left);
+}
+
+function insufficient(b){
+  const rest=b.filter(p=>p&&p[1]!=='k');
+  if(rest.length===0)return true;
+  if(rest.length===1&&(rest[0][1]==='b'||rest[0][1]==='n'))return true;
+  return false;
+}
+// Bilgisayar rakibi: kolay (açgözlü + hata), orta (iki vuruşluk beklenen değer), zor (daha derin, mat farkındalığı).
+const VAL={p:100,n:320,b:330,r:500,q:900,k:0};
+function pstBonus(p,i){
+  const t=p[1],r=i>>3,c=i&7,w=p[0]==='w';
+  const adv=w?7-r:r;
+  const cd=Math.min(c,7-c)+Math.min(r,7-r);
+  if(t==='p')return adv*6+(c>=2&&c<=5?adv*2:0);
+  if(t==='n')return cd*8-(adv===0?10:0);
+  if(t==='b')return cd*4;
+  if(t==='q')return cd;
+  if(t==='r')return adv===6?15:0;
+  return 0;
+}
+function evalFor(board,color){
+  let sc=0;
+  for(let i=0;i<64;i++){
+    const p=board[i];if(!p)continue;
+    const v=VAL[p[1]]+pstBonus(p,i);
+    sc+=p[0]===color?v:-v;
+  }
+  return sc;
+}
+// Rakibin her zar sonucundaki en iyi cevabını varsayarak durumun beklenen değeri.
+function leafValue(n,color){
+  const en=opp(color);
+  const replies=legalMoves(n,en);
+  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
+  const base=evalFor(n.board,color);
+  const ev=replies.map(r=>({c:r.cost,v:evalFor(applyMove(n,r,'q').board,color)}));
+  let sum=0;
+  for(let d=1;d<=8;d++){
+    let worst=base,any=false;
+    for(const e of ev){
+      if(e.c>d)continue;
+      if(!any||e.v<worst){worst=e.v;any=true;}
+    }
+    sum+=worst;
+  }
+  return sum/8;
+}
+// Zor seviye: rakibin cevabını mat tehdidiyle değerlendirir, ardından kendi en iyi karşılığımıza da bakar.
+function followUp(n,color){
+  const base=evalFor(n.board,color);
+  const mv=legalMoves(n,color);
+  if(mv.length===0)return base;
+  const vs=mv.map(m=>({c:m.cost,v:evalFor(applyMove(n,m,m.promo?'q':undefined).board,color)}));
+  let sum=0;
+  for(let e=1;e<=8;e++){
+    let best=base,any=false;
+    for(const x of vs){
+      if(x.c>e)continue;
+      if(!any||x.v>best){best=x.v;any=true;}
+    }
+    sum+=best;
+  }
+  return sum/8;
+}
+function leafHard(n,color){
+  const en=opp(color);
+  const replies=legalMoves(n,en);
+  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
+  const ev=replies.map(r=>{
+    const ns=applyMove(n,r,'q');
+    let v=evalFor(ns.board,color),mate=false;
+    if(attacked(ns.board,ns.board.indexOf(color+'k'),en)&&legalMoves(ns,color).length===0){v=-100000;mate=true;}
+    return {c:r.cost,ns,v,mate};
+  });
+  const weight=new Map();
+  for(let d=1;d<=8;d++){
+    let bi=-1,bv=Infinity;
+    for(let i=0;i<ev.length;i++){
+      if(ev[i].c>d)continue;
+      if(ev[i].v<bv){bv=ev[i].v;bi=i;}
+    }
+    weight.set(bi,(weight.get(bi)||0)+1);
+  }
+  let sum=0;
+  for(const [i,w] of weight){
+    const val=i<0?followUp(n,color):(ev[i].mate?-100000:followUp(ev[i].ns,color));
+    sum+=w*val;
+  }
+  return sum/8;
+}
+function aiEasy(s,color,moves){
+  if(Math.random()<0.3)return moves[Math.floor(Math.random()*moves.length)];
+  let best=null,bv=-Infinity;
+  for(const m of moves){
+    const n=applyMove(s,m,m.promo?'q':undefined);
+    const v=evalFor(n.board,color)+Math.random()*300;
+    if(v>bv){bv=v;best=m;}
+  }
+  return best;
+}
+function aiSearch(s,color,moves,left,hard){
+  const leaf=leafValue;
+  const top=hard?12:3,noise=hard?1:130;
+  let best=null,bestV=-Infinity;
+  for(const m of moves){
+    const n=applyMove(s,m,m.promo?'q':undefined);
+    const rem=left-m.cost;
+    const conts=rem>0?playable(n,color,rem):[];
+    let v;
+    if(conts.length){
+      const scored=conts.map(c=>{const n2=applyMove(n,c,c.promo?'q':undefined);return {n2,q:evalFor(n2.board,color)};})
+        .sort((a,b)=>b.q-a.q).slice(0,top);
+      v=-Infinity;
+      for(const x of scored){const lv=leaf(x.n2,color);if(lv>v)v=lv;}
+    }else{
+      v=leaf(n,color);
+    }
+    v+=Math.random()*noise;
+    if(v>bestV){bestV=v;best=m;}
+  }
+  return best;
+}
+function aiChoose(s,color,moves,left,level){
+  if(level==='easy')return aiEasy(s,color,moves);
+  return aiSearch(s,color,moves,left,level==='hard');
+}
+// ENGINE END
+
+const GLYPH={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const NAME={k:'Şah',q:'Vezir',r:'Kale',b:'Fil',n:'At',p:'Piyon'};
+const SIDE={w:'Beyaz',b:'Siyah'};
+const FILES='abcdefgh';
+const sq=i=>FILES[i&7]+(8-(i>>3));
+const glyph=t=>GLYPH[t]+'︎';
+
+let G,timer=null,aiTimer=null,token=0;
+const $=id=>document.getElementById(id);
+const isAI=()=>G.ai!==null&&G.s.turn===G.ai;
+const rollDie=()=>1+Math.floor(Math.random()*8);
+const LEVEL={easy:'Kolay',medium:'Orta',hard:'Zor'};
+
+// Sesler tarayıcıda üretilir, dış dosya yok.
+const Snd=(()=>{
+  let ctx=null,on=true;
+  try{on=localStorage.getItem('zs-sound')!=='off';}catch(e){}
+  const ac=()=>{
+    if(!on)return null;
+    try{
+      if(!ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;ctx=new C();}
+      if(ctx.state==='suspended')ctx.resume();
+      return ctx;
+    }catch(e){return null;}
+  };
+  const tone=(f,t0,d,type,vol,f2)=>{
+    const c=ac();if(!c)return;
+    const t=c.currentTime+t0,o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+0.02);
+  };
+  const noise=(t0,d,vol,freq)=>{
+    const c=ac();if(!c)return;
+    const n=Math.floor(c.sampleRate*d),buf=c.createBuffer(1,n,c.sampleRate),a=buf.getChannelData(0);
+    for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*(1-i/n);
+    const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+    s.buffer=buf;f.type='bandpass';f.frequency.value=freq;f.Q.value=1.2;g.gain.value=vol;
+    s.connect(f);f.connect(g);g.connect(c.destination);s.start(c.currentTime+t0);
+  };
+  return {
+    unlock(){ac();},
+    isOn:()=>on,
+    toggle(){on=!on;try{localStorage.setItem('zs-sound',on?'on':'off');}catch(e){}if(on)ac();},
+    tick(){noise(0,0.03,0.5,1800+Math.random()*1800);tone(300+Math.random()*200,0,0.03,'square',0.04);},
+    land(){noise(0,0.09,0.7,900);tone(220,0,0.12,'triangle',0.18,140);},
+    move(){noise(0,0.04,0.45,1200);tone(190,0,0.09,'triangle',0.25,120);},
+    capture(){noise(0,0.09,0.8,700);tone(150,0,0.16,'triangle',0.35,70);tone(95,0.01,0.12,'sine',0.25);},
+    check(){tone(740,0,0.14,'square',0.07);tone(988,0.16,0.2,'square',0.07);},
+    pass(){tone(260,0,0.18,'sine',0.14,190);},
+    win(){[523,659,784,1047].forEach((f,i)=>tone(f,i*0.14,0.28,'triangle',0.2));tone(1319,0.6,0.5,'triangle',0.18);},
+    lose(){[392,349,311,262].forEach((f,i)=>tone(f,i*0.22,0.34,'sawtooth',0.07));},
+    draw(){tone(440,0,0.25,'triangle',0.16);tone(415,0.28,0.4,'triangle',0.14);}
+  };
+})();
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mySide(){return G.mode==='cpu'?G.human:G.mode==='online'?G.myColor:null;}
+function oppLabel(){return G.mode==='cpu'?'Bilgisayar':G.oppName;}
+function locked(){
+  if(isAI())return true;
+  if(G.mode==='online')return !LB.live||G.s.turn!==G.myColor;
+  return false;
+}
+
+function outcomeSound(){
+  const r=G.result,me=mySide();
+  if(r.type==='left'){setTimeout(()=>Snd.win(),350);return;}
+  if(r.type==='mate'){
+    if(me&&r.winner!==me)setTimeout(()=>Snd.lose(),350);
+    else setTimeout(()=>Snd.win(),350);
+  }else setTimeout(()=>Snd.draw(),350);
+}
+
+function endTexts(){
+  const r=G.result,me=mySide(),cpu=G.mode==='cpu';
+  if(r.type==='left')return {kind:'win',title:'Kazandın',sub:`${G.oppName} oyundan ayrıldı.`};
+  const why=r.type==='mate'?'Şah mat.':r.type==='stalemate'?'Pat.':r.type==='material'?'Yetersiz materyal.':'50 hamle kuralı.';
+  if(r.type==='mate'){
+    if(!me)return {kind:'win',title:`${SIDE[r.winner]} kazandı`,sub:why};
+    const win=r.winner===me;
+    if(cpu)return win
+      ?{kind:'win',title:'Kazandın!',sub:`${why} Bilgisayarı yendin. Zorluk: ${LEVEL[G.level]}.`}
+      :{kind:'lose',title:'Kaybettin',sub:`${why} Bilgisayar kazandı. Zorluk: ${LEVEL[G.level]}.`};
+    return win
+      ?{kind:'win',title:'Kazandın!',sub:`${why} ${G.oppName} adlı rakibi yendin.`}
+      :{kind:'lose',title:'Kaybettin',sub:`${why} ${G.oppName} kazandı.`};
+  }
+  return {kind:'draw',title:'Berabere',sub:why};
+}
+
+function syncModes(){
+  const cpu=$('mode').value==='cpu';
+  $('sidel').classList.toggle('off',!cpu);
+  $('levl').classList.toggle('off',!cpu);
+  $('side').disabled=!cpu;$('level').disabled=!cpu;
+}
+function syncSnd(){
+  $('snd').textContent='Ses: '+(Snd.isOn()?'açık':'kapalı');
+  $('snd').setAttribute('aria-pressed',String(Snd.isOn()));
+}
+// Kareler tam eşit piksel olsun diye tahta genişliği 8'in katına yuvarlanır.
+function fitBoard(){
+  const col=$('boardcol'),bw=$('bw');
+  const w=Math.min(col.clientWidth,700);
+  bw.style.width=Math.max(240,Math.floor(w/8)*8)+'px';
+}
+
+function newGame(){
+  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  lbLeave();
+  const mode=$('mode').value,human=$('side').value,level=$('level').value;
+  G={s:newState(),phase:mode==='online'?'wait':'roll',roll:null,shown:null,left:0,moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level,mode,human,myColor:null,oppName:'',ai:mode==='cpu'?opp(human):null};
+  syncOnlineUI();
+  render();scheduleAI();
+}
+
+function scheduleAI(){
+  clearTimeout(aiTimer);
+  if(!isAI()||G.phase==='over'||G.phase==='pass'||G.rolling||G.promo)return;
+  const my=token;
+  aiTimer=setTimeout(()=>{if(my===token)aiStep();},G.phase==='roll'?700:1000);
+}
+
+function aiStep(){
+  if(!isAI())return;
+  if(G.phase==='roll'){rollDice();return;}
+  if(G.phase==='move'){
+    const m=aiChoose(G.s,G.s.turn,G.moves,G.left,G.level);
+    if(m)doMove(m,m.promo?'q':undefined);
+  }
+}
+
+function rollDice(){
+  if(G.phase!=='roll'||G.rolling)return;
+  G.rolling=true;const my=token;let n=0;
+  renderDice();renderControls();
+  const iv=setInterval(()=>{
+    if(my!==token){clearInterval(iv);return;}
+    G.shown=rollDie();n++;renderDice();Snd.tick();
+    if(n>=9){clearInterval(iv);finishRoll(my);}
+  },75);
+}
+
+function passMsg(turn,r){
+  if(G.mode==='online'){
+    return turn===G.myColor
+      ?`${r} attın ama bu zarla oynayabileceğin hamle yok. Sıra ${G.oppName} oyuncusuna geçiyor.`
+      :`${G.oppName} ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.`;
+  }
+  if(G.mode!=='cpu')return `${SIDE[turn]} ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra rakibe geçiyor.`;
+  return turn===G.human
+    ?`${r} attın ama bu zarla oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.`
+    :`Bilgisayar ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.`;
+}
+
+function finishRoll(my){
+  if(my!==token)return;
+  const r=rollDie(),turn=G.s.turn;
+  G.rolling=false;G.roll=r;G.shown=r;G.left=r;Snd.land();
+  G.moves=playable(G.s,turn,r);
+  if(G.moves.length===0){
+    G.phase='pass';G.msg=passMsg(turn,r);Snd.pass();
+    render();
+    timer=setTimeout(()=>{if(my===token)passTurn();},1900);
+    outSync();
+  }else{
+    G.phase='move';G.msg='';render();scheduleAI();
+    outSync();
+  }
+}
+
+function passTurn(){
+  const s=cloneS(G.s);s.ep=-1;
+  G.log.push({color:s.turn,label:'zar '+G.roll,text:'Hamle yok, sıra geçti'});
+  G.s=s;G.sel=-1;
+  endTurn();
+}
+
+function endTurn(){
+  const s=G.s;
+  s.turn=opp(s.turn);
+  const col=s.turn;
+  const all=legalMoves(s,col);
+  const chk=attacked(s.board,s.board.indexOf(col+'k'),opp(col));
+  G.roll=null;G.shown=null;G.left=0;G.moves=[];G.sel=-1;
+  if(all.length===0)G.result=chk?{type:'mate',winner:opp(col)}:{type:'stalemate'};
+  else if(insufficient(s.board))G.result={type:'material'};
+  else if(s.half>=100)G.result={type:'fifty'};
+  G.phase=G.result?'over':'roll';
+  if(G.phase==='over')outcomeSound();else if(chk)setTimeout(()=>Snd.check(),160);
+  render();scheduleAI();outSync();
+}
+
+function describe(m,pt){
+  if(m.castle)return m.castle==='k'?'Kısa rok':'Uzun rok';
+  let t=`${NAME[m.piece[1]]} ${sq(m.from)}${m.cap?' x ':'→'}${sq(m.to)}`;
+  if(m.ep)t+=' (geçerken alma)';
+  if(m.promo)t+=` = ${NAME[pt||'q']}`;
+  return t;
+}
+
+function doMove(m,pt){
+  const s=G.s,color=s.turn,before=G.left;
+  const ns=applyMove(s,m,pt);ns.turn=color;
+  if(m.cap)G.cap[color].push(m.cap);
+  if(m.cap)Snd.capture();else Snd.move();
+  G.log.push({color,label:before<G.roll?'kalan '+before:'zar '+G.roll,text:describe(m,pt)});
+  G.s=ns;G.last={from:m.from,to:m.to};G.promo=null;
+  G.left=before-m.cost;
+  const more=G.left>0?playable(ns,color,G.left):[];
+  if(more.length){
+    G.phase='move';G.moves=more;
+    G.sel=(!isAI()&&more.some(x=>x.from===m.to))?m.to:-1;
+    render();scheduleAI();outSync();return;
+  }
+  G.sel=-1;
+  endTurn();
+}
+
+function onSquare(i){
+  if(G.promo||locked())return;
+  if(G.phase!=='move')return;
+  const m=G.moves.find(x=>x.from===G.sel&&x.to===i);
+  if(m){
+    if(m.promo){G.promo=m;render();}else doMove(m);
+    return;
+  }
+  const p=G.s.board[i];
+  if(p&&p[0]===G.s.turn&&G.moves.some(x=>x.from===i))G.sel=G.sel===i?-1:i;
+  else G.sel=-1;
+  render();
+}
+
+function hintFor(r,left){
+  return `Zar ${r}, kalan ${left} puan. Her hamle gittiği kare kadar puan harcar (at 4, rok 2). Puanlar bitmeden sıra geçmez.`+(left<4?' At için en az 4 puan gerekir.':'');
+}
+
+function statusText(){
+  if(G.phase==='wait')return '';
+  const s=G.s,t=s.turn,me=mySide(),vs=!!me,cpu=G.mode==='cpu',opn=oppLabel(),mine=vs&&t===me;
+  const chk=attacked(s.board,s.board.indexOf(t+'k'),opp(t));
+  if(G.phase==='over'){
+    const r=G.result;
+    if(r.type==='left')return `${G.oppName} oyundan ayrıldı. Kazandın.`;
+    if(r.type==='mate'){
+      if(!vs)return `Şah mat. ${SIDE[r.winner]} kazandı.`;
+      return r.winner===me?'Şah mat. Kazandın!':`Şah mat. ${opn} kazandı.`;
+    }
+    if(r.type==='stalemate')return 'Pat. Oyun berabere bitti.';
+    if(r.type==='material')return 'Yetersiz materyal. Oyun berabere bitti.';
+    return '50 hamle kuralı. Oyun berabere bitti.';
+  }
+  if(G.promo)return 'Piyon terfi ediyor. Bir taş seç.';
+  if(G.phase==='pass')return G.msg;
+  const warn=chk?((!vs||mine)?' Şahın tehdit altında.':cpu?' Bilgisayarın şahı tehdit altında.':` ${opn} oyuncusunun şahı tehdit altında.`):'';
+  if(G.phase==='roll'){
+    if(!vs)return `${SIDE[t]} sırada, zarı at.`+warn;
+    return (mine?'Sıra sende, zarı at.':`${opn} zar atıyor.`)+warn;
+  }
+  const first=G.left===G.roll;
+  if(!vs)return (first?`${SIDE[t]} ${G.roll} attı.`:`${SIDE[t]} için kalan ${G.left} puan.`)+' Altı çizili taşlardan biriyle oyna.'+warn;
+  if(mine)return (first?`${G.roll} attın.`:`Kalan ${G.left} puanın var.`)+' Altı çizili taşlardan biriyle oyna.'+warn;
+  return (first?`${opn} ${G.roll} attı, hamlesini seçiyor.`:`${opn} oyuncusunun kalan ${G.left} puanı var.`)+warn;
+}
+
+function renderDice(){
+  const d=$('die');
+  const v=G.rolling?G.shown:G.roll;
+  d.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="face" points="31,4 69,4 96,31 96,69 69,96 31,96 4,69 4,31"/><polygon class="tri" points="50,18 82,74 18,74"/><text x="50" y="54" font-size="38">${v||''}</text></svg>`;
+  d.className='die'+(v?'':' empty')+(G.rolling?' rolling':'');
+  d.setAttribute('role','img');
+  d.setAttribute('aria-label',v?`Zar: ${v}`:'Zar henüz atılmadı');
+}
+
+function renderControls(){
+  $('roll').disabled=!(G.phase==='roll'&&!G.rolling&&!locked());
+}
+
+function render(){
+  const s=G.s,turn=s.turn;
+  const kingIdx=s.board.indexOf(turn+'k');
+  const inCheck=attacked(s.board,kingIdx,opp(turn));
+  const active=G.phase==='move'&&!G.promo&&!locked();
+  const movers=new Set(active?G.moves.map(m=>m.from):[]);
+  const tg=new Map();
+  if(active&&G.sel>=0)G.moves.filter(m=>m.from===G.sel).forEach(m=>tg.set(m.to,m));
+  const flip=mySide()==='b';
+  let h='';
+  for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
+    const r=flip?7-rr:rr,c=flip?7-cc:cc;
+    const i=r*8+c,p=s.board[i];
+    const cls=['sq'];
+    if((r+c)%2)cls.push('d');
+    if(G.last&&(G.last.from===i||G.last.to===i))cls.push('last');
+    if(G.sel===i)cls.push('sel');
+    if(inCheck&&i===kingIdx)cls.push('chk');
+    if(movers.has(i))cls.push('mv');
+    if(tg.has(i)){cls.push('tgt');if(tg.get(i).cap)cls.push('cap');}
+    const label=sq(i)+(p?`, ${SIDE[p[0]]} ${NAME[p[1]]}`:'');
+    h+=`<button class="${cls.join(' ')}" data-i="${i}" aria-label="${label}">`
+      +(cc===0?`<span class="co rk">${8-r}</span>`:'')
+      +(rr===7?`<span class="co fl">${FILES[c]}</span>`:'')
+      +(p?`<span class="pc ${p[0]}">${glyph(p[1])}</span>`:'')
+      +`</button>`;
+  }
+  $('board').innerHTML=h;
+
+  const pr=$('promo');
+  if(G.promo){
+    pr.innerHTML=['q','r','b','n'].map(t=>`<button data-pt="${t}"><span>${glyph(t)}</span>${NAME[t]}</button>`).join('');
+    pr.hidden=false;
+  }else pr.hidden=true;
+
+  $('chips').innerHTML=['w','b'].map(c=>{
+    const who=G.mode==='cpu'?` · ${c===G.human?'sen':'bilgisayar'}`:G.mode==='online'?` · ${c===G.myColor?'sen':esc(G.oppName)}`:'';
+    return `<div class="chip ${c}${G.phase!=='over'&&turn===c?' on':''}"><i></i>${SIDE[c]}${who}</div>`;
+  }).join('');
+  renderDice();renderControls();
+  $('status').textContent=statusText();
+  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):'Zar puan verir: her kare 1 puan, at 4 puan. Aynı piyonu zar kadar ilerletebilirsin.');
+  const order=['q','r','b','n','p'];
+  for(const c of ['w','b']){
+    const arr=G.cap[c].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1]));
+    $(c==='w'?'capW':'capB').innerHTML=arr.length?arr.map(p=>`<span class="g ${p[0]}">${glyph(p[1])}</span>`).join(''):'—';
+  }
+  const log=$('log');
+  log.innerHTML=G.log.length?G.log.map((e,k)=>`<li class="${e.color==='w'?'w':'b'}"><span class="n">${k+1}</span><i></i><span class="r">${esc(e.label||'')}</span><span>${esc(e.text)}</span></li>`).join(''):'<li class="e">Henüz hamle yok</li>';
+  log.scrollTop=log.scrollHeight;
+  const over=G.phase==='over',end=$('end');
+  end.hidden=!(over&&!G.endHidden);
+  $('endNew').textContent=G.mode==='online'?'Lobiye dön':'Yeni oyun';
+  if(over){
+    const t=endTexts();
+    $('endT').textContent=t.title;$('endS').textContent=t.sub;
+    end.className='end '+t.kind;
+  }
+}
+
+// ---- Aktarım katmanı: herkese açık MQTT sunucuları (WebSocket, 443 benzeri portlar), hesap gerekmez ----
+// Oyuncular aynı anda birkaç sunucuya bağlanır ve her mesajı hepsine gönderir, böylece biri engelliyse diğeri yeter.
+// Lobi kodu, sunucuda tutulan kısa ömürlü bir kayıttır. Mesajlar herkese açık sunucudan geçtiği için gizli değildir.
+const BROKERS=[
+  {name:'emqx',url:'wss://broker.emqx.io:8084/mqtt'},
+  {name:'hivemq',url:'wss://broker.hivemq.com:8884/mqtt'},
+  {name:'mosquitto',url:'wss://test.mosquitto.org:8081/mqtt'}
+];
+// Kendi sunucun: sayfa sunucudan açıldıysa aynı adresin /mqtt yolu; ya da adres sonuna ?broker=wss://adres/mqtt eklenirse o.
+// Kendi sunucu varsa yalnızca o kullanılır (gizlilik ve güvenilirlik için).
+(()=>{try{
+  let own=null;
+  const q=new URLSearchParams(location.search).get('broker');
+  if(q&&/^wss?:\/\/[^\s]+$/i.test(q))own=q;
+  else if(location.protocol==='http:'||location.protocol==='https:')own=(location.protocol==='https:'?'wss://':'ws://')+location.host+'/mqtt';
+  if(own){BROKERS.length=0;BROKERS.push({name:'sunucu',url:own});}
+}catch(e){}})();
+const TOPIC_BASE='zsatranc/v1/';
+const rnd=n=>{const c='abcdefghijklmnopqrstuvwxyz0123456789';let s='';const a=new Uint8Array(n);crypto.getRandomValues(a);for(const x of a)s+=c[x%c.length];return s;};
+class Emitter{
+  constructor(){this._h={};}
+  on(e,f){(this._h[e]||(this._h[e]=[])).push(f);return this;}
+  emit(e,...a){(this._h[e]||[]).slice().forEach(f=>{try{f(...a);}catch(x){console.error(x);}});}
+}
+const enc=new TextEncoder(),dec=new TextDecoder();
+const cat=(...a)=>{let n=0;for(const x of a)n+=x.length;const o=new Uint8Array(n);let p=0;for(const x of a){o.set(x,p);p+=x.length;}return o;};
+const mstr=s=>{const b=enc.encode(s);return cat(Uint8Array.of(b.length>>8,b.length&255),b);};
+const rlen=n=>{const o=[];do{let b=n%128;n=Math.floor(n/128);if(n>0)b|=128;o.push(b);}while(n>0);return Uint8Array.from(o);};
+const mpkt=(type,flags,body)=>cat(Uint8Array.of((type<<4)|flags),rlen(body.length),body);
+
+// Tek bir MQTT 3.1.1 bağlantısı (QoS 0)
+class MqttLink extends Emitter{
+  constructor(b,will){
+    super();
+    Object.assign(this,{b,will,up:false,ws:null,buf:new Uint8Array(0),ka:null,pid:1,dead:false});
+  }
+  connect(){
+    if(this.dead)return;
+    let ws;
+    try{ws=new WebSocket(this.b.url,'mqtt');}catch(e){this.emit('down',false);return;}
+    ws.binaryType='arraybuffer';this.ws=ws;this.buf=new Uint8Array(0);
+    ws.onopen=()=>{
+      const ka=60;
+      let flags=0x02,body=cat(mstr('MQTT'),Uint8Array.of(4,0,0,ka),mstr('zs'+rnd(12)));
+      if(this.will){
+        const wp=enc.encode(this.will.payload);
+        flags|=0x04;
+        body=cat(mstr('MQTT'),Uint8Array.of(4,flags,0,ka),mstr('zs'+rnd(12)),mstr(this.will.topic),Uint8Array.of(wp.length>>8,wp.length&255),wp);
+      }else body=cat(mstr('MQTT'),Uint8Array.of(4,flags,0,ka),mstr('zs'+rnd(12)));
+      this._send(mpkt(1,0,body));
+    };
+    ws.onmessage=e=>{if(e.data instanceof ArrayBuffer)this._data(new Uint8Array(e.data));};
+    ws.onerror=()=>{};
+    ws.onclose=()=>{
+      if(this.ws!==ws)return;
+      const was=this.up;this.up=false;clearInterval(this.ka);
+      this.emit('down',was);
+    };
+  }
+  _send(u8){try{if(this.ws&&this.ws.readyState===1)this.ws.send(u8);}catch(e){}}
+  _data(chunk){
+    this.buf=cat(this.buf,chunk);
+    for(;;){
+      const b=this.buf;
+      if(b.length<2)return;
+      let mul=1,len=0,i=1,dg;
+      do{
+        if(i>=b.length)return;
+        dg=b[i++];len+=(dg&127)*mul;mul*=128;
+      }while((dg&128)&&i<5);
+      if(b.length<i+len)return;
+      const type=b[0]>>4,flags=b[0]&15,body=b.subarray(i,i+len);
+      this.buf=b.subarray(i+len);
+      this._pkt(type,flags,body);
+    }
+  }
+  _pkt(type,flags,body){
+    if(type===2){
+      if(body[1]===0){
+        this.up=true;
+        clearInterval(this.ka);this.ka=setInterval(()=>this._send(Uint8Array.of(0xC0,0)),25000);
+        this.emit('up');
+      }else{this.up=false;this.emit('down',false);try{this.ws.close();}catch(e){}}
+    }else if(type===3){
+      const tl=(body[0]<<8)|body[1];
+      const topic=dec.decode(body.subarray(2,2+tl));
+      let off=2+tl;
+      if(((flags>>1)&3)>0)off+=2;
+      this.emit('msg',topic,body.subarray(off));
+    }
+  }
+  publish(topic,payload,retain){
+    if(!this.up)return;
+    const p=typeof payload==='string'?enc.encode(payload):payload;
+    this._send(mpkt(3,retain?1:0,cat(mstr(topic),p)));
+  }
+  subscribe(topic){
+    if(!this.up)return;
+    const id=this.pid++;if(this.pid>65000)this.pid=1;
+    this._send(mpkt(8,2,cat(Uint8Array.of(id>>8,id&255),mstr(topic),Uint8Array.of(0))));
+  }
+  close(){
+    this.dead=true;clearInterval(this.ka);
+    this._send(Uint8Array.of(0xE0,0));
+    const ws=this.ws;
+    setTimeout(()=>{try{if(ws)ws.close();}catch(e){}},150);
+  }
+}
+
+// Birkaç sunucuya aynı anda bağlanan, mesajları tekilleştiren yol
+class Bus{
+  constructor(will){
+    Object.assign(this,{links:[],subs:new Set(),cb:null,seen:new Set(),seenQ:[],destroyed:false,status:{},_t:null});
+    this.readyP=new Promise((res,rej)=>{this._res=res;this._rej=rej;});
+    this.readyP.catch(()=>{});
+    let first=true;
+    for(const b of BROKERS){
+      const l=new MqttLink(b,will?{topic:will.topic,payload:will.payload}:null);
+      this.status[b.name]='…';
+      l.on('up',()=>{
+        this.status[b.name]='bağlandı';
+        for(const t of this.subs)l.subscribe(t);
+        if(first){first=false;setTimeout(()=>this._res(),700);}
+      });
+      l.on('down',was=>{
+        this.status[b.name]=was?'koptu':'ulaşılamadı';
+        if(!this.destroyed)setTimeout(()=>l.connect(),was?1500:5000);
+      });
+      l.on('msg',(topic,payload)=>this._in(topic,payload));
+      this.links.push(l);
+      l.connect();
+    }
+    this._t=setTimeout(()=>{
+      if(!this.links.some(l=>l.up)){
+        window.__relayDiag=Object.entries(this.status).map(([k,v])=>`${k}: ${v==='…'?'ulaşılamadı':v}`).join(', ');
+        this._rej(new Error('network'));
+      }
+    },10000);
+  }
+  ready(){return this.readyP;}
+  onMessage(cb){this.cb=cb;}
+  _in(topic,payload){
+    if(!payload.length)return;
+    let o;try{o=JSON.parse(dec.decode(payload));}catch(e){return;}
+    if(!o||typeof o.i!=='string'||this.seen.has(o.i))return;
+    this.seen.add(o.i);this.seenQ.push(o.i);
+    if(this.seenQ.length>1500)this.seen.delete(this.seenQ.shift());
+    if(this.cb)this.cb(topic,o.d);
+  }
+  subscribe(t){this.subs.add(t);for(const l of this.links)l.subscribe(t);}
+  publish(topic,d,retain){
+    const body=JSON.stringify({i:rnd(10),d});
+    for(const l of this.links)l.publish(topic,body,retain);
+  }
+  clearRetained(topic){for(const l of this.links)l.publish(topic,new Uint8Array(0),true);}
+  close(){
+    this.destroyed=true;clearTimeout(this._t);
+    for(const l of this.links)l.close();
+  }
+}
+
+class RelayConn extends Emitter{
+  constructor(peer,key,role){
+    super();
+    Object.assign(this,{peer,key,role,opened:false,closed:false,last:Date.now(),_iv:null});
+  }
+  _open(){
+    if(this.opened||this.closed)return;
+    this.opened=true;this.last=Date.now();
+    if(this.role==='host')this._pub({t:'ack'});
+    this._iv=setInterval(()=>{
+      if(this.closed)return;
+      this._pub({t:'ping'});
+      if(Date.now()-this.last>16000)this._end();
+    },4000);
+    this.emit('open');
+  }
+  _recv(d){
+    if(this.closed||!d||typeof d!=='object')return;
+    this.last=Date.now();
+    if(d.t==='ack'){this._open();}
+    else if(d.t==='d'){if(this.opened)this.emit('data',d.d);}
+    else if(d.t==='bye'||d.t==='hostgone'){this._end();}
+  }
+  _pub(d){
+    const p=this.peer;
+    if(this.role==='host')p.bus.publish(`${p.base}/g/${this.key}`,d);
+    else p.bus.publish(`${p.base}/h`,{...d,from:p.id});
+  }
+  send(d){
+    if(!this.opened||this.closed)throw new Error('bağlantı açık değil');
+    this._pub({t:'d',d});
+  }
+  close(){
+    if(this.closed)return;
+    try{this._pub({t:'bye'});}catch(e){}
+    this._end();
+  }
+  _end(){
+    if(this.closed)return;
+    this.closed=true;clearInterval(this._iv);
+    if(this.peer.conns[this.key]===this)delete this.peer.conns[this.key];
+    this.emit('close');
+  }
+}
+
+// PeerJS benzeri küçük arayüz: new Peer(id) kuran taraf, new Peer() katılan taraf, peer.connect(kimlik)
+class RelayPeer extends Emitter{
+  constructor(id){
+    super();
+    const host=!!id&&id.startsWith(PREFIX);
+    Object.assign(this,{id:id||('g'+rnd(10)),isHost:host,code:host?id.slice(PREFIX.length):null,hid:rnd(10),conns:{},destroyed:false,bus:null,base:null,_hb:null,_failed:false,_info:false,_taken:false,claimed:false});
+    if(host)this._startHost();
+    else setTimeout(()=>{if(!this.destroyed)this.emit('open',this.id);},0);
+  }
+  _err(type){if(this._failed)return;this._failed=true;this.emit('error',{type});}
+  reconnect(){}
+  _fresh(d){return d&&d.t==='lobby'&&typeof d.ts==='number'&&Date.now()-d.ts<180000;}
+  async _startHost(){
+    this.base=TOPIC_BASE+this.code;
+    this.bus=new Bus({topic:this.base+'/b',payload:JSON.stringify({i:rnd(10),d:{t:'hostgone'}})});
+    this.bus.onMessage((topic,m)=>this._hostMsg(topic,m));
+    try{await this.bus.ready();}catch(e){this._err('socket-error');return;}
+    if(this.destroyed)return;
+    this.bus.subscribe(this.base+'/lobby');
+    this.bus.subscribe(this.base+'/h');
+    await new Promise(r=>setTimeout(r,1300));
+    if(this.destroyed)return;
+    if(this._taken){this._err('unavailable-id');return;}
+    const beat=()=>this.bus.publish(this.base+'/lobby',{t:'lobby',hid:this.hid,ts:Date.now()},true);
+    beat();this.claimed=true;this._hb=setInterval(beat,15000);
+    this.emit('open',this.id);
+  }
+  _hostMsg(topic,m){
+    if(!m||typeof m!=='object')return;
+    if(topic===this.base+'/lobby'){if(this._fresh(m)&&m.hid!==this.hid)this._taken=true;return;}
+    if(topic!==this.base+'/h')return;
+    const gid=m.from;
+    if(typeof gid!=='string'||!/^[a-z0-9]{1,40}$/.test(gid))return;
+    let c=this.conns[gid];
+    if(m.t==='hello'){
+      if(!c){
+        c=new RelayConn(this,gid,'host');this.conns[gid]=c;
+        this.emit('connection',c);
+        setTimeout(()=>c._open(),0);
+      }else if(c.opened)c._pub({t:'ack'});
+    }else if(c)c._recv(m);
+  }
+  connect(remoteId){
+    const code=String(remoteId).slice(PREFIX.length);
+    this.code=code;this.base=TOPIC_BASE+code;
+    const conn=new RelayConn(this,code,'guest');
+    this.conns[code]=conn;
+    this._join(conn);
+    return conn;
+  }
+  async _join(conn){
+    const base=this.base;
+    this.bus=new Bus({topic:base+'/h',payload:JSON.stringify({i:rnd(10),d:{t:'bye',from:this.id}})});
+    this.bus.onMessage((topic,m)=>{
+      if(!m||typeof m!=='object')return;
+      if(topic===base+'/lobby'){if(this._fresh(m))this._info=true;}
+      else if(topic===base+'/g/'+this.id||topic===base+'/b')conn._recv(m);
+    });
+    try{await this.bus.ready();}catch(e){this._err('socket-error');conn._end();return;}
+    if(this.destroyed)return;
+    this.bus.subscribe(base+'/lobby');
+    this.bus.subscribe(base+'/g/'+this.id);
+    this.bus.subscribe(base+'/b');
+    for(let i=0;i<10&&!this._info&&!this.destroyed;i++)await new Promise(r=>setTimeout(r,250));
+    if(this.destroyed)return;
+    if(!this._info){this.emit('error',{type:'peer-unavailable'});conn._end();return;}
+    for(let i=0;i<8&&!conn.opened&&!conn.closed&&!this.destroyed;i++){
+      this.bus.publish(base+'/h',{t:'hello',from:this.id});
+      await new Promise(r=>setTimeout(r,1500));
+    }
+  }
+  destroy(){
+    if(this.destroyed)return;
+    this.destroyed=true;clearInterval(this._hb);
+    for(const c of Object.values(this.conns))c.close();
+    if(this.bus){
+      if(this.isHost&&this.claimed&&this.base){
+        try{this.bus.clearRetained(this.base+'/lobby');this.bus.publish(this.base+'/b',{t:'hostgone'});}catch(e){}
+      }
+      this.bus.close();
+    }
+  }
+}
+if(!window.Peer&&typeof WebSocket!=='undefined')window.Peer=RelayPeer;
+
+// ---- Çevrimiçi lobi (herkese açık MQTT sunucuları üzerinden, hesap gerekmez) ----
+// Lobi kodu, sahibin kimliğidir ("zsatranc-123456"). Kod kullanımdaysa yeni kod seçilir.
+const LB={role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,
+  seq:0,name:'',oppName:'',myColor:null};
+const PREFIX='zsatranc-';
+const NOLIB='Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.';
+try{const n=localStorage.getItem('zs-name');if(n)$('lbName').value=n;}catch(e){}
+
+function lbMsg(t){$('lbMsg').textContent=t||'';}
+function lbShow(w){
+  for(const k of ['Entry','Host','Guest','Count'])$('lb'+k).hidden=(k.toLowerCase()!==w);
+}
+function lbBusy(b){for(const id of ['lbCreate','lbJoin','lbRegen','lbClose','lbApprove','lbReject','lbCancel'])$(id).disabled=b;}
+function lbErr(t){
+  if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed'||t==='timeout')return 'Bağlantı sunucularına ulaşılamıyor. İnternet bağlantını kontrol edip tekrar dene.'+(window.__relayDiag?' ('+window.__relayDiag+')':'');
+  if(t==='browser-incompatible')return 'Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.';
+  return 'Bağlantı hatası'+(t?' ('+t+')':'')+'. Tekrar dene.';
+}
+function lbName(){
+  const n=$('lbName').value.replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);
+  if(n.length<2){lbMsg('Önce 2 ile 16 karakter arası bir oyun adı yaz.');return null;}
+  try{localStorage.setItem('zs-name',n);}catch(e){}
+  return n;
+}
+function cleanName(x){const n=String(x==null?'':x).replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);return n||'Oyuncu';}
+
+function syncOnlineUI(){
+  const on=$('mode').value==='online',playing=on&&LB.live;
+  $('lobby').hidden=!on||playing;
+  $('gamectl').hidden=on&&!playing;
+  $('new').textContent=on?'Lobiden ayrıl':'Yeni oyun';
+  if(on&&!playing&&!LB.role){lbShow('entry');if(!window.Peer)lbMsg(NOLIB);}
+}
+
+function lbReset(){
+  clearInterval(LB.cdTimer);
+  const c=LB.conn,p=LB.peer;
+  Object.assign(LB,{role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,
+    seq:0,name:'',oppName:'',myColor:null});
+  try{if(c)c.close();}catch(e){}
+  try{if(p)p.destroy();}catch(e){}
+}
+function lbLeave(){lbReset();}
+
+function lbBackToEntry(text){
+  lbReset();
+  lbBusy(false);
+  syncOnlineUI();
+  lbShow('entry');
+  lbMsg(text||'');
+}
+
+function openPeer(id){
+  return new Promise(resolve=>{
+    let done=false,p=null,to=null;
+    const fin=r=>{
+      if(done)return;done=true;clearTimeout(to);
+      if(!r.peer){try{if(p)p.destroy();}catch(e){}}
+      resolve(r);
+    };
+    try{p=id?new Peer(id):new Peer();}catch(e){fin({err:'browser-incompatible'});return;}
+    to=setTimeout(()=>fin({err:'timeout'}),16000);
+    p.on('open',()=>fin({peer:p}));
+    p.on('error',e=>fin({err:(e&&e.type)||'unknown'}));
+  });
+}
+
+function lbEnter(role,code,peer,name){
+  Object.assign(LB,{role,code,peer,name,conn:null,status:role==='host'?'open':'',init:null,buf:null,live:false,cd:false,closed:false,seq:0,oppName:'',myColor:null});
+  peer.on('disconnected',()=>{if(LB.peer===peer){try{peer.reconnect();}catch(e){}}});
+  peer.on('error',e=>{
+    if(LB.peer!==peer)return;
+    const t=e&&e.type;
+    if(role==='guest'&&t==='peer-unavailable'){lbBackToEntry('Bu kodla açık bir lobi bulunamadı.');return;}
+    if(role==='guest'&&!LB.live&&!LB.cd){lbBackToEntry(lbErr(t));return;}
+    lbMsg(lbErr(t));
+  });
+  if(role==='host'){peer.on('connection',hostIncoming);lbHostView('open');}
+}
+
+// Her yeni lobi, o anda kullanımda olmayan taze bir kod alır.
+async function createLobby(name){
+  if(!window.Peer){lbMsg(NOLIB);return;}
+  lbBusy(true);lbMsg('Lobi hazırlanıyor...');
+  try{
+    let made=false,lastErr='';
+    for(let i=0;i<8&&!made;i++){
+      const code=String(100000+Math.floor(Math.random()*900000));
+      const res=await openPeer(PREFIX+code);
+      if(res.peer){lbEnter('host',code,res.peer,name);made=true;lbMsg('');}
+      else{lastErr=res.err;if(res.err!=='unavailable-id')break;}
+    }
+    if(!made)lbMsg(lastErr==='unavailable-id'||!lastErr?'Boş bir kod bulunamadı, tekrar dene.':lbErr(lastErr));
+  }finally{lbBusy(false);}
+}
+async function lbCreate(){const n=lbName();if(n)await createLobby(n);}
+async function lbRegen(){
+  const name=LB.name;if(!name||LB.role!=='host')return;
+  lbLeave();
+  await createLobby(name);
+}
+
+function lbHostView(kind){
+  lbShow('host');
+  $('lbCodeBig').textContent=LB.code.slice(0,3)+' '+LB.code.slice(3);
+  $('lbHostWait').hidden=kind!=='open';
+  $('lbHostReq').hidden=kind!=='pending';
+  if(kind==='pending')$('lbReqName').textContent=LB.oppName||'Bir oyuncu';
+}
+
+// Host tarafı: aynı anda tek bağlantı kabul edilir, diğerleri "dolu" yanıtı alır.
+function hostIncoming(conn){
+  if(LB.role!=='host'||LB.conn||LB.live||LB.cd){
+    conn.on('open',()=>{try{conn.send({t:'full'});}catch(e){}setTimeout(()=>{try{conn.close();}catch(e){}},500);});
+    return;
+  }
+  LB.conn=conn;LB.status='joining';
+  conn.on('data',m=>onMsg(conn,m));
+  conn.on('close',()=>onConnClose(conn));
+  conn.on('error',()=>onConnClose(conn));
+  setTimeout(()=>{if(LB.conn===conn&&LB.status==='joining'){LB.conn=null;LB.status='open';try{conn.close();}catch(e){}}},20000);
+}
+
+async function lbJoin(){
+  const name=lbName();if(!name)return;
+  const code=$('lbCode').value.replace(/\D/g,'');
+  if(code.length!==6){lbMsg('Kod 6 haneli olmalı.');return;}
+  if(!window.Peer){lbMsg(NOLIB);return;}
+  lbBusy(true);lbMsg('Lobiye bağlanılıyor...');
+  const res=await openPeer(null);
+  if(!res.peer){lbBusy(false);lbMsg(lbErr(res.err));return;}
+  const peer=res.peer;
+  lbEnter('guest',code,peer,name);
+  const conn=peer.connect(PREFIX+code,{reliable:true});
+  LB.conn=conn;
+  let opened=false;
+  const to=setTimeout(()=>{if(!opened&&LB.conn===conn)lbBackToEntry('Lobiye ulaşılamadı. Kodu kontrol et.');},20000);
+  conn.on('open',()=>{
+    if(LB.conn!==conn)return;
+    opened=true;clearTimeout(to);
+    conn.send({t:'join',name});
+    lbShow('guest');lbMsg('');lbBusy(false);
+  });
+  conn.on('data',m=>onMsg(conn,m));
+  conn.on('close',()=>onConnClose(conn));
+  conn.on('error',()=>onConnClose(conn));
+}
+
+function lbApprove(){
+  if(LB.role!=='host'||LB.status!=='pending'||!LB.conn)return;
+  const color=Math.random()<0.5?'w':'b';
+  const st=newState();
+  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
+  LB.myColor=color;LB.init=init;LB.status='countdown';
+  try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}
+  catch(e){lbMsg('Rakibe ulaşılamadı.');return;}
+  startCountdown();
+}
+function lbReject(){
+  if(LB.role!=='host'||LB.status!=='pending'||!LB.conn)return;
+  const c=LB.conn;
+  LB.conn=null;LB.status='open';LB.oppName='';
+  try{c.send({t:'rejected'});}catch(e){}
+  setTimeout(()=>{try{c.close();}catch(e){}},500);
+  lbHostView('open');
+  lbMsg('İstek reddedildi. Lobi yeniden açık.');
+}
+
+function onMsg(conn,m){
+  if(LB.conn!==conn||!m||typeof m!=='object')return;
+  if(LB.role==='host'){
+    if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');}
+    else if(m.t==='state')recvState(m.snap);
+  }else{
+    if(m.t==='full'){lbBackToEntry('Bu lobi dolu: başka bir oyuncu katılma isteği gönderdi ya da oyun başladı.');}
+    else if(m.t==='rejected'){lbBackToEntry('Lobi sahibi isteğini kabul etmedi.');}
+    else if(m.t==='start'&&!LB.cd&&!LB.live){
+      const init=validSnap(m.init);
+      if(!init||(m.hostColor!=='w'&&m.hostColor!=='b')){lbBackToEntry('Geçersiz oyun verisi alındı.');return;}
+      LB.oppName=cleanName(m.hostName);LB.myColor=m.hostColor==='w'?'b':'w';LB.init=init;
+      startCountdown();
+    }
+    else if(m.t==='state')recvState(m.snap);
+  }
+}
+
+function onConnClose(conn){
+  if(LB.conn!==conn)return;
+  LB.conn=null;
+  if(LB.live){lbClosedRemote();return;}
+  if(LB.role==='host'){
+    if(LB.cd){clearInterval(LB.cdTimer);LB.cdTimer=null;LB.cd=false;}
+    LB.status='open';LB.oppName='';LB.init=null;LB.buf=null;
+    lbHostView('open');
+    lbMsg('Rakip bağlantıdan ayrıldı. Lobi yeniden açık.');
+  }else lbBackToEntry('Lobi kapandı ya da bağlantı koptu.');
+}
+
+function lbClosedRemote(){
+  const c=LB.conn,p=LB.peer;
+  LB.conn=null;LB.peer=null;LB.closed=true;
+  try{if(c)c.close();}catch(e){}
+  try{if(p)p.destroy();}catch(e){}
+  if(G.mode==='online'&&G.phase!=='over'){
+    G.result={type:'left'};G.phase='over';G.endHidden=false;G.moves=[];G.sel=-1;G.promo=null;
+    outcomeSound();render();
+  }
+}
+
+// 3 saniyelik geri sayım: iki tarafta da aynı anda çalışır.
+function startCountdown(){
+  LB.cd=true;
+  lbShow('count');
+  $('lbCountInfo').textContent=`${LB.oppName} ile oynuyorsun. Rengin: ${SIDE[LB.myColor]}.`;
+  let n=3;$('lbNum').textContent=n;Snd.land();
+  LB.cdTimer=setInterval(()=>{
+    n--;
+    if(n>0){$('lbNum').textContent=n;Snd.land();}
+    else{clearInterval(LB.cdTimer);LB.cdTimer=null;beginOnlineGame();}
+  },1000);
+}
+
+function beginOnlineGame(){
+  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  const g=(LB.buf&&LB.buf.seq>0)?LB.buf:LB.init;
+  if(!g){lbBackToEntry('Oyun başlatılamadı, tekrar dene.');return;}
+  LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
+  G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
+  $('lobby').hidden=true;$('gamectl').hidden=false;
+  if(g.seq>0)applyRemote(g);else render();
+}
+
+// Gelen veri güvenilmez sayılır: yalnızca beklenen biçimdeki alanlar kabul edilir.
+function validSnap(g){
+  try{
+    if(!g||typeof g!=='object')return null;
+    const pc=/^[wb][pnbrqk]$/;
+    const num=(x,lo,hi)=>Number.isInteger(x)&&x>=lo&&x<=hi;
+    if(!Array.isArray(g.board)||g.board.length!==64||!g.board.every(x=>x===null||(typeof x==='string'&&pc.test(x))))return null;
+    if(g.turn!=='w'&&g.turn!=='b')return null;
+    if(!['roll','move','pass','over'].includes(g.phase))return null;
+    if(!num(g.ep,-1,63)||!num(g.half,0,1000)||!num(g.seq,0,10000000)||!num(g.left,0,8))return null;
+    let roll=null;
+    if(g.roll!==null&&g.roll!==undefined){if(!num(g.roll,1,8))return null;roll=g.roll;}
+    const cs=g.castle||{};
+    const castle={wk:!!cs.wk,wq:!!cs.wq,bk:!!cs.bk,bq:!!cs.bq};
+    let last=null;
+    if(g.last){if(!num(g.last.from,0,63)||!num(g.last.to,0,63))return null;last={from:g.last.from,to:g.last.to};}
+    const log=(Array.isArray(g.log)?g.log:[]).slice(-2000).map(e=>({color:e&&e.color==='w'?'w':'b',label:String((e&&e.label)||'').slice(0,24),text:String((e&&e.text)||'').slice(0,80)}));
+    const cp=a=>(Array.isArray(a)?a:[]).filter(x=>typeof x==='string'&&pc.test(x)).slice(0,32);
+    const cap={w:cp(g.cap&&g.cap.w),b:cp(g.cap&&g.cap.b)};
+    let result=null;
+    if(g.result){
+      const t=g.result.type;
+      if(!['mate','stalemate','material','fifty'].includes(t))return null;
+      result={type:t};if(t==='mate')result.winner=g.result.winner==='w'?'w':'b';
+    }
+    return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,half:g.half,phase:g.phase,roll,left:g.left,last,log,cap,result,seq:g.seq};
+  }catch(e){return null;}
+}
+
+function snapshotGame(){
+  return {board:G.s.board,turn:G.s.turn,castle:G.s.castle,ep:G.s.ep,half:G.s.half,phase:G.phase,roll:G.roll,left:G.left,last:G.last,log:G.log,cap:G.cap,result:G.result};
+}
+// Her durum değişikliğinde tam oyun durumu rakibe gider. Sırası olan taraf gönderir, diğeri alır.
+function outSync(){
+  if(G.mode!=='online'||!LB.live||LB.closed||!LB.conn)return;
+  const snap=snapshotGame();snap.seq=++LB.seq;
+  try{LB.conn.send({t:'state',snap});}
+  catch(e){lbMsg('Hamle rakibe gönderilemedi. Bağlantını kontrol et.');}
+}
+function recvState(raw){
+  const g=validSnap(raw);if(!g)return;
+  if(LB.live){if(g.seq>LB.seq){LB.seq=g.seq;applyRemote(g);}}
+  else if(LB.cd){if(!LB.buf||g.seq>LB.buf.seq)LB.buf=g;}
+}
+
+function applyRemote(g){
+  const prevLog=G.log.length,prevCaps=G.cap.w.length+G.cap.b.length,prevRoll=G.roll;
+  G.s={board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half};
+  G.phase=g.phase;G.roll=g.roll;G.shown=g.roll;G.left=g.left;G.last=g.last;G.log=g.log||[];G.cap=g.cap||{w:[],b:[]};
+  G.result=g.result;G.sel=-1;G.promo=null;G.rolling=false;G.moves=[];
+  G.msg=g.phase==='pass'?passMsg(g.turn,g.roll):'';
+  if(g.phase==='move'&&g.turn===G.myColor)G.moves=playable(G.s,G.myColor,G.left);
+  if(G.log.length>prevLog){
+    const caps=G.cap.w.length+G.cap.b.length;
+    if(caps>prevCaps)Snd.capture();else Snd.move();
+  }else if(g.roll!==null&&g.roll!==prevRoll)Snd.land();
+  if(g.phase==='pass')Snd.pass();
+  if(g.phase==='over'&&g.result)outcomeSound();
+  else if(g.phase==='roll'&&g.turn===G.myColor&&attacked(g.board,g.board.indexOf(g.turn+'k'),opp(g.turn)))setTimeout(()=>Snd.check(),160);
+  render();
+}
+
+$('lbCreate').addEventListener('click',()=>{Snd.unlock();lbCreate();});
+$('lbJoin').addEventListener('click',()=>{Snd.unlock();lbJoin();});
+$('lbApprove').addEventListener('click',()=>{Snd.unlock();lbApprove();});
+$('lbReject').addEventListener('click',lbReject);
+$('lbRegen').addEventListener('click',lbRegen);
+$('lbClose').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg('Lobi kapatıldı.');});
+$('lbCancel').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg('Katılma isteğin geri çekildi.');});
+$('lbCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);});
+$('lbCopy').addEventListener('click',async()=>{
+  const code=LB.code||'';
+  try{await navigator.clipboard.writeText(code);lbMsg('Kod kopyalandı.');}
+  catch(e){
+    try{const r=document.createRange();r.selectNodeContents($('lbCodeBig'));const s=getSelection();s.removeAllRanges();s.addRange(r);lbMsg('Kodu seçtim, kopyalamak için Ctrl+C bas.');}catch(x){}
+  }
+});
+window.addEventListener('pagehide',()=>{if(LB.role)lbLeave();});
+
+$('board').addEventListener('click',e=>{
+  Snd.unlock();
+  const b=e.target.closest('.sq');if(b)onSquare(+b.dataset.i);
+});
+$('promo').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-pt]');
+  if(b&&G.promo&&!locked())doMove(G.promo,b.dataset.pt);
+});
+$('roll').addEventListener('click',()=>{Snd.unlock();if(!locked())rollDice();});
+$('new').addEventListener('click',()=>{Snd.unlock();newGame();});
+$('endNew').addEventListener('click',()=>{Snd.unlock();newGame();});
+$('endView').addEventListener('click',()=>{G.endHidden=true;render();});
+$('snd').addEventListener('click',()=>{Snd.toggle();syncSnd();});
+$('mode').addEventListener('change',()=>{syncModes();newGame();});
+$('side').addEventListener('change',newGame);
+$('level').addEventListener('change',newGame);
+if(window.ResizeObserver)new ResizeObserver(fitBoard).observe($('boardcol'));
+window.addEventListener('resize',fitBoard);
+fitBoard();
+syncModes();
+syncSnd();
+newGame();
+</script>
+
+</body></html>
