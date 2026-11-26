@@ -178,7 +178,7 @@ details ul b{color:var(--fg);font-weight:600}
             <select id="side"><option value="w" selected>Beyaz</option><option value="b">Siyah</option></select>
           </label>
           <label id="levl">Zorluk
-            <select id="level"><option value="easy">Kolay</option><option value="medium" selected>Orta</option><option value="hard">Zor</option></select>
+            <select id="level"><option value="easy">Kolay</option><option value="medium" selected>Orta</option><option value="hard">Zor</option><option value="expert">Çok zor</option></select>
           </label>
         </div>
         <div class="lobby" id="lobby" hidden>
@@ -244,7 +244,6 @@ details ul b{color:var(--fg);font-weight:600}
           <summary>Zar kuralları</summary>
           <ul>
             <li><b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.</li>
-            <li><b>At</b> her hamlede 1 puan harcar.</li>
             <li><b>Bir piyon</b> tek turda en fazla 5 puan harcar. Zar 7 ise bir piyon 5 puan oynar, kalan 2 puanı başka bir taşla harcarsın.</li>
             <li><b>Kalan puan</b> başka hamlelerle harcanır. Oynanabilecek hamle kalmadıysa sıra biter.</li>
             <li><b>Piyonun iki karesi</b> ve <b>rok</b> en az 2 gerektirir.</li>
@@ -317,7 +316,7 @@ function genPseudo(s,color){
       for(const [dr,dc] of N_OFF){
         const rr=r+dr,cc=c+dc;if(!on(rr,cc))continue;
         const to=rr*8+cc,q=b[to];
-        if(!q||q[0]!==color)add(i,to,p,1);
+        if(!q||q[0]!==color)add(i,to,p,3);
       }
     }else{
       const dirs=t==='b'?DIAG:t==='r'?ORTH:t==='q'?DIAG.concat(ORTH):K_OFF;
@@ -472,6 +471,50 @@ function leafHard(n,color){
   }
   return sum/DIE;
 }
+// Derin yaprak: rakip kendi turunda en çok iki hamle yapar. Zar bitene kadar oynamak zorunda olduğu için
+// ilk hamleden sonra kalan puanla ikinci bir hamle de hesaba katılır. K1: bakılan ilk cevap sayısı, K2: ikinci hamle sayısı.
+function leafDeep(n,color,K1,K2){
+  const en=opp(color),myK=n.board.indexOf(color+'k');
+  const replies=legalMoves(n,en);
+  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
+  const base=evalFor(n.board,color);
+  const cand=replies.map(r=>{
+    const ns=applyMove(n,r,'q');ns.turn=en;
+    let v=evalFor(ns.board,color),mate=false;
+    if(attacked(ns.board,ns.board.indexOf(color+'k'),en)&&legalMoves(ns,color).length===0){v=-100000;mate=true;}
+    return {c:r.cost,ns,v,mate};
+  }).sort((a,b)=>a.v-b.v);
+  const pick=cand.slice(0,K1),seen={};
+  for(const x of pick)seen[x.c]=1;
+  for(const x of cand.slice(K1)){if(!seen[x.c]){seen[x.c]=1;pick.push(x);}}
+  for(const x of pick){
+    x.v2=[];
+    if(x.mate)continue;
+    const mv2=legalMoves(x.ns,en);
+    if(!mv2.length)continue;
+    const e2=mv2.map(r=>({c:r.cost,v:evalFor(applyMove(x.ns,r,'q').board,color)})).sort((a,b)=>a.v-b.v);
+    const keep=e2.slice(0,K2),sc={};
+    for(const y of keep)sc[y.c]=1;
+    for(const y of e2.slice(K2)){if(!sc[y.c]){sc[y.c]=1;keep.push(y);}}
+    for(let b=1;b<=DIE;b++){
+      let best=null;
+      for(const y of keep)if(y.c<=b&&(best===null||y.v<best))best=y.v;
+      x.v2[b]=best;
+    }
+  }
+  let sum=0;
+  for(let d=1;d<=DIE;d++){
+    let worst=null;
+    for(const x of pick){
+      if(x.c>d)continue;
+      const b=d-x.c;
+      const val=(b>0&&x.v2[b]!=null)?x.v2[b]:x.v;
+      if(worst===null||val<worst)worst=val;
+    }
+    sum+=worst===null?base:worst;
+  }
+  return sum/DIE;
+}
 function aiEasy(s,color,moves){
   if(Math.random()<0.3)return moves[Math.floor(Math.random()*moves.length)];
   let best=null,bv=-Infinity;
@@ -482,9 +525,16 @@ function aiEasy(s,color,moves){
   }
   return best;
 }
-function aiSearch(s,color,moves,left,hard,sp){
-  const leaf=leafValue;
-  const top=hard?12:3,noise=hard?1:130;
+// Seviye ayarları: top = her hamle için bakılan devam sayısı, noise = rastgelelik, k1/k2 > 0 ise derin yaprak.
+const AI_CFG={
+  medium:{top:3,noise:130,k1:0,k2:0},
+  hard:{top:8,noise:1,k1:6,k2:4},
+  expert:{top:12,noise:0,k1:12,k2:10}
+};
+function aiSearch(s,color,moves,left,level,sp){
+  const cfg=AI_CFG[level]||AI_CFG.hard;
+  const leaf=cfg.k1>0?((n,c)=>leafDeep(n,c,cfg.k1,cfg.k2)):leafValue;
+  const top=cfg.top,noise=cfg.noise;
   let best=null,bestV=-Infinity;
   for(const m of moves){
     const n=applyMove(s,m,m.promo?'q':undefined);
@@ -506,7 +556,7 @@ function aiSearch(s,color,moves,left,hard,sp){
 }
 function aiChoose(s,color,moves,left,level,sp){
   if(level==='easy')return aiEasy(s,color,moves);
-  return aiSearch(s,color,moves,left,level==='hard',sp);
+  return aiSearch(s,color,moves,left,level,sp);
 }
 // ENGINE END
 
@@ -521,7 +571,7 @@ let G,timer=null,aiTimer=null,token=0;
 const $=id=>document.getElementById(id);
 const isAI=()=>G.ai!==null&&G.s.turn===G.ai;
 const rollDie=()=>1+Math.floor(Math.random()*DIE);
-const LEVEL={easy:'Kolay',medium:'Orta',hard:'Zor'};
+const LEVEL={easy:'Kolay',medium:'Orta',hard:'Zor',expert:'Çok zor'};
 
 // Sesler tarayıcıda üretilir, dış dosya yok.
 const Snd=(()=>{
@@ -748,7 +798,7 @@ function onSquare(i){
 }
 
 function hintFor(r,left){
-  return `Zar ${r}, kalan ${left} puan. Her hamle gittiği kare kadar puan harcar (at 1, rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.`;
+  return `Zar ${r}, kalan ${left} puan. Her hamle gittiği kare kadar puan harcar (rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.`;
 }
 
 function statusText(){
@@ -833,7 +883,7 @@ function render(){
   }).join('');
   renderDice();renderControls();
   $('status').textContent=statusText();
-  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):'Zar (1-7) puan verir: her kare 1 puan, at 1 puan. Bir piyon tek turda en fazla 5 puan harcar.');
+  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):'Zar (1-7) puan verir: her kare 1 puan. Bir piyon tek turda en fazla 5 puan harcar.');
   const order=['q','r','b','n','p'];
   for(const c of ['w','b']){
     const arr=G.cap[c].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1]));
