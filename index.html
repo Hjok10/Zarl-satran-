@@ -141,6 +141,11 @@ details ul b{color:var(--fg);font-weight:600}
 .end.lose .endbox{border-top-color:var(--check)}
 .endbox h2{font-family:var(--font-head);font-weight:700;font-size:clamp(28px,7vw,42px);line-height:1.1;margin:0 0 8px;text-wrap:balance}
 .endbox p{margin:0 0 18px;color:var(--muted)}
+.endbox{max-height:100%;overflow:auto}
+.quote{margin:0 0 18px;padding:10px 12px;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;background:var(--bg);text-align:left}
+.quote blockquote{margin:0;font-size:14px;line-height:1.45;font-style:italic;color:var(--fg);text-wrap:pretty}
+.quote figcaption{margin-top:6px;font-size:12px;color:var(--muted)}
+@media (max-width:520px){.end{padding:8px}.endbox{padding:12px 14px}.endbox h2{font-size:24px;margin-bottom:4px}.endbox p{margin-bottom:8px;font-size:13px}.quote{margin-bottom:10px;padding:7px 10px}.quote blockquote{font-size:12.5px;line-height:1.35}.quote figcaption{margin-top:3px;font-size:11px}.endbox .btnrow .btn{padding-block:8px}}
 @keyframes endin{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.end{animation:none}}
 .modes select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
@@ -160,6 +165,7 @@ details ul b{color:var(--fg);font-weight:600}
           <div class="endbox">
             <h2 id="endT"></h2>
             <p id="endS"></p>
+            <figure class="quote" id="endQ" hidden><blockquote id="endQt"></blockquote><figcaption id="endQa"></figcaption></figure>
             <div class="btnrow">
               <button class="btn primary" id="endNew">Yeni oyun</button>
               <button class="btn" id="endView">Tahtayı gör</button>
@@ -637,6 +643,25 @@ function outcomeSound(){
   }else setTimeout(()=>Snd.draw(),350);
 }
 
+const QUOTES={
+  l:[["Savaşta en güçlü iki savaşçı sabır ve zamandır.", "Tolstoy", "Savaş ve Barış"], ["Yenilmezlik kendi elindedir; yenme fırsatını ise düşman verir.", "Sun Tzu", "Savaş Sanatı"], ["Ne zaman savaşıp ne zaman savaşmayacağını bilen kazanır.", "Sun Tzu", "Savaş Sanatı"], ["Usta savaşçı önce yenilmez olur, sonra düşmanın hata yapmasını bekler.", "Sun Tzu", "Savaş Sanatı"], ["Su, toprağın şekline göre akar; usta komutan da düşmanına göre şekil alır.", "Sun Tzu", "Savaş Sanatı"], ["Güçlüyken zayıf, zayıfken güçlü görün.", "Sun Tzu", "Savaş Sanatı"], ["Bilge komutan planlarında yararı ve zararı birlikte düşünür; böylece zorluktan çıkış yolunu bulur.", "Sun Tzu", "Savaş Sanatı"], ["Savaşta her şey basittir, ama en basit şey bile zordur.", "Clausewitz", "Savaş Üzerine"], ["Savaşta manevi güç, maddi gücün üç katı değerindedir.", "Napolyon Bonapart", "atfedilir"], ["Zafer, en çok direnenindir.", "Napolyon Bonapart", "atfedilir"], ["Hattı müdafaa yoktur, sath-ı müdafaa vardır. O satıh bütün vatandır.", "Mustafa Kemal Atatürk", "Sakarya Meydan Muharebesi, 1921"], ["Ya ben İstanbul'u alırım, ya İstanbul beni.", "Fatih Sultan Mehmed", "atfedilir"], ["Engel, eylemi ilerletir; yolun önündeki engel yolun kendisi olur.", "Marcus Aurelius", "Kendime Düşünceler"], ["Ruhun, düşüncelerinin rengini alır.", "Marcus Aurelius", "Kendime Düşünceler"], ["İnsanları rahatsız eden olaylar değil, olaylar hakkındaki yargılarıdır.", "Epiktetos", "El Kitabı"], ["Önce kendine ne olmak istediğini söyle; sonra yapman gerekeni yap.", "Epiktetos", "Sohbetler"], ["Bir şey zor olduğu için cesaret etmiyor değiliz; cesaret etmediğimiz için zor.", "Seneca", "Ahlaki Mektuplar"], ["Beni öldürmeyen şey güçlendirir.", "Nietzsche", "Putların Alacakaranlığı"], ["Bin millik yolculuk tek bir adımla başlar.", "Lao Tzu", "Tao Te Ching"], ["Yedi kez düş, sekiz kez kalk.", "Japon atasözü", ""], ["Bin günlük çalışma ustalık içindir, on bin günlük çalışma parlamak için.", "Miyamoto Musashi", "Beş Halka Kitabı"], ["Ya bir yol bulacağız ya da yol açacağız.", "Hannibal", "atfedilir"], ["Gelip alsınlar.", "Kral Leonidas", "Plutarkhos, Lakon Sözleri"], ["Talih cesurlara yardım eder.", "Terentius", "Phormio"], ["Asla, asla, asla pes etmeyin.", "Winston Churchill", "Harrow Okulu konuşması, 1941"], ["Dayan ve sabret; bu acı bir gün işine yarayacak.", "Ovidius", "Aşk Şiirleri"], ["Bir kez daha gedikten içeri, sevgili dostlar, bir kez daha!", "William Shakespeare", "V. Henry"], ["Zafere de yenilgiye de rastlayıp o iki sahtekâra aynı gözle bakabilirsen...", "Rudyard Kipling", "Eğer"], ["Dün dünde kaldı cancağızım, bugün yeni şeyler söylemek lazım.", "Mevlânâ", "atfedilir"]],
+  w:[["Geldim, gördüm, yendim.", "Julius Caesar", "Zela Savaşı sonrası"], ["Zar atıldı.", "Julius Caesar", "Suetonius"], ["Ordular! İlk hedefiniz Akdeniz'dir, ileri!", "Mustafa Kemal Atatürk", "30 Ağustos 1922"], ["Zafer, \"zafer benimdir\" diyebilenindir. Başarı ise \"başaracağım\" diyebilenindir.", "Mustafa Kemal Atatürk", "atfedilir"], ["Yurtta sulh, cihanda sulh.", "Mustafa Kemal Atatürk", ""], ["Yüz savaşta yüz zafer kazanmak en büyük beceri değildir; düşmanı savaşmadan boyun eğdirmek en büyük beceridir.", "Sun Tzu", "Savaş Sanatı"], ["Hız, savaşın özüdür.", "Sun Tzu", "Savaş Sanatı"], ["Planların gece kadar karanlık olsun; harekete geçtiğinde yıldırım gibi düş.", "Sun Tzu", "Savaş Sanatı"], ["Kuşatılmış düşmana bir çıkış yolu bırak.", "Sun Tzu", "Savaş Sanatı"], ["Düşmanını da kendini de bilirsen, yüz savaşın sonucundan korkmazsın.", "Sun Tzu", "Savaş Sanatı"], ["Savaşı kazananlar önce kazanır, sonra savaşa girer.", "Sun Tzu", "Savaş Sanatı"], ["Bütün savaş aldatmaya dayanır.", "Sun Tzu", "Savaş Sanatı"], ["İyi savaşçı düşmanı kendi istediği yere çeker; düşmanın istediği yere gitmez.", "Sun Tzu", "Savaş Sanatı"], ["Hayatımda gördüğüm en çekişmeli, ucu ucuna iş buydu.", "Wellington Dükü", "Waterloo sonrası, atfedilir"], ["Prens hem tilki gibi kurnaz hem aslan gibi güçlü olmalıdır.", "Machiavelli", "Prens"], ["İmkânsız, aptalların sözlüğünde bulunan bir kelimedir.", "Napolyon Bonapart", "atfedilir"], ["Savunma, saldırıdan daha güçlü bir savaş biçimidir.", "Clausewitz", "Savaş Üzerine"], ["Savaşta azim, yenilgide dik duruş, zaferde cömertlik, barışta iyi niyet.", "Winston Churchill", "İkinci Dünya Savaşı"], ["Mutluluğun sırrı özgürlük, özgürlüğün sırrı cesarettir.", "Thukydides", "Peloponnes Savaşı, Perikles'e atfedilir"], ["En güzel öç, kendini düşmana benzetmemektir.", "Marcus Aurelius", "Kendime Düşünceler"], ["Başkalarını yenen güçlüdür; kendini yenen gerçekten kudretlidir.", "Lao Tzu", "Tao Te Ching"], ["Savaşta bin kişiyi yenen değil, kendini yenen en büyük savaşçıdır.", "Dhammapada", ""], ["Bugün kanını benimle dökecek olan, benim kardeşim olacaktır.", "William Shakespeare", "V. Henry"], ["Barışı isteyen savaşa hazırlansın.", "Vegetius", "Askerlik Sanatı Üzerine"]]
+};
+const MEMQ={};
+// Her oyuncu (bu cihaz) için seçilen söz kaydedilir; havuz bitmeden aynı söz tekrar çıkmaz, bitince havuz yeniden karışır.
+function pickQuote(kind){
+  const pool=QUOTES[kind];if(!pool||!pool.length)return null;
+  const key='zs-q-'+kind;let used=[];
+  try{used=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(used))used=[];}catch(e){used=MEMQ[kind]||[];}
+  used=used.filter(i=>Number.isInteger(i)&&i>=0&&i<pool.length);
+  let free=pool.map((_,i)=>i).filter(i=>!used.includes(i));
+  if(!free.length){const last=used[used.length-1];used=[];free=pool.map((_,i)=>i).filter(i=>i!==last);}
+  const i=free[Math.floor(Math.random()*free.length)];
+  used.push(i);MEMQ[kind]=used;
+  try{localStorage.setItem(key,JSON.stringify(used));}catch(e){}
+  return pool[i];
+}
+
 function endTexts(){
   const r=G.result,me=mySide(),cpu=G.mode==='cpu';
   if(r.type==='left')return {kind:'win',title:'Kazandın',sub:`${G.oppName} oyundan ayrıldı.`};
@@ -899,6 +924,10 @@ function render(){
     const t=endTexts();
     $('endT').textContent=t.title;$('endS').textContent=t.sub;
     end.className='end '+t.kind;
+    if(G.quote===undefined)G.quote=t.kind==='win'?pickQuote('w'):t.kind==='lose'?pickQuote('l'):null;
+    const q=G.quote;
+    $('endQ').hidden=!q;
+    if(q){$('endQt').textContent='“'+q[0]+'”';$('endQa').textContent='— '+q[1]+(q[2]?', '+q[2]:'');}
   }
 }
 
