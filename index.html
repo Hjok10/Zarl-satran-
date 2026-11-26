@@ -149,12 +149,53 @@ details ul b{color:var(--fg);font-weight:600}
 @keyframes endin{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.end{animation:none}}
 .modes select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.menuview{min-height:calc(100vh - 90px);display:flex;align-items:center;justify-content:center}
+.menuview[hidden],#gameView[hidden],.modal[hidden]{display:none}
+.menucard{width:min(440px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;display:grid;gap:14px}
+.menucard h1{font-size:34px;margin:0}
+.menucard .tag{margin:0;color:var(--muted);font-size:14px}
+.menusel{display:grid;gap:12px}
+.menusel label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.menusel label.off{display:none}
+.menusel select{width:100%;font:500 15px var(--font-body);padding:11px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.menusel select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.menubtn{width:100%}
+.menulink{width:100%;margin-top:12px}
+.modal{position:fixed;inset:0;background:rgba(10,16,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modalbox{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:16px}
+.modalbox h2{margin:0;font-family:var(--font-head);font-size:22px}
+.setrow{display:grid;gap:8px}
+.setrow .big{margin:0}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;font:600 14px var(--font-head);padding:10px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 </style>
 
 <div class="app">
+  <div id="menuView" class="menuview">
+    <div class="menucard">
+      <h1 data-i18n="title">Zarlı Satranç</h1>
+      <p class="tag" data-i18n="tagline"></p>
+      <div class="menusel">
+        <label><span data-i18n="mode"></span>
+          <select id="mode"><option value="cpu" data-i18n="mode_cpu" selected></option><option value="pvp" data-i18n="mode_pvp"></option><option value="online" data-i18n="mode_online"></option></select>
+        </label>
+        <label id="sidel"><span data-i18n="side"></span>
+          <select id="side"><option value="w" data-i18n="w" selected></option><option value="b" data-i18n="b"></option></select>
+        </label>
+        <label id="levl"><span data-i18n="level"></span>
+          <select id="level"><option value="easy" data-i18n="lv_easy"></option><option value="medium" data-i18n="lv_medium" selected></option><option value="hard" data-i18n="lv_hard"></option><option value="expert" data-i18n="lv_expert"></option></select>
+        </label>
+      </div>
+      <button class="btn primary menubtn" id="menuStart"></button>
+      <button class="btn menubtn" id="menuSettings" data-i18n="settings"></button>
+    </div>
+  </div>
+
+  <div id="gameView" hidden>
   <header>
-    <h1>Zarlı Satranç</h1>
-    <p>Klasik satranç kuralları geçerli. Sıra gelince 7 yüzlü zarı at. Zar kadar puanın olur, her hamle gittiği kare kadar puan harcar. Puanlar bitmeden sıra geçmez.</p>
+    <h1 data-i18n="title">Zarlı Satranç</h1>
   </header>
   <div class="layout">
     <div class="boardcol" id="boardcol">
@@ -167,8 +208,8 @@ details ul b{color:var(--fg);font-weight:600}
             <p id="endS"></p>
             <figure class="quote" id="endQ" hidden><blockquote id="endQt"></blockquote><figcaption id="endQa"></figcaption></figure>
             <div class="btnrow">
-              <button class="btn primary" id="endNew">Yeni oyun</button>
-              <button class="btn" id="endView">Tahtayı gör</button>
+              <button class="btn primary" id="endNew"></button>
+              <button class="btn" id="endView" data-i18n="view"></button>
             </div>
           </div>
         </div>
@@ -176,45 +217,34 @@ details ul b{color:var(--fg);font-weight:600}
     </div>
     <aside class="panel">
       <div class="sec">
-        <div class="modes">
-          <label>Rakip
-            <select id="mode"><option value="cpu" selected>Bilgisayar</option><option value="pvp">İki kişi (aynı ekran)</option><option value="online">Çevrimiçi (kod ile)</option></select>
-          </label>
-          <label id="sidel">Rengin
-            <select id="side"><option value="w" selected>Beyaz</option><option value="b">Siyah</option></select>
-          </label>
-          <label id="levl">Zorluk
-            <select id="level"><option value="easy">Kolay</option><option value="medium" selected>Orta</option><option value="hard">Zor</option><option value="expert">Çok zor</option></select>
-          </label>
-        </div>
         <div class="lobby" id="lobby" hidden>
           <div id="lbEntry">
-            <label class="field">Oyun adın
-              <input id="lbName" maxlength="16" autocomplete="off" placeholder="örn. KaraAt">
+            <label class="field"><span data-i18n="lb_name"></span>
+              <input id="lbName" maxlength="16" autocomplete="off" data-i18n-ph="lb_name_ph">
             </label>
             <div class="lbcols">
-              <div class="lbcard"><p class="big">Lobi kur</p><button class="btn primary" id="lbCreate">Lobi oluştur</button></div>
-              <div class="lbcard"><p class="big">Lobiye katıl</p><input id="lbCode" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6 haneli kod" aria-label="Lobi kodu"><button class="btn" id="lbJoin">Katıl</button></div>
+              <div class="lbcard"><p class="big" data-i18n="lb_make"></p><button class="btn primary" id="lbCreate" data-i18n="lb_create"></button></div>
+              <div class="lbcard"><p class="big" data-i18n="lb_joinT"></p><input id="lbCode" inputmode="numeric" maxlength="6" autocomplete="off" data-i18n-ph="lb_code_ph" data-i18n-aria="lb_code_aria"><button class="btn" id="lbJoin" data-i18n="lb_join"></button></div>
             </div>
           </div>
           <div id="lbHost" hidden>
-            <p class="big">Lobi kodun</p>
+            <p class="big" data-i18n="lb_yourcode"></p>
             <div class="lbcode" id="lbCodeBig"></div>
-            <div class="btnrow"><button class="btn" id="lbCopy">Kodu kopyala</button><button class="btn" id="lbRegen">Yeni kod</button></div>
-            <p id="lbHostWait" class="lbnote">Rakip bekleniyor. Kodu oynayacağın kişiyle paylaş.</p>
+            <div class="btnrow"><button class="btn" id="lbCopy" data-i18n="lb_copy"></button><button class="btn" id="lbRegen" data-i18n="lb_regen"></button></div>
+            <p id="lbHostWait" class="lbnote" data-i18n="lb_wait"></p>
             <div id="lbHostReq" class="lbreq" hidden>
-              <p class="lbnote"><b id="lbReqName"></b> katılmak istiyor.</p>
-              <div class="btnrow"><button class="btn primary" id="lbApprove">Onayla</button><button class="btn" id="lbReject">Reddet</button></div>
+              <p class="lbnote"><b id="lbReqName"></b><span data-i18n="lb_wants"></span></p>
+              <div class="btnrow"><button class="btn primary" id="lbApprove" data-i18n="lb_approve"></button><button class="btn" id="lbReject" data-i18n="lb_reject"></button></div>
             </div>
-            <button class="btn" id="lbClose">Lobiyi kapat</button>
+            <button class="btn" id="lbClose" data-i18n="lb_closeBtn"></button>
           </div>
           <div id="lbGuest" hidden>
-            <p class="big">Onay bekleniyor</p>
-            <p class="lbnote">Lobi sahibi isteğini görünce kabul edebilir. Kabul edilirsen oyun 3 saniye sonra başlar.</p>
-            <button class="btn" id="lbCancel">İsteği geri çek</button>
+            <p class="big" data-i18n="lb_waitT"></p>
+            <p class="lbnote" data-i18n="lb_waitNote"></p>
+            <button class="btn" id="lbCancel" data-i18n="lb_cancel"></button>
           </div>
           <div id="lbCount" hidden>
-            <p class="big">Oyun başlıyor</p>
+            <p class="big" data-i18n="lb_startT"></p>
             <div class="lbnum" id="lbNum">3</div>
             <p class="lbnote" id="lbCountInfo"></p>
           </div>
@@ -225,41 +255,48 @@ details ul b{color:var(--fg);font-weight:600}
         <div class="rollrow">
           <div class="die empty" id="die" aria-live="polite"></div>
           <div class="rollcol">
-            <button class="btn primary" id="roll">Zarı at</button>
-            <div class="btnrow">
-              <button class="btn" id="new">Yeni oyun</button>
-              <button class="btn" id="snd" aria-pressed="true">Ses: açık</button>
-            </div>
+            <button class="btn primary" id="roll" data-i18n="roll"></button>
           </div>
         </div>
         <p id="status" aria-live="polite"></p>
         <p id="hint"></p>
         </div>
+        <button class="btn menulink" id="toMenu" data-i18n="menu"></button>
       </div>
       <div class="sec">
-        <p class="big">Alınan taşlar</p>
-        <div class="cap"><b>Beyaz</b><span id="capW"></span></div>
-        <div class="cap"><b>Siyah</b><span id="capB"></span></div>
+        <p class="big" data-i18n="captured"></p>
+        <div class="cap"><b data-i18n="w"></b><span id="capW"></span></div>
+        <div class="cap"><b data-i18n="b"></b><span id="capB"></span></div>
       </div>
       <div class="sec">
-        <p class="big">Hamleler</p>
+        <p class="big" data-i18n="moves"></p>
         <ol id="log"></ol>
       </div>
       <div class="sec">
         <details>
-          <summary>Zar kuralları</summary>
+          <summary data-i18n="rules"></summary>
           <ul>
-            <li><b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.</li>
-            <li><b>Bir piyon</b> tek turda en fazla 5 puan harcar. Zar 7 ise bir piyon 5 puan oynar, kalan 2 puanı başka bir taşla harcarsın.</li>
-            <li><b>Kalan puan</b> başka hamlelerle harcanır. Oynanabilecek hamle kalmadıysa sıra biter.</li>
-            <li><b>Piyonun iki karesi</b> ve <b>rok</b> en az 2 gerektirir.</li>
-            <li><b>Hamle yoksa</b> sıra rakibe geçer.</li>
-            <li><b>Şah çekildiyse</b> ve zar kurtarmaya yetmiyorsa sıra geçer. Şah alınmaz, oyun yalnızca mat ile biter.</li>
-            <li><b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir.</li>
+            <li data-i18n-html="r1"></li>
+            <li data-i18n-html="r2"></li>
+            <li data-i18n-html="r3"></li>
+            <li data-i18n-html="r4"></li>
+            <li data-i18n-html="r5"></li>
+            <li data-i18n-html="r6"></li>
+            <li data-i18n-html="r7"></li>
           </ul>
         </details>
       </div>
     </aside>
+  </div>
+  </div>
+
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modalbox" role="dialog" aria-modal="true" aria-labelledby="setT">
+      <h2 id="setT" data-i18n="settings"></h2>
+      <div class="setrow"><p class="big" data-i18n="lang"></p><div class="seg" id="langSeg"></div></div>
+      <div class="setrow"><p class="big" data-i18n="sound"></p><div class="seg"><button type="button" id="sndOn"></button><button type="button" id="sndOff"></button></div></div>
+      <button class="btn primary" id="setClose" data-i18n="close"></button>
+    </div>
   </div>
 </div>
 
@@ -566,9 +603,277 @@ function aiChoose(s,color,moves,left,level,sp){
 }
 // ENGINE END
 
+// ---- Diller: Türkçe, İngilizce, Çince ----
+const LANGS=[['tr','Türkçe'],['en','English'],['zh','中文']];
+const I18N={
+tr:{
+title:'Zarlı Satranç',
+tagline:'Klasik satranç kuralları geçerli. Sıra gelince 7 yüzlü zarı at. Zar kadar puanın olur, her hamle gittiği kare kadar puan harcar. Puanlar bitmeden sıra geçmez.',
+mode:'Rakip',mode_cpu:'Bilgisayar',mode_pvp:'İki kişi (aynı ekran)',mode_online:'Çevrimiçi (kod ile)',
+side:'Rengin',level:'Zorluk',lv_easy:'Kolay',lv_medium:'Orta',lv_hard:'Zor',lv_expert:'Çok zor',
+start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',lang:'Dil',sound:'Ses',on:'Açık',off:'Kapalı',close:'Kapat',
+w:'Beyaz',b:'Siyah',you:'sen',computer:'bilgisayar',Computer:'Bilgisayar',
+roll:'Zarı at',menu:'Ana menüye dön',captured:'Alınan taşlar',moves:'Hamleler',nomoves:'Henüz hamle yok',
+rules:'Zar kuralları',
+r1:'<b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.',
+r2:'<b>Bir piyon</b> tek turda en fazla 5 puan harcar. Zar 7 ise bir piyon 5 puan oynar, kalan 2 puanı başka bir taşla harcarsın.',
+r3:'<b>Kalan puan</b> başka hamlelerle harcanır. Oynanabilecek hamle kalmadıysa sıra biter.',
+r4:'<b>Piyonun iki karesi</b> ve <b>rok</b> en az 2 gerektirir.',
+r5:'<b>Hamle yoksa</b> sıra rakibe geçer.',
+r6:'<b>Şah çekildiyse</b> ve zar kurtarmaya yetmiyorsa sıra geçer. Şah alınmaz, oyun yalnızca mat ile biter.',
+r7:'<b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir.',
+pc_k:'Şah',pc_q:'Vezir',pc_r:'Kale',pc_b:'Fil',pc_n:'At',pc_p:'Piyon',
+view:'Tahtayı gör',
+log_roll:'zar {n}',log_rest:'kalan {n}',log_pass:'Hamle yok, sıra geçti',log_ck:'Kısa rok',log_cq:'Uzun rok',log_ep:' (geçerken alma)',
+st_left:'{name} oyundan ayrıldı. Kazandın.',st_mate_side:'Şah mat. {side} kazandı.',st_mate_win:'Şah mat. Kazandın!',st_mate_lose:'Şah mat. {opn} kazandı.',
+st_stalemate:'Pat. Oyun berabere bitti.',st_material:'Yetersiz materyal. Oyun berabere bitti.',st_fifty:'50 hamle kuralı. Oyun berabere bitti.',
+st_promo:'Piyon terfi ediyor. Bir taş seç.',
+warn_me:' Şahın tehdit altında.',warn_cpu:' Bilgisayarın şahı tehdit altında.',warn_opp:' {opn} oyuncusunun şahı tehdit altında.',
+st_roll_side:'{side} sırada, zarı at.',st_roll_mine:'Sıra sende, zarı at.',st_roll_opp:'{opn} zar atıyor.',
+st_first_side:'{side} {n} attı.',st_rest_side:'{side} için kalan {n} puan.',st_play:' Altı çizili taşlardan biriyle oyna.',
+st_first_me:'{n} attın.',st_rest_me:'Kalan {n} puanın var.',st_first_opp:'{opn} {n} attı, hamlesini seçiyor.',st_rest_opp:'{opn} oyuncusunun kalan {n} puanı var.',
+pass_me_online:'{n} attın ama bu zarla oynayabileceğin hamle yok. Sıra {opn} oyuncusuna geçiyor.',
+pass_opp_online:'{opn} {n} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.',
+pass_pvp:'{side} {n} attı ama bu zarla oynayabileceği hamle yok. Sıra rakibe geçiyor.',
+pass_me_cpu:'{n} attın ama bu zarla oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.',
+pass_cpu:'Bilgisayar {n} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.',
+hint_roll:'Zar {r}, kalan {left} puan. Her hamle gittiği kare kadar puan harcar (rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.',
+hint_idle:'Zar (1-7) puan verir: her kare 1 puan. Bir piyon tek turda en fazla 5 puan harcar.',
+die_aria:'Zar: {v}',die_none:'Zar henüz atılmadı',
+end_win:'Kazandın!',end_lose:'Kaybettin',end_draw:'Berabere',end_left:'Kazandın',end_side_wins:'{side} kazandı',
+why_mate:'Şah mat.',why_stalemate:'Pat.',why_material:'Yetersiz materyal.',why_fifty:'50 hamle kuralı.',
+end_left_sub:'{name} oyundan ayrıldı.',end_cpu_win:'{why} Bilgisayarı yendin. Zorluk: {lvl}.',end_cpu_lose:'{why} Bilgisayar kazandı. Zorluk: {lvl}.',
+end_on_win:'{why} {name} adlı rakibi yendin.',end_on_lose:'{why} {name} kazandı.',
+attrib:'atfedilir',
+lb_name:'Oyun adın',lb_name_ph:'örn. KaraAt',lb_make:'Lobi kur',lb_create:'Lobi oluştur',lb_joinT:'Lobiye katıl',lb_code_ph:'6 haneli kod',lb_code_aria:'Lobi kodu',lb_join:'Katıl',
+lb_yourcode:'Lobi kodun',lb_copy:'Kodu kopyala',lb_regen:'Yeni kod',lb_wait:'Rakip bekleniyor. Kodu oynayacağın kişiyle paylaş.',lb_wants:' katılmak istiyor.',
+lb_approve:'Onayla',lb_reject:'Reddet',lb_closeBtn:'Lobiyi kapat',lb_waitT:'Onay bekleniyor',
+lb_waitNote:'Lobi sahibi isteğini görünce kabul edebilir. Kabul edilirsen oyun 3 saniye sonra başlar.',lb_cancel:'İsteği geri çek',lb_startT:'Oyun başlıyor',
+lb_countInfo:'{name} ile oynuyorsun. Rengin: {side}.',
+lb_nolib:'Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.',
+lb_err_net:'Bağlantı sunucularına ulaşılamıyor. İnternet bağlantını kontrol edip tekrar dene.',lb_err_generic:'Bağlantı hatası{x}. Tekrar dene.',
+lb_name_short:'Önce 2 ile 16 karakter arası bir oyun adı yaz.',lb_player:'Oyuncu',lb_aplayer:'Bir oyuncu',lb_preparing:'Lobi hazırlanıyor...',
+lb_nocode:'Boş bir kod bulunamadı, tekrar dene.',lb_code6:'Kod 6 haneli olmalı.',lb_connecting:'Lobiye bağlanılıyor...',lb_unreach:'Lobiye ulaşılamadı. Kodu kontrol et.',
+lb_notfound:'Bu kodla açık bir lobi bulunamadı.',lb_rejected_msg:'İstek reddedildi. Lobi yeniden açık.',lb_rejected_guest:'Lobi sahibi isteğini kabul etmedi.',
+lb_full:'Bu lobi dolu: başka bir oyuncu katılma isteği gönderdi ya da oyun başladı.',lb_baddata:'Geçersiz oyun verisi alındı.',
+lb_opp_left:'Rakip bağlantıdan ayrıldı. Lobi yeniden açık.',lb_closed:'Lobi kapandı ya da bağlantı koptu.',lb_startfail:'Oyun başlatılamadı, tekrar dene.',
+lb_unreach_opp:'Rakibe ulaşılamadı.',lb_sendfail:'Hamle rakibe gönderilemedi. Bağlantını kontrol et.',lb_closed_ok:'Lobi kapatıldı.',lb_withdrawn:'Katılma isteğin geri çekildi.',
+lb_copied:'Kod kopyalandı.',lb_selected:'Kodu seçtim, kopyalamak için Ctrl+C bas.',
+rl_ok:'bağlandı',rl_drop:'koptu',rl_fail:'ulaşılamadı',
+a_tolstoy:'Tolstoy',a_suntzu:'Sun Tzu',a_clausewitz:'Clausewitz',a_napoleon:'Napolyon Bonapart',a_ataturk:'Mustafa Kemal Atatürk',a_fatih:'Fatih Sultan Mehmed',a_marcus:'Marcus Aurelius',a_epictetus:'Epiktetos',a_seneca:'Seneca',a_nietzsche:'Nietzsche',a_laotzu:'Lao Tzu',a_japanese:'Japon atasözü',a_musashi:'Miyamoto Musashi',a_hannibal:'Hannibal',a_leonidas:'Kral Leonidas',a_terence:'Terentius',a_churchill:'Winston Churchill',a_ovid:'Ovidius',a_shakespeare:'William Shakespeare',a_kipling:'Rudyard Kipling',a_rumi:'Mevlânâ',a_caesar:'Julius Caesar',a_wellington:'Wellington Dükü',a_machiavelli:'Machiavelli',a_thucydides:'Thukydides',a_dhammapada:'Dhammapada',a_vegetius:'Vegetius',
+s_artofwar:'Savaş Sanatı',s_warpeace:'Savaş ve Barış',s_onwar:'Savaş Üzerine',s_sakarya:'Sakarya Meydan Muharebesi, 1921',s_meditations:'Kendime Düşünceler',s_enchiridion:'El Kitabı',s_discourses:'Sohbetler',s_letters:'Ahlaki Mektuplar',s_twilight:'Putların Alacakaranlığı',s_tao:'Tao Te Ching',s_fivering:'Beş Halka Kitabı',s_plutarch:'Plutarkhos, Lakon Sözleri',s_phormio:'Phormio',s_harrow:'Harrow Okulu konuşması, 1941',s_amores:'Aşk Şiirleri',s_henryv:'V. Henry',s_if:'Eğer',s_zela:'Zela Savaşı sonrası',s_suetonius:'Suetonius',s_aug30:'30 Ağustos 1922',s_waterloo:'Waterloo sonrası',s_prince:'Prens',s_ww2:'İkinci Dünya Savaşı',s_peloponnese:'Peloponnes Savaşı, Perikles\'e atfedilir',s_vegetius:'Askerlik Sanatı Üzerine'
+},
+en:{
+title:'Dice Chess',
+tagline:'Classic chess rules apply. On your turn, roll the 7-sided die. The roll is your point pool, and each move costs as many points as the squares it moves. Your turn does not end until the points are spent.',
+mode:'Opponent',mode_cpu:'Computer',mode_pvp:'Two players (same screen)',mode_online:'Online (with code)',
+side:'Your color',level:'Difficulty',lv_easy:'Easy',lv_medium:'Medium',lv_hard:'Hard',lv_expert:'Very hard',
+start:'Start game',start_online:'Go to lobby',settings:'Settings',lang:'Language',sound:'Sound',on:'On',off:'Off',close:'Close',
+w:'White',b:'Black',you:'you',computer:'computer',Computer:'Computer',
+roll:'Roll the die',menu:'Back to main menu',captured:'Captured pieces',moves:'Moves',nomoves:'No moves yet',
+rules:'Dice rules',
+r1:'<b>The die is a point pool (1-7).</b> Each move costs as many points as the squares it moves. With a 4 you can advance the same pawn 4 squares.',
+r2:'<b>A pawn</b> spends at most 5 points per turn. With a 7, one pawn plays 5 points and you spend the remaining 2 with another piece.',
+r3:'<b>Remaining points</b> are spent on other moves. If no playable move is left, the turn ends.',
+r4:'<b>A pawn\'s two-square move</b> and <b>castling</b> need at least 2 points.',
+r5:'<b>If there is no move,</b> the turn passes to the opponent.',
+r6:'<b>If your king is in check</b> and the roll cannot resolve it, the turn passes. The king is never captured; the game ends only by checkmate.',
+r7:'<b>Checkmate and stalemate</b> follow the classic rules, independent of the die.',
+pc_k:'King',pc_q:'Queen',pc_r:'Rook',pc_b:'Bishop',pc_n:'Knight',pc_p:'Pawn',
+view:'View board',
+log_roll:'roll {n}',log_rest:'left {n}',log_pass:'No moves, turn passed',log_ck:'Castles kingside',log_cq:'Castles queenside',log_ep:' (en passant)',
+st_left:'{name} left the game. You win.',st_mate_side:'Checkmate. {side} wins.',st_mate_win:'Checkmate. You win!',st_mate_lose:'Checkmate. {opn} wins.',
+st_stalemate:'Stalemate. The game is a draw.',st_material:'Insufficient material. The game is a draw.',st_fifty:'Fifty-move rule. The game is a draw.',
+st_promo:'Pawn promotion. Choose a piece.',
+warn_me:' Your king is in check.',warn_cpu:' The computer\'s king is in check.',warn_opp:' {opn}\'s king is in check.',
+st_roll_side:'{side} to move, roll the die.',st_roll_mine:'Your turn, roll the die.',st_roll_opp:'{opn} is rolling.',
+st_first_side:'{side} rolled {n}.',st_rest_side:'{side} has {n} points left.',st_play:' Play with one of the underlined pieces.',
+st_first_me:'You rolled {n}.',st_rest_me:'You have {n} points left.',st_first_opp:'{opn} rolled {n} and is choosing a move.',st_rest_opp:'{opn} has {n} points left.',
+pass_me_online:'You rolled {n} but have no playable move with it. The turn passes to {opn}.',
+pass_opp_online:'{opn} rolled {n} but has no playable move with it. The turn passes to you.',
+pass_pvp:'{side} rolled {n} but has no playable move with it. The turn passes to the opponent.',
+pass_me_cpu:'You rolled {n} but have no playable move with it. The turn passes to the computer.',
+pass_cpu:'The computer rolled {n} but has no playable move with it. The turn passes to you.',
+hint_roll:'Roll {r}, {left} points left. Each move costs as many points as the squares it moves (castling 2). A pawn can spend at most 5 points per turn. Your turn does not end until the points are spent.',
+hint_idle:'The die (1-7) gives points: each square costs 1 point. A pawn can spend at most 5 points per turn.',
+die_aria:'Die: {v}',die_none:'The die has not been rolled yet',
+end_win:'You win!',end_lose:'You lost',end_draw:'Draw',end_left:'You win',end_side_wins:'{side} wins',
+why_mate:'Checkmate.',why_stalemate:'Stalemate.',why_material:'Insufficient material.',why_fifty:'Fifty-move rule.',
+end_left_sub:'{name} left the game.',end_cpu_win:'{why} You beat the computer. Difficulty: {lvl}.',end_cpu_lose:'{why} The computer won. Difficulty: {lvl}.',
+end_on_win:'{why} You beat {name}.',end_on_lose:'{why} {name} won.',
+attrib:'attributed',
+lb_name:'Your game name',lb_name_ph:'e.g. BlackKnight',lb_make:'Create a lobby',lb_create:'Create lobby',lb_joinT:'Join a lobby',lb_code_ph:'6-digit code',lb_code_aria:'Lobby code',lb_join:'Join',
+lb_yourcode:'Your lobby code',lb_copy:'Copy code',lb_regen:'New code',lb_wait:'Waiting for an opponent. Share the code with the person you want to play.',lb_wants:' wants to join.',
+lb_approve:'Approve',lb_reject:'Reject',lb_closeBtn:'Close lobby',lb_waitT:'Waiting for approval',
+lb_waitNote:'The lobby owner can accept your request when they see it. If accepted, the game starts in 3 seconds.',lb_cancel:'Withdraw request',lb_startT:'Game starting',
+lb_countInfo:'You are playing against {name}. Your color: {side}.',
+lb_nolib:'This browser does not support direct connections. Use Chrome, Edge, Firefox or Safari.',
+lb_err_net:'Cannot reach the connection servers. Check your internet connection and try again.',lb_err_generic:'Connection error{x}. Try again.',
+lb_name_short:'First enter a game name of 2 to 16 characters.',lb_player:'Player',lb_aplayer:'A player',lb_preparing:'Preparing the lobby...',
+lb_nocode:'Could not find a free code, try again.',lb_code6:'The code must be 6 digits.',lb_connecting:'Connecting to the lobby...',lb_unreach:'Could not reach the lobby. Check the code.',
+lb_notfound:'No open lobby found with this code.',lb_rejected_msg:'Request rejected. The lobby is open again.',lb_rejected_guest:'The lobby owner did not accept your request.',
+lb_full:'This lobby is full: another player has sent a request or the game has started.',lb_baddata:'Invalid game data received.',
+lb_opp_left:'The opponent disconnected. The lobby is open again.',lb_closed:'The lobby closed or the connection was lost.',lb_startfail:'Could not start the game, try again.',
+lb_unreach_opp:'Could not reach the opponent.',lb_sendfail:'The move could not be sent to the opponent. Check your connection.',lb_closed_ok:'Lobby closed.',lb_withdrawn:'Your join request was withdrawn.',
+lb_copied:'Code copied.',lb_selected:'I selected the code. Press Ctrl+C to copy.',
+rl_ok:'connected',rl_drop:'dropped',rl_fail:'unreachable',
+a_tolstoy:'Leo Tolstoy',a_suntzu:'Sun Tzu',a_clausewitz:'Carl von Clausewitz',a_napoleon:'Napoleon Bonaparte',a_ataturk:'Mustafa Kemal Atatürk',a_fatih:'Mehmed the Conqueror',a_marcus:'Marcus Aurelius',a_epictetus:'Epictetus',a_seneca:'Seneca',a_nietzsche:'Friedrich Nietzsche',a_laotzu:'Laozi',a_japanese:'Japanese proverb',a_musashi:'Miyamoto Musashi',a_hannibal:'Hannibal',a_leonidas:'King Leonidas',a_terence:'Terence',a_churchill:'Winston Churchill',a_ovid:'Ovid',a_shakespeare:'William Shakespeare',a_kipling:'Rudyard Kipling',a_rumi:'Rumi',a_caesar:'Julius Caesar',a_wellington:'Duke of Wellington',a_machiavelli:'Machiavelli',a_thucydides:'Thucydides',a_dhammapada:'Dhammapada',a_vegetius:'Vegetius',
+s_artofwar:'The Art of War',s_warpeace:'War and Peace',s_onwar:'On War',s_sakarya:'Battle of the Sakarya, 1921',s_meditations:'Meditations',s_enchiridion:'Enchiridion',s_discourses:'Discourses',s_letters:'Moral Letters',s_twilight:'Twilight of the Idols',s_tao:'Tao Te Ching',s_fivering:'The Book of Five Rings',s_plutarch:'Plutarch, Sayings of Spartans',s_phormio:'Phormio',s_harrow:'Speech at Harrow School, 1941',s_amores:'Amores',s_henryv:'Henry V',s_if:'If—',s_zela:'After the Battle of Zela',s_suetonius:'Suetonius',s_aug30:'30 August 1922',s_waterloo:'After Waterloo',s_prince:'The Prince',s_ww2:'The Second World War',s_peloponnese:'History of the Peloponnesian War, attributed to Pericles',s_vegetius:'On Military Matters'
+},
+zh:{
+title:'骰子国际象棋',
+tagline:'遵循经典国际象棋规则。轮到你时掷一个7面骰子。点数就是你的点数池，每步棋消耗的点数等于移动的格数。点数用完前不会换对手。',
+mode:'对手',mode_cpu:'电脑',mode_pvp:'双人（同一屏幕）',mode_online:'在线（输入代码）',
+side:'你的颜色',level:'难度',lv_easy:'简单',lv_medium:'中等',lv_hard:'困难',lv_expert:'极难',
+start:'开始游戏',start_online:'进入大厅',settings:'设置',lang:'语言',sound:'声音',on:'开',off:'关',close:'关闭',
+w:'白方',b:'黑方',you:'你',computer:'电脑',Computer:'电脑',
+roll:'掷骰子',menu:'返回主菜单',captured:'被吃的棋子',moves:'走法',nomoves:'还没有走棋',
+rules:'骰子规则',
+r1:'<b>骰子是一个点数池（1-7）。</b>每步棋消耗的点数等于移动的格数。掷出4时，同一个兵可以前进4格。',
+r2:'<b>一个兵</b>每回合最多消耗5点。掷出7时，一个兵走5点，剩下的2点用其他棋子走。',
+r3:'<b>剩余点数</b>用于其他走法。如果没有可走的棋，回合结束。',
+r4:'<b>兵走两格</b>和<b>王车易位</b>至少需要2点。',
+r5:'<b>如果无棋可走，</b>轮到对手。',
+r6:'<b>如果王被将军</b>而骰子点数不足以解围，则轮空。王不会被吃掉，只有将杀才会结束游戏。',
+r7:'<b>将杀和逼和</b>按经典规则判定，与骰子无关。',
+pc_k:'王',pc_q:'后',pc_r:'车',pc_b:'象',pc_n:'马',pc_p:'兵',
+view:'查看棋盘',
+log_roll:'骰子 {n}',log_rest:'剩余 {n}',log_pass:'无棋可走，轮空',log_ck:'短易位',log_cq:'长易位',log_ep:'（吃过路兵）',
+st_left:'{name}离开了游戏。你赢了。',st_mate_side:'将杀。{side}获胜。',st_mate_win:'将杀。你赢了！',st_mate_lose:'将杀。{opn}获胜。',
+st_stalemate:'逼和。本局和棋。',st_material:'子力不足。本局和棋。',st_fifty:'五十回合规则。本局和棋。',
+st_promo:'兵升变。请选择一个棋子。',
+warn_me:' 你的王被将军了。',warn_cpu:' 电脑的王被将军了。',warn_opp:' {opn}的王被将军了。',
+st_roll_side:'轮到{side}，请掷骰子。',st_roll_mine:'轮到你了，请掷骰子。',st_roll_opp:'{opn}正在掷骰子。',
+st_first_side:'{side}掷出了{n}。',st_rest_side:'{side}还剩{n}点。',st_play:' 请走带下划线的棋子。',
+st_first_me:'你掷出了{n}。',st_rest_me:'你还剩{n}点。',st_first_opp:'{opn}掷出了{n}，正在选择走法。',st_rest_opp:'{opn}还剩{n}点。',
+pass_me_online:'你掷出了{n}，但没有可走的棋。轮到{opn}。',
+pass_opp_online:'{opn}掷出了{n}，但没有可走的棋。轮到你。',
+pass_pvp:'{side}掷出了{n}，但没有可走的棋。轮到对手。',
+pass_me_cpu:'你掷出了{n}，但没有可走的棋。轮到电脑。',
+pass_cpu:'电脑掷出了{n}，但没有可走的棋。轮到你。',
+hint_roll:'骰子{r}，还剩{left}点。每步棋消耗的点数等于移动的格数（王车易位为2）。一个兵每回合最多消耗5点。点数用完前不会换对手。',
+hint_idle:'骰子（1-7）提供点数：每格消耗1点。一个兵每回合最多消耗5点。',
+die_aria:'骰子：{v}',die_none:'骰子还没有掷出',
+end_win:'你赢了！',end_lose:'你输了',end_draw:'和棋',end_left:'你赢了',end_side_wins:'{side}获胜',
+why_mate:'将杀。',why_stalemate:'逼和。',why_material:'子力不足。',why_fifty:'五十回合规则。',
+end_left_sub:'{name}离开了游戏。',end_cpu_win:'{why}你击败了电脑。难度：{lvl}。',end_cpu_lose:'{why}电脑获胜。难度：{lvl}。',
+end_on_win:'{why}你击败了{name}。',end_on_lose:'{why}{name}获胜。',
+attrib:'相传',
+lb_name:'你的昵称',lb_name_ph:'例如：黑骑士',lb_make:'创建大厅',lb_create:'创建大厅',lb_joinT:'加入大厅',lb_code_ph:'6位代码',lb_code_aria:'大厅代码',lb_join:'加入',
+lb_yourcode:'你的大厅代码',lb_copy:'复制代码',lb_regen:'新代码',lb_wait:'正在等待对手。请把代码分享给你想一起玩的人。',lb_wants:' 想要加入。',
+lb_approve:'同意',lb_reject:'拒绝',lb_closeBtn:'关闭大厅',lb_waitT:'等待同意',
+lb_waitNote:'大厅主人看到后可以接受你的请求。接受后游戏将在3秒后开始。',lb_cancel:'撤回请求',lb_startT:'游戏即将开始',
+lb_countInfo:'你正在与{name}对战。你的颜色：{side}。',
+lb_nolib:'此浏览器不支持直接连接。请使用Chrome、Edge、Firefox或Safari。',
+lb_err_net:'无法连接到服务器。请检查网络后重试。',lb_err_generic:'连接错误{x}。请重试。',
+lb_name_short:'请先输入2到16个字符的昵称。',lb_player:'玩家',lb_aplayer:'一位玩家',lb_preparing:'正在准备大厅……',
+lb_nocode:'没有找到可用的代码，请重试。',lb_code6:'代码必须是6位数字。',lb_connecting:'正在连接大厅……',lb_unreach:'无法连接大厅。请检查代码。',
+lb_notfound:'没有找到使用此代码的开放大厅。',lb_rejected_msg:'请求已被拒绝。大厅已重新开放。',lb_rejected_guest:'大厅主人没有接受你的请求。',
+lb_full:'此大厅已满：已有其他玩家发出请求，或游戏已经开始。',lb_baddata:'收到无效的游戏数据。',
+lb_opp_left:'对手已断开连接。大厅已重新开放。',lb_closed:'大厅已关闭或连接已断开。',lb_startfail:'无法开始游戏，请重试。',
+lb_unreach_opp:'无法联系对手。',lb_sendfail:'走法无法发送给对手。请检查网络。',lb_closed_ok:'大厅已关闭。',lb_withdrawn:'你的加入请求已撤回。',
+lb_copied:'代码已复制。',lb_selected:'已选中代码，请按Ctrl+C复制。',
+rl_ok:'已连接',rl_drop:'已断开',rl_fail:'无法访问',
+a_tolstoy:'列夫·托尔斯泰',a_suntzu:'孙子',a_clausewitz:'克劳塞维茨',a_napoleon:'拿破仑·波拿巴',a_ataturk:'穆斯塔法·凯末尔·阿塔图尔克',a_fatih:'征服者穆罕默德',a_marcus:'马可·奥勒留',a_epictetus:'爱比克泰德',a_seneca:'塞涅卡',a_nietzsche:'尼采',a_laotzu:'老子',a_japanese:'日本谚语',a_musashi:'宫本武藏',a_hannibal:'汉尼拔',a_leonidas:'列奥尼达国王',a_terence:'泰伦提乌斯',a_churchill:'温斯顿·丘吉尔',a_ovid:'奥维德',a_shakespeare:'威廉·莎士比亚',a_kipling:'鲁德亚德·吉卜林',a_rumi:'鲁米',a_caesar:'尤利乌斯·凯撒',a_wellington:'威灵顿公爵',a_machiavelli:'马基雅维利',a_thucydides:'修昔底德',a_dhammapada:'《法句经》',a_vegetius:'维吉提乌斯',
+s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》',s_onwar:'《战争论》',s_sakarya:'1921年萨卡里亚战役',s_meditations:'《沉思录》',s_enchiridion:'《手册》',s_discourses:'《论说集》',s_letters:'《道德书简》',s_twilight:'《偶像的黄昏》',s_tao:'《道德经》',s_fivering:'《五轮书》',s_plutarch:'普鲁塔克《斯巴达人箴言》',s_phormio:'《福尔弥奥》',s_harrow:'1941年哈罗公学演讲',s_amores:'《恋歌》',s_henryv:'《亨利五世》',s_if:'《如果》',s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_waterloo:'滑铁卢战役之后',s_prince:'《君主论》',s_ww2:'《第二次世界大战》',s_peloponnese:'《伯罗奔尼撒战争史》，相传为伯里克利所言',s_vegetius:'《论军事》'
+}};
+let LANG='tr';
+try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
+function t(k,v){
+  let s=(I18N[LANG]&&I18N[LANG][k]);
+  if(s===undefined)s=I18N.tr[k];
+  if(s===undefined)return k;
+  if(v)s=s.replace(/\{(\w+)\}/g,(m,x)=>v[x]===undefined?m:v[x]);
+  return s;
+}
+// [yazar, kaynak, atfedilir?, tr, en, zh]
+const QD={
+l:[
+['tolstoy','warpeace',0,'Savaşta en güçlü iki savaşçı sabır ve zamandır.','The two most powerful warriors are patience and time.','最强大的两位战士，是耐心与时间。'],
+['suntzu','artofwar',0,'Yenilmezlik kendi elindedir; yenme fırsatını ise düşman verir.','Invincibility lies in your own hands; the chance to defeat the enemy is given by the enemy.','不可胜在己，可胜在敌。'],
+['suntzu','artofwar',0,'Ne zaman savaşıp ne zaman savaşmayacağını bilen kazanır.','He who knows when to fight and when not to fight will win.','知可以战与不可以战者胜。'],
+['suntzu','artofwar',0,'Usta savaşçı önce yenilmez olur, sonra düşmanın hata yapmasını bekler.','The skilled warrior first makes himself unbeatable, then waits for the enemy to make a mistake.','昔之善战者，先为不可胜，以待敌之可胜。'],
+['suntzu','artofwar',0,'Su, toprağın şekline göre akar; usta komutan da düşmanına göre şekil alır.','Water shapes its course to the ground it flows over; a master commander shapes his plan to the enemy.','水因地而制流，兵因敌而制胜。'],
+['suntzu','artofwar',0,'Güçlüyken zayıf, zayıfken güçlü görün.','Appear weak when you are strong, and strong when you are weak.','能而示之不能，用而示之不用。'],
+['suntzu','artofwar',0,'Bilge komutan planlarında yararı ve zararı birlikte düşünür; böylece zorluktan çıkış yolunu bulur.','The wise commander weighs gain and loss together in his plans, and so finds his way out of difficulty.','智者之虑，必杂于利害；杂于利而务可信也，杂于害而患可解也。'],
+['clausewitz','onwar',0,'Savaşta her şey basittir, ama en basit şey bile zordur.','In war everything is very simple, but the simplest thing is difficult.','战争中一切都很简单，但最简单的事情也很困难。'],
+['napoleon','',1,'Savaşta manevi güç, maddi gücün üç katı değerindedir.','In war, the moral is to the physical as three is to one.','在战争中，精神的力量是物质力量的三倍。'],
+['napoleon','',1,'Zafer, en çok direnenindir.','Victory belongs to the most persevering.','胜利属于最坚持的人。'],
+['ataturk','sakarya',0,'Hattı müdafaa yoktur, sath-ı müdafaa vardır. O satıh bütün vatandır.','There is no line of defense, only a surface of defense, and that surface is the entire homeland.','防御不是一条线，而是一个面，这个面就是整个祖国。'],
+['fatih','',1,'Ya ben İstanbul\'u alırım, ya İstanbul beni.','Either I take Istanbul, or Istanbul takes me.','要么我夺取伊斯坦布尔，要么伊斯坦布尔夺取我。'],
+['marcus','meditations',0,'Engel, eylemi ilerletir; yolun önündeki engel yolun kendisi olur.','The impediment to action advances action; what stands in the way becomes the way.','阻碍行动的东西反而推动行动，挡在路上的障碍本身就成了道路。'],
+['marcus','meditations',0,'Ruhun, düşüncelerinin rengini alır.','Your soul takes on the color of your thoughts.','灵魂会染上思想的颜色。'],
+['epictetus','enchiridion',0,'İnsanları rahatsız eden olaylar değil, olaylar hakkındaki yargılarıdır.','People are disturbed not by events, but by their judgments about events.','困扰人们的不是事件本身，而是他们对事件的看法。'],
+['epictetus','discourses',0,'Önce kendine ne olmak istediğini söyle; sonra yapman gerekeni yap.','First say to yourself what you would be; then do what you have to do.','先告诉自己你想成为什么样的人，然后去做你该做的事。'],
+['seneca','letters',0,'Bir şey zor olduğu için cesaret etmiyor değiliz; cesaret etmediğimiz için zor.','It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.','不是因为事情困难我们才不敢，而是因为我们不敢，事情才显得困难。'],
+['nietzsche','twilight',0,'Beni öldürmeyen şey güçlendirir.','What does not kill me makes me stronger.','杀不死我的，使我更强大。'],
+['laotzu','tao',0,'Bin millik yolculuk tek bir adımla başlar.','A journey of a thousand miles begins with a single step.','千里之行，始于足下。'],
+['japanese','',0,'Yedi kez düş, sekiz kez kalk.','Fall seven times, stand up eight.','七转八起。'],
+['musashi','fivering',0,'Bin günlük çalışma ustalık içindir, on bin günlük çalışma parlamak için.','A thousand days of practice to forge, ten thousand days of practice to polish.','千日之功为锻，万日之功为炼。'],
+['hannibal','',1,'Ya bir yol bulacağız ya da yol açacağız.','We will either find a way, or make one.','我们要么找到一条路，要么开辟一条路。'],
+['leonidas','plutarch',0,'Gelip alsınlar.','Come and take them.','来拿吧。'],
+['terence','phormio',0,'Talih cesurlara yardım eder.','Fortune favors the bold.','命运眷顾勇者。'],
+['churchill','harrow',0,'Asla, asla, asla pes etmeyin.','Never give in, never, never, never.','永不放弃，永不，永不，永不。'],
+['ovid','amores',0,'Dayan ve sabret; bu acı bir gün işine yarayacak.','Endure and persist; this pain will one day be of use to you.','忍耐，坚持；这痛苦终有一天会对你有益。'],
+['shakespeare','henryv',0,'Bir kez daha gedikten içeri, sevgili dostlar, bir kez daha!','Once more unto the breach, dear friends, once more!','再冲一次缺口，亲爱的朋友们，再冲一次！'],
+['kipling','if',0,'Zafere de yenilgiye de rastlayıp o iki sahtekâra aynı gözle bakabilirsen...','If you can meet with Triumph and Disaster and treat those two impostors just the same...','如果你遇到成功和失败，能把这两个骗子一视同仁……'],
+['rumi','',1,'Dün dünde kaldı cancağızım, bugün yeni şeyler söylemek lazım.','Yesterday is gone, my dear; today we must say new things.','昨天已经过去，亲爱的，今天我们要说新的话。']
+],
+w:[
+['caesar','zela',0,'Geldim, gördüm, yendim.','I came, I saw, I conquered.','我来了，我看见了，我征服了。'],
+['caesar','suetonius',0,'Zar atıldı.','The die is cast.','骰子已经掷下。'],
+['ataturk','aug30',0,'Ordular! İlk hedefiniz Akdeniz\'dir, ileri!','Armies! Your first target is the Mediterranean. Forward!','军队！你们的第一个目标是地中海，前进！'],
+['ataturk','',1,'Zafer, “zafer benimdir” diyebilenindir. Başarı ise “başaracağım” diyebilenindir.','Victory belongs to those who can say “victory is mine.” Success belongs to those who can say “I will succeed.”','胜利属于敢说“胜利是我的”的人，成功属于敢说“我会成功”的人。'],
+['ataturk','',0,'Yurtta sulh, cihanda sulh.','Peace at home, peace in the world.','国内和平，世界和平。'],
+['suntzu','artofwar',0,'Yüz savaşta yüz zafer kazanmak en büyük beceri değildir; düşmanı savaşmadan boyun eğdirmek en büyük beceridir.','To win a hundred victories in a hundred battles is not the highest skill; to subdue the enemy without fighting is.','百战百胜，非善之善者也；不战而屈人之兵，善之善者也。'],
+['suntzu','artofwar',0,'Hız, savaşın özüdür.','Speed is the essence of war.','兵之情主速。'],
+['suntzu','artofwar',0,'Planların gece kadar karanlık olsun; harekete geçtiğinde yıldırım gibi düş.','Let your plans be dark and impenetrable as night, and when you move, fall like a thunderbolt.','难知如阴，动如雷震。'],
+['suntzu','artofwar',0,'Kuşatılmış düşmana bir çıkış yolu bırak.','Leave a way out for a surrounded enemy.','围师必阙。'],
+['suntzu','artofwar',0,'Düşmanını da kendini de bilirsen, yüz savaşın sonucundan korkmazsın.','Know the enemy and know yourself, and you need not fear the result of a hundred battles.','知彼知己，百战不殆。'],
+['suntzu','artofwar',0,'Savaşı kazananlar önce kazanır, sonra savaşa girer.','The victorious army wins first and then seeks the battle.','胜兵先胜而后求战。'],
+['suntzu','artofwar',0,'Bütün savaş aldatmaya dayanır.','All warfare is based on deception.','兵者，诡道也。'],
+['suntzu','artofwar',0,'İyi savaşçı düşmanı kendi istediği yere çeker; düşmanın istediği yere gitmez.','The skilled fighter draws the enemy to the ground of his choosing and is not drawn by the enemy.','善战者，致人而不致于人。'],
+['wellington','waterloo',1,'Hayatımda gördüğüm en çekişmeli, ucu ucuna iş buydu.','It was the nearest-run thing you ever saw in your life.','这是我一生中见过的最险的一仗。'],
+['machiavelli','prince',0,'Prens hem tilki gibi kurnaz hem aslan gibi güçlü olmalıdır.','A prince must be as cunning as a fox and as strong as a lion.','君主既要像狐狸一样狡猾，又要像狮子一样强大。'],
+['napoleon','',1,'İmkânsız, aptalların sözlüğünde bulunan bir kelimedir.','Impossible is a word found only in the dictionary of fools.','“不可能”这个词只存在于愚人的字典里。'],
+['clausewitz','onwar',0,'Savunma, saldırıdan daha güçlü bir savaş biçimidir.','Defense is a stronger form of war than attack.','防御是比进攻更强的作战形式。'],
+['churchill','ww2',0,'Savaşta azim, yenilgide dik duruş, zaferde cömertlik, barışta iyi niyet.','In war, resolution; in defeat, defiance; in victory, magnanimity; in peace, goodwill.','战时要坚定，败时要不屈，胜时要宽宏，和平时要善意。'],
+['thucydides','peloponnese',0,'Mutluluğun sırrı özgürlük, özgürlüğün sırrı cesarettir.','The secret of happiness is freedom, and the secret of freedom is courage.','幸福的秘诀是自由，自由的秘诀是勇气。'],
+['marcus','meditations',0,'En güzel öç, kendini düşmana benzetmemektir.','The best revenge is not to be like your enemy.','最好的报复，就是不要变得像你的敌人。'],
+['laotzu','tao',0,'Başkalarını yenen güçlüdür; kendini yenen gerçekten kudretlidir.','Those who overcome others are strong; those who overcome themselves are truly mighty.','胜人者有力，自胜者强。'],
+['dhammapada','',0,'Savaşta bin kişiyi yenen değil, kendini yenen en büyük savaşçıdır.','Better than conquering a thousand in battle is conquering oneself.','战场上战胜千人，不如战胜自己，那才是最伟大的战士。'],
+['shakespeare','henryv',0,'Bugün kanını benimle dökecek olan, benim kardeşim olacaktır.','He who sheds his blood with me today shall be my brother.','今天与我一同流血的人，就是我的兄弟。'],
+['vegetius','vegetius',0,'Barışı isteyen savaşa hazırlansın.','Let him who desires peace prepare for war.','想要和平的人，就要准备战争。']
+]};
+const MEMQ={};
+// Her cihaz için çıkan sözler kaydedilir; havuz bitmeden aynı söz tekrar çıkmaz, bitince yeniden karışır.
+// Havuz dilden bağımsız sıralanır, yani dil değişse de aynı söz tekrar gelmez.
+function pickQuote(kind){
+  const pool=QD[kind];if(!pool||!pool.length)return null;
+  const key='zs-q-'+kind;let used=[];
+  try{used=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(used))used=[];}catch(e){used=MEMQ[kind]||[];}
+  used=used.filter(i=>Number.isInteger(i)&&i>=0&&i<pool.length);
+  let free=pool.map((_,i)=>i).filter(i=>!used.includes(i));
+  if(!free.length){const last=used[used.length-1];used=[];free=pool.map((_,i)=>i).filter(i=>i!==last);}
+  const i=free[Math.floor(Math.random()*free.length)];
+  used.push(i);MEMQ[kind]=used;
+  try{localStorage.setItem(key,JSON.stringify(used));}catch(e){}
+  return {kind,i};
+}
+function quoteParts(q){
+  const d=QD[q.kind][q.i],ix={tr:3,en:4,zh:5}[LANG]||3;
+  return {text:d[ix],by:t('a_'+d[0]),src:d[1]?t('s_'+d[1]):'',att:d[2]?t('attrib'):''};
+}
+
+
 const GLYPH={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
-const NAME={k:'Şah',q:'Vezir',r:'Kale',b:'Fil',n:'At',p:'Piyon'};
-const SIDE={w:'Beyaz',b:'Siyah'};
+const NAME={},SIDE={},LEVEL={};
+function refreshNames(){
+  for(const k of 'kqrbnp')NAME[k]=t('pc_'+k);
+  SIDE.w=t('w');SIDE.b=t('b');
+  for(const k of ['easy','medium','hard','expert'])LEVEL[k]=t('lv_'+k);
+}
+refreshNames();
 const FILES='abcdefgh';
 const sq=i=>FILES[i&7]+(8-(i>>3));
 const glyph=t=>GLYPH[t]+'︎';
@@ -577,7 +882,6 @@ let G,timer=null,aiTimer=null,token=0;
 const $=id=>document.getElementById(id);
 const isAI=()=>G.ai!==null&&G.s.turn===G.ai;
 const rollDie=()=>1+Math.floor(Math.random()*DIE);
-const LEVEL={easy:'Kolay',medium:'Orta',hard:'Zor',expert:'Çok zor'};
 
 // Sesler tarayıcıda üretilir, dış dosya yok.
 const Snd=(()=>{
@@ -627,7 +931,7 @@ const Snd=(()=>{
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function mySide(){return G.mode==='cpu'?G.human:G.mode==='online'?G.myColor:null;}
-function oppLabel(){return G.mode==='cpu'?'Bilgisayar':G.oppName;}
+function oppLabel(){return G.mode==='cpu'?t('Computer'):G.oppName;}
 function locked(){
   if(isAI())return true;
   if(G.mode==='online')return !LB.live||G.s.turn!==G.myColor;
@@ -643,51 +947,67 @@ function outcomeSound(){
   }else setTimeout(()=>Snd.draw(),350);
 }
 
-const QUOTES={
-  l:[["Savaşta en güçlü iki savaşçı sabır ve zamandır.", "Tolstoy", "Savaş ve Barış"], ["Yenilmezlik kendi elindedir; yenme fırsatını ise düşman verir.", "Sun Tzu", "Savaş Sanatı"], ["Ne zaman savaşıp ne zaman savaşmayacağını bilen kazanır.", "Sun Tzu", "Savaş Sanatı"], ["Usta savaşçı önce yenilmez olur, sonra düşmanın hata yapmasını bekler.", "Sun Tzu", "Savaş Sanatı"], ["Su, toprağın şekline göre akar; usta komutan da düşmanına göre şekil alır.", "Sun Tzu", "Savaş Sanatı"], ["Güçlüyken zayıf, zayıfken güçlü görün.", "Sun Tzu", "Savaş Sanatı"], ["Bilge komutan planlarında yararı ve zararı birlikte düşünür; böylece zorluktan çıkış yolunu bulur.", "Sun Tzu", "Savaş Sanatı"], ["Savaşta her şey basittir, ama en basit şey bile zordur.", "Clausewitz", "Savaş Üzerine"], ["Savaşta manevi güç, maddi gücün üç katı değerindedir.", "Napolyon Bonapart", "atfedilir"], ["Zafer, en çok direnenindir.", "Napolyon Bonapart", "atfedilir"], ["Hattı müdafaa yoktur, sath-ı müdafaa vardır. O satıh bütün vatandır.", "Mustafa Kemal Atatürk", "Sakarya Meydan Muharebesi, 1921"], ["Ya ben İstanbul'u alırım, ya İstanbul beni.", "Fatih Sultan Mehmed", "atfedilir"], ["Engel, eylemi ilerletir; yolun önündeki engel yolun kendisi olur.", "Marcus Aurelius", "Kendime Düşünceler"], ["Ruhun, düşüncelerinin rengini alır.", "Marcus Aurelius", "Kendime Düşünceler"], ["İnsanları rahatsız eden olaylar değil, olaylar hakkındaki yargılarıdır.", "Epiktetos", "El Kitabı"], ["Önce kendine ne olmak istediğini söyle; sonra yapman gerekeni yap.", "Epiktetos", "Sohbetler"], ["Bir şey zor olduğu için cesaret etmiyor değiliz; cesaret etmediğimiz için zor.", "Seneca", "Ahlaki Mektuplar"], ["Beni öldürmeyen şey güçlendirir.", "Nietzsche", "Putların Alacakaranlığı"], ["Bin millik yolculuk tek bir adımla başlar.", "Lao Tzu", "Tao Te Ching"], ["Yedi kez düş, sekiz kez kalk.", "Japon atasözü", ""], ["Bin günlük çalışma ustalık içindir, on bin günlük çalışma parlamak için.", "Miyamoto Musashi", "Beş Halka Kitabı"], ["Ya bir yol bulacağız ya da yol açacağız.", "Hannibal", "atfedilir"], ["Gelip alsınlar.", "Kral Leonidas", "Plutarkhos, Lakon Sözleri"], ["Talih cesurlara yardım eder.", "Terentius", "Phormio"], ["Asla, asla, asla pes etmeyin.", "Winston Churchill", "Harrow Okulu konuşması, 1941"], ["Dayan ve sabret; bu acı bir gün işine yarayacak.", "Ovidius", "Aşk Şiirleri"], ["Bir kez daha gedikten içeri, sevgili dostlar, bir kez daha!", "William Shakespeare", "V. Henry"], ["Zafere de yenilgiye de rastlayıp o iki sahtekâra aynı gözle bakabilirsen...", "Rudyard Kipling", "Eğer"], ["Dün dünde kaldı cancağızım, bugün yeni şeyler söylemek lazım.", "Mevlânâ", "atfedilir"]],
-  w:[["Geldim, gördüm, yendim.", "Julius Caesar", "Zela Savaşı sonrası"], ["Zar atıldı.", "Julius Caesar", "Suetonius"], ["Ordular! İlk hedefiniz Akdeniz'dir, ileri!", "Mustafa Kemal Atatürk", "30 Ağustos 1922"], ["Zafer, \"zafer benimdir\" diyebilenindir. Başarı ise \"başaracağım\" diyebilenindir.", "Mustafa Kemal Atatürk", "atfedilir"], ["Yurtta sulh, cihanda sulh.", "Mustafa Kemal Atatürk", ""], ["Yüz savaşta yüz zafer kazanmak en büyük beceri değildir; düşmanı savaşmadan boyun eğdirmek en büyük beceridir.", "Sun Tzu", "Savaş Sanatı"], ["Hız, savaşın özüdür.", "Sun Tzu", "Savaş Sanatı"], ["Planların gece kadar karanlık olsun; harekete geçtiğinde yıldırım gibi düş.", "Sun Tzu", "Savaş Sanatı"], ["Kuşatılmış düşmana bir çıkış yolu bırak.", "Sun Tzu", "Savaş Sanatı"], ["Düşmanını da kendini de bilirsen, yüz savaşın sonucundan korkmazsın.", "Sun Tzu", "Savaş Sanatı"], ["Savaşı kazananlar önce kazanır, sonra savaşa girer.", "Sun Tzu", "Savaş Sanatı"], ["Bütün savaş aldatmaya dayanır.", "Sun Tzu", "Savaş Sanatı"], ["İyi savaşçı düşmanı kendi istediği yere çeker; düşmanın istediği yere gitmez.", "Sun Tzu", "Savaş Sanatı"], ["Hayatımda gördüğüm en çekişmeli, ucu ucuna iş buydu.", "Wellington Dükü", "Waterloo sonrası, atfedilir"], ["Prens hem tilki gibi kurnaz hem aslan gibi güçlü olmalıdır.", "Machiavelli", "Prens"], ["İmkânsız, aptalların sözlüğünde bulunan bir kelimedir.", "Napolyon Bonapart", "atfedilir"], ["Savunma, saldırıdan daha güçlü bir savaş biçimidir.", "Clausewitz", "Savaş Üzerine"], ["Savaşta azim, yenilgide dik duruş, zaferde cömertlik, barışta iyi niyet.", "Winston Churchill", "İkinci Dünya Savaşı"], ["Mutluluğun sırrı özgürlük, özgürlüğün sırrı cesarettir.", "Thukydides", "Peloponnes Savaşı, Perikles'e atfedilir"], ["En güzel öç, kendini düşmana benzetmemektir.", "Marcus Aurelius", "Kendime Düşünceler"], ["Başkalarını yenen güçlüdür; kendini yenen gerçekten kudretlidir.", "Lao Tzu", "Tao Te Ching"], ["Savaşta bin kişiyi yenen değil, kendini yenen en büyük savaşçıdır.", "Dhammapada", ""], ["Bugün kanını benimle dökecek olan, benim kardeşim olacaktır.", "William Shakespeare", "V. Henry"], ["Barışı isteyen savaşa hazırlansın.", "Vegetius", "Askerlik Sanatı Üzerine"]]
-};
-const MEMQ={};
-// Her oyuncu (bu cihaz) için seçilen söz kaydedilir; havuz bitmeden aynı söz tekrar çıkmaz, bitince havuz yeniden karışır.
-function pickQuote(kind){
-  const pool=QUOTES[kind];if(!pool||!pool.length)return null;
-  const key='zs-q-'+kind;let used=[];
-  try{used=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(used))used=[];}catch(e){used=MEMQ[kind]||[];}
-  used=used.filter(i=>Number.isInteger(i)&&i>=0&&i<pool.length);
-  let free=pool.map((_,i)=>i).filter(i=>!used.includes(i));
-  if(!free.length){const last=used[used.length-1];used=[];free=pool.map((_,i)=>i).filter(i=>i!==last);}
-  const i=free[Math.floor(Math.random()*free.length)];
-  used.push(i);MEMQ[kind]=used;
-  try{localStorage.setItem(key,JSON.stringify(used));}catch(e){}
-  return pool[i];
-}
-
 function endTexts(){
   const r=G.result,me=mySide(),cpu=G.mode==='cpu';
-  if(r.type==='left')return {kind:'win',title:'Kazandın',sub:`${G.oppName} oyundan ayrıldı.`};
-  const why=r.type==='mate'?'Şah mat.':r.type==='stalemate'?'Pat.':r.type==='material'?'Yetersiz materyal.':'50 hamle kuralı.';
+  if(r.type==='left')return {kind:'win',title:t('end_left'),sub:t('end_left_sub',{name:G.oppName})};
+  const why=t('why_'+(r.type==='mate'?'mate':r.type==='stalemate'?'stalemate':r.type==='material'?'material':'fifty'));
   if(r.type==='mate'){
-    if(!me)return {kind:'win',title:`${SIDE[r.winner]} kazandı`,sub:why};
+    if(!me)return {kind:'win',title:t('end_side_wins',{side:SIDE[r.winner]}),sub:why};
     const win=r.winner===me;
     if(cpu)return win
-      ?{kind:'win',title:'Kazandın!',sub:`${why} Bilgisayarı yendin. Zorluk: ${LEVEL[G.level]}.`}
-      :{kind:'lose',title:'Kaybettin',sub:`${why} Bilgisayar kazandı. Zorluk: ${LEVEL[G.level]}.`};
+      ?{kind:'win',title:t('end_win'),sub:t('end_cpu_win',{why,lvl:LEVEL[G.level]})}
+      :{kind:'lose',title:t('end_lose'),sub:t('end_cpu_lose',{why,lvl:LEVEL[G.level]})};
     return win
-      ?{kind:'win',title:'Kazandın!',sub:`${why} ${G.oppName} adlı rakibi yendin.`}
-      :{kind:'lose',title:'Kaybettin',sub:`${why} ${G.oppName} kazandı.`};
+      ?{kind:'win',title:t('end_win'),sub:t('end_on_win',{why,name:G.oppName})}
+      :{kind:'lose',title:t('end_lose'),sub:t('end_on_lose',{why,name:G.oppName})};
   }
-  return {kind:'draw',title:'Berabere',sub:why};
+  return {kind:'draw',title:t('end_draw'),sub:why};
 }
 
 function syncModes(){
-  const cpu=$('mode').value==='cpu';
+  const m=$('mode').value,cpu=m==='cpu';
   $('sidel').classList.toggle('off',!cpu);
   $('levl').classList.toggle('off',!cpu);
-  $('side').disabled=!cpu;$('level').disabled=!cpu;
+  $('menuStart').textContent=t(m==='online'?'start_online':'start');
 }
-function syncSnd(){
-  $('snd').textContent='Ses: '+(Snd.isOn()?'açık':'kapalı');
-  $('snd').setAttribute('aria-pressed',String(Snd.isOn()));
+function renderSettings(){
+  const seg=$('langSeg');
+  seg.innerHTML=LANGS.map(([c,n])=>`<button type="button" data-l="${c}" aria-pressed="${c===LANG}">${n}</button>`).join('');
+  $('sndOn').textContent=t('on');$('sndOff').textContent=t('off');
+  $('sndOn').setAttribute('aria-pressed',String(Snd.isOn()));
+  $('sndOff').setAttribute('aria-pressed',String(!Snd.isOn()));
+}
+function applyI18n(){
+  refreshNames();
+  document.documentElement.lang=LANG;
+  document.title=t('title');
+  for(const el of document.querySelectorAll('[data-i18n]'))el.textContent=t(el.dataset.i18n);
+  for(const el of document.querySelectorAll('[data-i18n-html]'))el.innerHTML=t(el.dataset.i18nHtml);
+  for(const el of document.querySelectorAll('[data-i18n-ph]'))el.placeholder=t(el.dataset.i18nPh);
+  for(const el of document.querySelectorAll('[data-i18n-aria]'))el.setAttribute('aria-label',t(el.dataset.i18nAria));
+  syncModes();renderSettings();
+  if(typeof G!=='undefined'&&G&&!$('gameView').hidden)render();
+}
+function setLang(l){
+  if(!I18N[l])return;
+  LANG=l;
+  try{localStorage.setItem('zs-lang',l);}catch(e){}
+  applyI18n();
+}
+function showView(v){
+  $('menuView').hidden=v!=='menu';
+  $('gameView').hidden=v!=='game';
+  window.scrollTo(0,0);
+  if(v==='game')fitBoard();
+}
+function openSettings(){renderSettings();$('settingsModal').hidden=false;$('setClose').focus();}
+function closeSettings(){$('settingsModal').hidden=true;$('menuSettings').focus();}
+function startGame(){showView('game');newGame();}
+function backToMenu(){
+  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  if(G)G.rolling=false;
+  lbLeave();
+  showView('menu');
 }
 // Kareler tam eşit piksel olsun diye tahta genişliği 8'in katına yuvarlanır.
 function fitBoard(){
@@ -732,16 +1052,14 @@ function rollDice(){
   },75);
 }
 
-function passMsg(turn,r){
+function passMsg(turn,n){
   if(G.mode==='online'){
     return turn===G.myColor
-      ?`${r} attın ama bu zarla oynayabileceğin hamle yok. Sıra ${G.oppName} oyuncusuna geçiyor.`
-      :`${G.oppName} ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.`;
+      ?t('pass_me_online',{n,opn:G.oppName})
+      :t('pass_opp_online',{n,opn:G.oppName});
   }
-  if(G.mode!=='cpu')return `${SIDE[turn]} ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra rakibe geçiyor.`;
-  return turn===G.human
-    ?`${r} attın ama bu zarla oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.`
-    :`Bilgisayar ${r} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.`;
+  if(G.mode!=='cpu')return t('pass_pvp',{n,side:SIDE[turn]});
+  return turn===G.human?t('pass_me_cpu',{n}):t('pass_cpu',{n});
 }
 
 function finishRoll(my){
@@ -762,7 +1080,7 @@ function finishRoll(my){
 
 function passTurn(){
   const s=cloneS(G.s);s.ep=-1;
-  G.log.push({color:s.turn,label:'zar '+G.roll,text:'Hamle yok, sıra geçti'});
+  G.log.push({color:s.turn,ty:'pass',lk:'roll',ln:G.roll});
   G.s=s;G.sel=-1;
   endTurn();
 }
@@ -782,12 +1100,14 @@ function endTurn(){
   render();scheduleAI();outSync();
 }
 
-function describe(m,pt){
-  if(m.castle)return m.castle==='k'?'Kısa rok':'Uzun rok';
-  let t=`${NAME[m.piece[1]]} ${sq(m.from)}${m.cap?' x ':'→'}${sq(m.to)}`;
-  if(m.ep)t+=' (geçerken alma)';
-  if(m.promo)t+=` = ${NAME[pt||'q']}`;
-  return t;
+function logLabel(e){return t(e.lk==='rest'?'log_rest':'log_roll',{n:e.ln});}
+function logText(e){
+  if(e.ty==='pass')return t('log_pass');
+  if(e.ck)return t(e.ck==='k'?'log_ck':'log_cq');
+  let s=`${NAME[e.p]} ${sq(e.f)}${e.x?' x ':'→'}${sq(e.to)}`;
+  if(e.ep)s+=t('log_ep');
+  if(e.pr)s+=` = ${NAME[e.pr]}`;
+  return s;
 }
 
 function doMove(m,pt){
@@ -795,7 +1115,7 @@ function doMove(m,pt){
   const ns=applyMove(s,m,pt);ns.turn=color;
   if(m.cap)G.cap[color].push(m.cap);
   if(m.cap)Snd.capture();else Snd.move();
-  G.log.push({color,label:before<G.roll?'kalan '+before:'zar '+G.roll,text:describe(m,pt)});
+  G.log.push({color,ty:'mv',lk:before<G.roll?'rest':'roll',ln:before<G.roll?before:G.roll,ck:m.castle||'',p:m.piece[1],f:m.from,to:m.to,x:m.cap?1:0,ep:m.ep?1:0,pr:m.promo?(pt||'q'):''});
   G.s=ns;G.last={from:m.from,to:m.to};G.promo=null;
   G.left=before-m.cost;G.sp=spendAfter(G.sp,m);
   const more=G.left>0?playable(ns,color,G.left,G.sp):[];
@@ -823,35 +1143,35 @@ function onSquare(i){
 }
 
 function hintFor(r,left){
-  return `Zar ${r}, kalan ${left} puan. Her hamle gittiği kare kadar puan harcar (rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.`;
+  return t('hint_roll',{r,left});
 }
 
 function statusText(){
   if(G.phase==='wait')return '';
-  const s=G.s,t=s.turn,me=mySide(),vs=!!me,cpu=G.mode==='cpu',opn=oppLabel(),mine=vs&&t===me;
-  const chk=attacked(s.board,s.board.indexOf(t+'k'),opp(t));
+  const s=G.s,tn=s.turn,me=mySide(),vs=!!me,cpu=G.mode==='cpu',opn=oppLabel(),mine=vs&&tn===me;
+  const chk=attacked(s.board,s.board.indexOf(tn+'k'),opp(tn));
   if(G.phase==='over'){
     const r=G.result;
-    if(r.type==='left')return `${G.oppName} oyundan ayrıldı. Kazandın.`;
+    if(r.type==='left')return t('st_left',{name:G.oppName});
     if(r.type==='mate'){
-      if(!vs)return `Şah mat. ${SIDE[r.winner]} kazandı.`;
-      return r.winner===me?'Şah mat. Kazandın!':`Şah mat. ${opn} kazandı.`;
+      if(!vs)return t('st_mate_side',{side:SIDE[r.winner]});
+      return r.winner===me?t('st_mate_win'):t('st_mate_lose',{opn});
     }
-    if(r.type==='stalemate')return 'Pat. Oyun berabere bitti.';
-    if(r.type==='material')return 'Yetersiz materyal. Oyun berabere bitti.';
-    return '50 hamle kuralı. Oyun berabere bitti.';
+    if(r.type==='stalemate')return t('st_stalemate');
+    if(r.type==='material')return t('st_material');
+    return t('st_fifty');
   }
-  if(G.promo)return 'Piyon terfi ediyor. Bir taş seç.';
-  if(G.phase==='pass')return G.msg;
-  const warn=chk?((!vs||mine)?' Şahın tehdit altında.':cpu?' Bilgisayarın şahı tehdit altında.':` ${opn} oyuncusunun şahı tehdit altında.`):'';
+  if(G.promo)return t('st_promo');
+  if(G.phase==='pass')return passMsg(tn,G.roll);
+  const warn=chk?((!vs||mine)?t('warn_me'):cpu?t('warn_cpu'):t('warn_opp',{opn})):'';
   if(G.phase==='roll'){
-    if(!vs)return `${SIDE[t]} sırada, zarı at.`+warn;
-    return (mine?'Sıra sende, zarı at.':`${opn} zar atıyor.`)+warn;
+    if(!vs)return t('st_roll_side',{side:SIDE[tn]})+warn;
+    return (mine?t('st_roll_mine'):t('st_roll_opp',{opn}))+warn;
   }
-  const first=G.left===G.roll;
-  if(!vs)return (first?`${SIDE[t]} ${G.roll} attı.`:`${SIDE[t]} için kalan ${G.left} puan.`)+' Altı çizili taşlardan biriyle oyna.'+warn;
-  if(mine)return (first?`${G.roll} attın.`:`Kalan ${G.left} puanın var.`)+' Altı çizili taşlardan biriyle oyna.'+warn;
-  return (first?`${opn} ${G.roll} attı, hamlesini seçiyor.`:`${opn} oyuncusunun kalan ${G.left} puanı var.`)+warn;
+  const first=G.left===G.roll,n=first?G.roll:G.left;
+  if(!vs)return (first?t('st_first_side',{side:SIDE[tn],n}):t('st_rest_side',{side:SIDE[tn],n}))+t('st_play')+warn;
+  if(mine)return (first?t('st_first_me',{n}):t('st_rest_me',{n}))+t('st_play')+warn;
+  return (first?t('st_first_opp',{opn,n}):t('st_rest_opp',{opn,n}))+warn;
 }
 
 function renderDice(){
@@ -860,7 +1180,7 @@ function renderDice(){
   d.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="face" points="31,4 69,4 96,31 96,69 69,96 31,96 4,69 4,31"/><polygon class="tri" points="50,18 82,74 18,74"/><text x="50" y="54" font-size="38">${v||''}</text></svg>`;
   d.className='die'+(v?'':' empty')+(G.rolling?' rolling':'');
   d.setAttribute('role','img');
-  d.setAttribute('aria-label',v?`Zar: ${v}`:'Zar henüz atılmadı');
+  d.setAttribute('aria-label',v?t('die_aria',{v}):t('die_none'));
 }
 
 function renderControls(){
@@ -903,31 +1223,31 @@ function render(){
   }else pr.hidden=true;
 
   $('chips').innerHTML=['w','b'].map(c=>{
-    const who=G.mode==='cpu'?` · ${c===G.human?'sen':'bilgisayar'}`:G.mode==='online'?` · ${c===G.myColor?'sen':esc(G.oppName)}`:'';
+    const who=G.mode==='cpu'?` · ${c===G.human?t('you'):t('computer')}`:G.mode==='online'?` · ${c===G.myColor?t('you'):esc(G.oppName)}`:'';
     return `<div class="chip ${c}${G.phase!=='over'&&turn===c?' on':''}"><i></i>${SIDE[c]}${who}</div>`;
   }).join('');
   renderDice();renderControls();
   $('status').textContent=statusText();
-  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):'Zar (1-7) puan verir: her kare 1 puan. Bir piyon tek turda en fazla 5 puan harcar.');
+  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):t('hint_idle'));
   const order=['q','r','b','n','p'];
   for(const c of ['w','b']){
     const arr=G.cap[c].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1]));
     $(c==='w'?'capW':'capB').innerHTML=arr.length?arr.map(p=>`<span class="g ${p[0]}">${glyph(p[1])}</span>`).join(''):'—';
   }
   const log=$('log');
-  log.innerHTML=G.log.length?G.log.map((e,k)=>`<li class="${e.color==='w'?'w':'b'}"><span class="n">${k+1}</span><i></i><span class="r">${esc(e.label||'')}</span><span>${esc(e.text)}</span></li>`).join(''):'<li class="e">Henüz hamle yok</li>';
+  log.innerHTML=G.log.length?G.log.map((e,k)=>`<li class="${e.color==='w'?'w':'b'}"><span class="n">${k+1}</span><i></i><span class="r">${logLabel(e)}</span><span>${logText(e)}</span></li>`).join(''):'<li class="e">'+t('nomoves')+'</li>';
   log.scrollTop=log.scrollHeight;
   const over=G.phase==='over',end=$('end');
   end.hidden=!(over&&!G.endHidden);
-  $('endNew').textContent=G.mode==='online'?'Lobiye dön':'Yeni oyun';
+  $('endNew').textContent=t('menu');
   if(over){
-    const t=endTexts();
-    $('endT').textContent=t.title;$('endS').textContent=t.sub;
-    end.className='end '+t.kind;
-    if(G.quote===undefined)G.quote=t.kind==='win'?pickQuote('w'):t.kind==='lose'?pickQuote('l'):null;
+    const et=endTexts();
+    $('endT').textContent=et.title;$('endS').textContent=et.sub;
+    end.className='end '+et.kind;
+    if(G.quote===undefined)G.quote=et.kind==='win'?pickQuote('w'):et.kind==='lose'?pickQuote('l'):null;
     const q=G.quote;
     $('endQ').hidden=!q;
-    if(q){$('endQt').textContent='“'+q[0]+'”';$('endQa').textContent='— '+q[1]+(q[2]?', '+q[2]:'');}
+    if(q){const p=quoteParts(q);$('endQt').textContent='“'+p.text+'”';$('endQa').textContent='— '+p.by+(p.src?(LANG==='zh'?'，':', ')+p.src:'')+(p.att?' ('+p.att+')':'');}
   }
 }
 
@@ -1051,12 +1371,12 @@ class Bus{
       const l=new MqttLink(b,will?{topic:will.topic,payload:will.payload}:null);
       this.status[b.name]='…';
       l.on('up',()=>{
-        this.status[b.name]='bağlandı';
+        this.status[b.name]=t('rl_ok');
         for(const t of this.subs)l.subscribe(t);
         if(first){first=false;setTimeout(()=>this._res(),700);}
       });
       l.on('down',was=>{
-        this.status[b.name]=was?'koptu':'ulaşılamadı';
+        this.status[b.name]=was?t('rl_drop'):t('rl_fail');
         if(!this.destroyed)setTimeout(()=>l.connect(),was?1500:5000);
       });
       l.on('msg',(topic,payload)=>this._in(topic,payload));
@@ -1065,7 +1385,7 @@ class Bus{
     }
     this._t=setTimeout(()=>{
       if(!this.links.some(l=>l.up)){
-        window.__relayDiag=Object.entries(this.status).map(([k,v])=>`${k}: ${v==='…'?'ulaşılamadı':v}`).join(', ');
+        window.__relayDiag=Object.entries(this.status).map(([k,v])=>`${k}: ${v==='…'?t('rl_fail'):v}`).join(', ');
         this._rej(new Error('network'));
       }
     },10000);
@@ -1227,33 +1547,31 @@ if(!window.Peer&&typeof WebSocket!=='undefined')window.Peer=RelayPeer;
 const LB={role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,
   seq:0,name:'',oppName:'',myColor:null};
 const PREFIX='zsatranc-';
-const NOLIB='Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.';
 try{const n=localStorage.getItem('zs-name');if(n)$('lbName').value=n;}catch(e){}
 
-function lbMsg(t){$('lbMsg').textContent=t||'';}
+function lbMsg(x){$('lbMsg').textContent=x||'';}
 function lbShow(w){
   for(const k of ['Entry','Host','Guest','Count'])$('lb'+k).hidden=(k.toLowerCase()!==w);
 }
 function lbBusy(b){for(const id of ['lbCreate','lbJoin','lbRegen','lbClose','lbApprove','lbReject','lbCancel'])$(id).disabled=b;}
-function lbErr(t){
-  if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed'||t==='timeout')return 'Bağlantı sunucularına ulaşılamıyor. İnternet bağlantını kontrol edip tekrar dene.'+(window.__relayDiag?' ('+window.__relayDiag+')':'');
-  if(t==='browser-incompatible')return 'Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.';
-  return 'Bağlantı hatası'+(t?' ('+t+')':'')+'. Tekrar dene.';
+function lbErr(code){
+  if(code==='network'||code==='server-error'||code==='socket-error'||code==='socket-closed'||code==='timeout')return t('lb_err_net')+(window.__relayDiag?' ('+window.__relayDiag+')':'');
+  if(code==='browser-incompatible')return t('lb_nolib');
+  return t('lb_err_generic',{x:code?' ('+code+')':''});
 }
 function lbName(){
   const n=$('lbName').value.replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);
-  if(n.length<2){lbMsg('Önce 2 ile 16 karakter arası bir oyun adı yaz.');return null;}
+  if(n.length<2){lbMsg(t('lb_name_short'));return null;}
   try{localStorage.setItem('zs-name',n);}catch(e){}
   return n;
 }
-function cleanName(x){const n=String(x==null?'':x).replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);return n||'Oyuncu';}
+function cleanName(x){const n=String(x==null?'':x).replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);return n||t('lb_player');}
 
 function syncOnlineUI(){
   const on=$('mode').value==='online',playing=on&&LB.live;
   $('lobby').hidden=!on||playing;
   $('gamectl').hidden=on&&!playing;
-  $('new').textContent=on?'Lobiden ayrıl':'Yeni oyun';
-  if(on&&!playing&&!LB.role){lbShow('entry');if(!window.Peer)lbMsg(NOLIB);}
+  if(on&&!playing&&!LB.role){lbShow('entry');if(!window.Peer)lbMsg(t('lb_nolib'));}
 }
 
 function lbReset(){
@@ -1294,18 +1612,18 @@ function lbEnter(role,code,peer,name){
   peer.on('disconnected',()=>{if(LB.peer===peer){try{peer.reconnect();}catch(e){}}});
   peer.on('error',e=>{
     if(LB.peer!==peer)return;
-    const t=e&&e.type;
-    if(role==='guest'&&t==='peer-unavailable'){lbBackToEntry('Bu kodla açık bir lobi bulunamadı.');return;}
-    if(role==='guest'&&!LB.live&&!LB.cd){lbBackToEntry(lbErr(t));return;}
-    lbMsg(lbErr(t));
+    const et=e&&e.type;
+    if(role==='guest'&&et==='peer-unavailable'){lbBackToEntry(t('lb_notfound'));return;}
+    if(role==='guest'&&!LB.live&&!LB.cd){lbBackToEntry(lbErr(et));return;}
+    lbMsg(lbErr(et));
   });
   if(role==='host'){peer.on('connection',hostIncoming);lbHostView('open');}
 }
 
 // Her yeni lobi, o anda kullanımda olmayan taze bir kod alır.
 async function createLobby(name){
-  if(!window.Peer){lbMsg(NOLIB);return;}
-  lbBusy(true);lbMsg('Lobi hazırlanıyor...');
+  if(!window.Peer){lbMsg(t('lb_nolib'));return;}
+  lbBusy(true);lbMsg(t('lb_preparing'));
   try{
     let made=false,lastErr='';
     for(let i=0;i<8&&!made;i++){
@@ -1314,7 +1632,7 @@ async function createLobby(name){
       if(res.peer){lbEnter('host',code,res.peer,name);made=true;lbMsg('');}
       else{lastErr=res.err;if(res.err!=='unavailable-id')break;}
     }
-    if(!made)lbMsg(lastErr==='unavailable-id'||!lastErr?'Boş bir kod bulunamadı, tekrar dene.':lbErr(lastErr));
+    if(!made)lbMsg(lastErr==='unavailable-id'||!lastErr?t('lb_nocode'):lbErr(lastErr));
   }finally{lbBusy(false);}
 }
 async function lbCreate(){const n=lbName();if(n)await createLobby(n);}
@@ -1329,7 +1647,7 @@ function lbHostView(kind){
   $('lbCodeBig').textContent=LB.code.slice(0,3)+' '+LB.code.slice(3);
   $('lbHostWait').hidden=kind!=='open';
   $('lbHostReq').hidden=kind!=='pending';
-  if(kind==='pending')$('lbReqName').textContent=LB.oppName||'Bir oyuncu';
+  if(kind==='pending')$('lbReqName').textContent=LB.oppName||t('lb_aplayer');
 }
 
 // Host tarafı: aynı anda tek bağlantı kabul edilir, diğerleri "dolu" yanıtı alır.
@@ -1348,9 +1666,9 @@ function hostIncoming(conn){
 async function lbJoin(){
   const name=lbName();if(!name)return;
   const code=$('lbCode').value.replace(/\D/g,'');
-  if(code.length!==6){lbMsg('Kod 6 haneli olmalı.');return;}
-  if(!window.Peer){lbMsg(NOLIB);return;}
-  lbBusy(true);lbMsg('Lobiye bağlanılıyor...');
+  if(code.length!==6){lbMsg(t('lb_code6'));return;}
+  if(!window.Peer){lbMsg(t('lb_nolib'));return;}
+  lbBusy(true);lbMsg(t('lb_connecting'));
   const res=await openPeer(null);
   if(!res.peer){lbBusy(false);lbMsg(lbErr(res.err));return;}
   const peer=res.peer;
@@ -1358,7 +1676,7 @@ async function lbJoin(){
   const conn=peer.connect(PREFIX+code,{reliable:true});
   LB.conn=conn;
   let opened=false;
-  const to=setTimeout(()=>{if(!opened&&LB.conn===conn)lbBackToEntry('Lobiye ulaşılamadı. Kodu kontrol et.');},20000);
+  const to=setTimeout(()=>{if(!opened&&LB.conn===conn)lbBackToEntry(t('lb_unreach'));},20000);
   conn.on('open',()=>{
     if(LB.conn!==conn)return;
     opened=true;clearTimeout(to);
@@ -1377,7 +1695,7 @@ function lbApprove(){
   const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
   LB.myColor=color;LB.init=init;LB.status='countdown';
   try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}
-  catch(e){lbMsg('Rakibe ulaşılamadı.');return;}
+  catch(e){lbMsg(t('lb_unreach_opp'));return;}
   startCountdown();
 }
 function lbReject(){
@@ -1387,7 +1705,7 @@ function lbReject(){
   try{c.send({t:'rejected'});}catch(e){}
   setTimeout(()=>{try{c.close();}catch(e){}},500);
   lbHostView('open');
-  lbMsg('İstek reddedildi. Lobi yeniden açık.');
+  lbMsg(t('lb_rejected_msg'));
 }
 
 function onMsg(conn,m){
@@ -1396,11 +1714,11 @@ function onMsg(conn,m){
     if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');}
     else if(m.t==='state')recvState(m.snap);
   }else{
-    if(m.t==='full'){lbBackToEntry('Bu lobi dolu: başka bir oyuncu katılma isteği gönderdi ya da oyun başladı.');}
-    else if(m.t==='rejected'){lbBackToEntry('Lobi sahibi isteğini kabul etmedi.');}
+    if(m.t==='full'){lbBackToEntry(t('lb_full'));}
+    else if(m.t==='rejected'){lbBackToEntry(t('lb_rejected_guest'));}
     else if(m.t==='start'&&!LB.cd&&!LB.live){
       const init=validSnap(m.init);
-      if(!init||(m.hostColor!=='w'&&m.hostColor!=='b')){lbBackToEntry('Geçersiz oyun verisi alındı.');return;}
+      if(!init||(m.hostColor!=='w'&&m.hostColor!=='b')){lbBackToEntry(t('lb_baddata'));return;}
       LB.oppName=cleanName(m.hostName);LB.myColor=m.hostColor==='w'?'b':'w';LB.init=init;
       startCountdown();
     }
@@ -1416,8 +1734,8 @@ function onConnClose(conn){
     if(LB.cd){clearInterval(LB.cdTimer);LB.cdTimer=null;LB.cd=false;}
     LB.status='open';LB.oppName='';LB.init=null;LB.buf=null;
     lbHostView('open');
-    lbMsg('Rakip bağlantıdan ayrıldı. Lobi yeniden açık.');
-  }else lbBackToEntry('Lobi kapandı ya da bağlantı koptu.');
+    lbMsg(t('lb_opp_left'));
+  }else lbBackToEntry(t('lb_closed'));
 }
 
 function lbClosedRemote(){
@@ -1435,7 +1753,7 @@ function lbClosedRemote(){
 function startCountdown(){
   LB.cd=true;
   lbShow('count');
-  $('lbCountInfo').textContent=`${LB.oppName} ile oynuyorsun. Rengin: ${SIDE[LB.myColor]}.`;
+  $('lbCountInfo').textContent=t('lb_countInfo',{name:LB.oppName,side:SIDE[LB.myColor]});
   let n=3;$('lbNum').textContent=n;Snd.land();
   LB.cdTimer=setInterval(()=>{
     n--;
@@ -1447,7 +1765,7 @@ function startCountdown(){
 function beginOnlineGame(){
   token++;clearTimeout(timer);clearTimeout(aiTimer);
   const g=(LB.buf&&LB.buf.seq>0)?LB.buf:LB.init;
-  if(!g){lbBackToEntry('Oyun başlatılamadı, tekrar dene.');return;}
+  if(!g){lbBackToEntry(t('lb_startfail'));return;}
   LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
   G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
   $('lobby').hidden=true;$('gamectl').hidden=false;
@@ -1472,7 +1790,7 @@ function validSnap(g){
     const castle={wk:!!cs.wk,wq:!!cs.wq,bk:!!cs.bk,bq:!!cs.bq};
     let last=null;
     if(g.last){if(!num(g.last.from,0,63)||!num(g.last.to,0,63))return null;last={from:g.last.from,to:g.last.to};}
-    const log=(Array.isArray(g.log)?g.log:[]).slice(-2000).map(e=>({color:e&&e.color==='w'?'w':'b',label:String((e&&e.label)||'').slice(0,24),text:String((e&&e.text)||'').slice(0,80)}));
+    const log=(Array.isArray(g.log)?g.log:[]).slice(-2000).map(e=>{e=e||{};return {color:e.color==='w'?'w':'b',ty:e.ty==='pass'?'pass':'mv',lk:e.lk==='rest'?'rest':'roll',ln:num(e.ln,0,7)?e.ln:0,ck:(e.ck==='k'||e.ck==='q')?e.ck:'',p:/^[pnbrqk]$/.test(e.p)?e.p:'p',f:num(e.f,0,63)?e.f:0,to:num(e.to,0,63)?e.to:0,x:e.x?1:0,ep:e.ep?1:0,pr:/^[qrbn]$/.test(e.pr)?e.pr:''};});
     const cp=a=>(Array.isArray(a)?a:[]).filter(x=>typeof x==='string'&&pc.test(x)).slice(0,32);
     const cap={w:cp(g.cap&&g.cap.w),b:cp(g.cap&&g.cap.b)};
     let result=null;
@@ -1493,7 +1811,7 @@ function outSync(){
   if(G.mode!=='online'||!LB.live||LB.closed||!LB.conn)return;
   const snap=snapshotGame();snap.seq=++LB.seq;
   try{LB.conn.send({t:'state',snap});}
-  catch(e){lbMsg('Hamle rakibe gönderilemedi. Bağlantını kontrol et.');}
+  catch(e){lbMsg(t('lb_sendfail'));}
 }
 function recvState(raw){
   const g=validSnap(raw);if(!g)return;
@@ -1523,14 +1841,14 @@ $('lbJoin').addEventListener('click',()=>{Snd.unlock();lbJoin();});
 $('lbApprove').addEventListener('click',()=>{Snd.unlock();lbApprove();});
 $('lbReject').addEventListener('click',lbReject);
 $('lbRegen').addEventListener('click',lbRegen);
-$('lbClose').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg('Lobi kapatıldı.');});
-$('lbCancel').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg('Katılma isteğin geri çekildi.');});
+$('lbClose').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg(t('lb_closed_ok'));});
+$('lbCancel').addEventListener('click',()=>{lbLeave();syncOnlineUI();lbShow('entry');lbMsg(t('lb_withdrawn'));});
 $('lbCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6);});
 $('lbCopy').addEventListener('click',async()=>{
   const code=LB.code||'';
-  try{await navigator.clipboard.writeText(code);lbMsg('Kod kopyalandı.');}
+  try{await navigator.clipboard.writeText(code);lbMsg(t('lb_copied'));}
   catch(e){
-    try{const r=document.createRange();r.selectNodeContents($('lbCodeBig'));const s=getSelection();s.removeAllRanges();s.addRange(r);lbMsg('Kodu seçtim, kopyalamak için Ctrl+C bas.');}catch(x){}
+    try{const r=document.createRange();r.selectNodeContents($('lbCodeBig'));const s=getSelection();s.removeAllRanges();s.addRange(r);lbMsg(t('lb_selected'));}catch(x){}
   }
 });
 window.addEventListener('pagehide',()=>{if(LB.role)lbLeave();});
@@ -1544,19 +1862,23 @@ $('promo').addEventListener('click',e=>{
   if(b&&G.promo&&!locked())doMove(G.promo,b.dataset.pt);
 });
 $('roll').addEventListener('click',()=>{Snd.unlock();if(!locked())rollDice();});
-$('new').addEventListener('click',()=>{Snd.unlock();newGame();});
-$('endNew').addEventListener('click',()=>{Snd.unlock();newGame();});
+$('toMenu').addEventListener('click',backToMenu);
+$('endNew').addEventListener('click',backToMenu);
 $('endView').addEventListener('click',()=>{G.endHidden=true;render();});
-$('snd').addEventListener('click',()=>{Snd.toggle();syncSnd();});
-$('mode').addEventListener('change',()=>{syncModes();newGame();});
-$('side').addEventListener('change',newGame);
-$('level').addEventListener('change',newGame);
+$('mode').addEventListener('change',syncModes);
+$('menuStart').addEventListener('click',()=>{Snd.unlock();startGame();});
+$('menuSettings').addEventListener('click',openSettings);
+$('setClose').addEventListener('click',closeSettings);
+$('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').hidden)closeSettings();});
+$('langSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(b)setLang(b.dataset.l);});
+$('sndOn').addEventListener('click',()=>{if(!Snd.isOn())Snd.toggle();renderSettings();Snd.unlock();});
+$('sndOff').addEventListener('click',()=>{if(Snd.isOn())Snd.toggle();renderSettings();});
 if(window.ResizeObserver)new ResizeObserver(fitBoard).observe($('boardcol'));
 window.addEventListener('resize',fitBoard);
 fitBoard();
-syncModes();
-syncSnd();
-newGame();
+applyI18n();
+showView('menu');
 </script>
 
 </body></html>
