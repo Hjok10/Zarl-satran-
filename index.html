@@ -1,210 +1,236 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<style>:root{color-scheme:dark}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Zarlı Satranç</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap">
 <style>
-/* Yerleşim: tahta solda, zar ve durum paneli sağda; dar ekranda alt alta. */
 :root{
-  --bg:#eef2ef; --surface:#fafcfa; --fg:#18211f; --muted:#586763; --line:#d0d9d5;
-  --sq-l:#d3ded6; --sq-d:#6c8d83; --accent:#d9901c; --accent-fg:#1d1405;
-  --w-fill:#fffef9; --w-line:#1b2523; --b-fill:#1c2624; --b-line:#cfdad5;
-  --die:#fffef8; --pip:#1c2624; --check:#c9402f;
-  --last:rgba(217,144,28,.38); --sel:rgba(217,144,28,.62); --dot:rgba(20,30,28,.38);
+  --bg:#262421; --surface:#302e2b; --surface-2:#211f1c; --fg:#f1f1f1; --muted:#9e9b95; --line:#3d3a36;
+  --sq-l:#eeeed2; --sq-d:#769656; --accent:#81b64c; --accent-hover:#95c95e; --accent-fg:#ffffff;
+  --amber:#d9901c; --check:#e0483e;
+  --last:rgba(245, 246, 130, 0.55); --sel:rgba(245, 246, 130, 0.72); --dot:rgba(0,0,0,0.18);
+  --mark:rgba(235, 97, 80, 0.75);
+  --die:#fffef8; --pip:#1c2624;
   --font-head:'Space Grotesk',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f1514; --surface:#172120; --fg:#e8efec; --muted:#97aaa5; --line:#2a3836;
-    --sq-l:#8da59c; --sq-d:#41605a; --accent:#e6a23a; --accent-fg:#1d1405;
-    --w-fill:#fffef9; --w-line:#0e1514; --b-fill:#141c1b; --b-line:#c8d4cf;
-    --die:#eef2ee; --pip:#18211f; --check:#e0584a;
-    --last:rgba(230,162,58,.4); --sel:rgba(230,162,58,.65); --dot:rgba(8,12,11,.45);
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#0f1514; --surface:#172120; --fg:#e8efec; --muted:#97aaa5; --line:#2a3836;
-  --sq-l:#8da59c; --sq-d:#41605a; --accent:#e6a23a; --accent-fg:#1d1405;
-  --w-fill:#fffef9; --w-line:#0e1514; --b-fill:#141c1b; --b-line:#c8d4cf;
-  --die:#eef2ee; --pip:#18211f; --check:#e0584a;
-  --last:rgba(230,162,58,.4); --sel:rgba(230,162,58,.65); --dot:rgba(8,12,11,.45);
-  color-scheme:dark;
-}
-/* Tahta Renk Temaları */
-:root[data-board="wood"]{--sq-l:#f0d9b5;--sq-d:#b58863}
-:root[data-board="blue"]{--sq-l:#dee3e6;--sq-d:#6c8ca8}
-:root[data-board="slate"]{--sq-l:#d4d6d8;--sq-d:#6e7378}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"])[data-board="wood"]{--sq-l:#cbb089;--sq-d:#7d5a3c}
-  :root:not([data-theme="light"])[data-board="blue"]{--sq-l:#97abbd;--sq-d:#456078}
-  :root:not([data-theme="light"])[data-board="slate"]{--sq-l:#95999e;--sq-d:#4a4e52}
-}
-:root[data-theme="dark"][data-board="wood"]{--sq-l:#cbb089;--sq-d:#7d5a3c}
-:root[data-theme="dark"][data-board="blue"]{--sq-l:#97abbd;--sq-d:#456078}
-:root[data-theme="dark"][data-board="slate"]{--sq-l:#95999e;--sq-d:#4a4e52}
+:root[data-board="blue"]{--sq-l:#dee3e6;--sq-d:#8ca2ad;--last:rgba(125,185,232,.55);--sel:rgba(125,185,232,.75);}
+:root[data-board="wood"]{--sq-l:#f0d9b5;--sq-d:#b58863;--last:rgba(205,210,106,.55);--sel:rgba(205,210,106,.75);}
+:root[data-board="sage"]{--sq-l:#d3ded6;--sq-d:#6c8d83;--last:rgba(217,144,28,.45);--sel:rgba(217,144,28,.65);}
 
 *{box-sizing:border-box}
 html{scrollbar-gutter:stable}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5}
-.app{max-width:1100px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header{margin-bottom:18px}
-h1{font-family:var(--font-head);font-weight:700;font-size:28px;line-height:1.15;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
-header p{margin:0;color:var(--muted);max-width:60ch}
-.layout{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
-@media (min-width:900px){.layout{grid-template-columns:minmax(0,1fr) 340px;align-items:start}}
-.boardwrap{position:relative;width:100%;max-width:700px}
-.boardcol{min-width:0}
-.board{container-type:inline-size;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:1;width:100%;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14.5px;line-height:1.45;user-select:none}
+.app{max-width:1180px;margin:0 auto;padding-block:14px 24px;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+
+/* Ana Düzen */
+.layout{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:940px){.layout{grid-template-columns:minmax(0,1fr) 370px;align-items:start}}
+.boardcol{min-width:0;display:flex;flex-direction:column;gap:8px;max-width:720px;width:100%;margin:0 auto}
+
+/* Oyuncu Barları (Chess.com tarzı) */
+.pbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 4px;min-height:44px}
+.pinfo{display:flex;align-items:center;gap:10px;min-width:0}
+.avatar{width:36px;height:36px;border-radius:6px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:19px;flex:none}
+.pmeta{display:flex;flex-direction:column;min-width:0}
+.pname{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge-lvl{font-size:11px;padding:1px 5px;border-radius:4px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-weight:500}
+.pcap{display:flex;align-items:center;gap:4px;min-height:18px;font-size:14px;color:var(--muted)}
+.pcap .g{letter-spacing:-2px;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols",sans-serif}
+.pcap .adv{font-size:12px;font-weight:600;margin-left:4px;color:var(--fg)}
+
+/* Satranç Saati */
+.clock{font-family:var(--font-head);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums;padding:6px 12px;border-radius:6px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);min-width:86px;text-align:center;transition:background .15s,color .15s}
+.clock.active{background:#ffffff;color:#1b1a18;border-color:#ffffff}
+.clock.active.b-clk{background:#3a3733;color:#ffffff;border-color:#57534e}
+.clock.low{background:#b3342c!important;color:#fff!important;border-color:#e0483e!important;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.82}}
+
+/* Tahta + Eval Bar Alanı */
+.boardarea{display:flex;gap:10px;align-items:stretch;width:100%}
+.evalbar{width:24px;flex:none;background:#1a1917;border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between}
+.evalfill{position:absolute;left:0;right:0;bottom:0;background:#f0f0f0;transition:height .45s cubic-bezier(.22,1,.36,1)}
+.evalbar.flipped .evalfill{bottom:auto;top:0}
+.evaltxt{position:relative;z-index:2;font-size:10px;font-weight:700;text-align:center;padding:4px 1px;font-variant-numeric:tabular-nums}
+.evaltxt.top{color:#e5e5e5}
+.evaltxt.bot{color:#1b1a18}
+.evalbar.flipped .evaltxt.top{color:#1b1a18}
+.evalbar.flipped .evaltxt.bot{color:#e5e5e5}
+
+.boardwrap{position:relative;flex:1;min-width:0}
+.board{container-type:inline-size;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:1;width:100%;border-radius:5px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.35)}
 .sq{position:relative;display:flex;align-items:center;justify-content:center;border:0;padding:0;margin:0;cursor:default;font:inherit;color:inherit;background:var(--sq-l);min-width:0;min-height:0;width:100%;height:100%;overflow:hidden}
 .sq.d{background:var(--sq-d)}
 .sq::before{content:"";position:absolute;inset:0;pointer-events:none}
 .sq.last::before{background:var(--last)}
 .sq.sel::before{background:var(--sel)}
-.sq.chk::before{background:radial-gradient(circle,var(--check) 0,transparent 72%)}
-.sq.mv{cursor:pointer;box-shadow:inset 0 -.8cqw 0 var(--accent)}
+.sq.mark::before{background:var(--mark)!important}
+.sq.chk::before{background:radial-gradient(circle,var(--check) 0,transparent 74%)}
+.sq.mv{cursor:pointer;box-shadow:inset 0 -.9cqw 0 var(--amber)}
 .sq.tgt{cursor:pointer}
-.sq.tgt::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--dot);pointer-events:none}
-.sq.tgt.cap::after{inset:5%;background:none;border:.9cqw solid var(--dot)}
+.sq.tgt::after{content:"";position:absolute;inset:35%;border-radius:50%;background:var(--dot);pointer-events:none}
+.sq.tgt.cap::after{inset:6%;background:none;border:1cqw solid var(--dot)}
 .sq:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
-.pc{position:relative;z-index:1;font-size:10.4cqw;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif;paint-order:stroke fill;pointer-events:none}
-.pc.w{color:var(--w-fill);-webkit-text-stroke:.45cqw var(--w-line)}
-.pc.b{color:var(--b-fill);-webkit-text-stroke:.2cqw var(--b-line)}
-.co{position:absolute;font-size:clamp(8px,1.9cqw,12px);font-weight:600;opacity:.75;pointer-events:none;z-index:1;color:var(--fg)}
+
+.pc{position:relative;z-index:1;font-size:10.5cqw;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif;paint-order:stroke fill;cursor:grab;transition:transform .08s}
+.pc:active{cursor:grabbing;transform:scale(1.08)}
+.pc.w{color:#ffffff;-webkit-text-stroke:.42cqw #1c1b19;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.pc.b{color:#1c1b19;-webkit-text-stroke:.22cqw #d8d8d8;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.co{position:absolute;font-size:clamp(8px,1.85cqw,12px);font-weight:700;pointer-events:none;z-index:1;color:var(--sq-d)}
+.sq.d .co{color:var(--sq-l)}
 .co.rk{top:2px;left:3px}
 .co.fl{bottom:1px;right:3px}
-.promo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:5}
+
+/* Terfi ve Oyun Sonu Modalı */
+.promo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,.5);z-index:5}
 .promo[hidden]{display:none}
-.promo button{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:500 12px var(--font-body);cursor:pointer}
-.promo button span{font-size:34px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif}
-.promo button:hover{border-color:var(--accent)}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
-.sec{padding:16px;border-top:1px solid var(--line)}
+.promo button{display:flex;flex-direction:column;align-items:center;gap:2px;width:66px;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--fg);font:600 12px var(--font-body);cursor:pointer}
+.promo button span{font-size:34px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols",sans-serif}
+.promo button:hover{border-color:var(--accent);background:var(--line)}
+
+/* Sağ Panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.sec{padding:14px 16px;border-top:1px solid var(--line)}
 .sec:first-child{border-top:0}
-.chips{display:flex;gap:8px;margin-bottom:14px}
-.chip{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-family:var(--font-head);font-weight:500;color:var(--muted)}
-.chip i{width:14px;height:14px;border-radius:50%;border:2px solid var(--w-line);flex:none}
-.chip.w i{background:var(--w-fill)}
-.chip.b i{background:var(--b-fill);border-color:var(--b-line)}
-.chip.on{border-color:var(--accent);color:var(--fg);box-shadow:inset 0 0 0 1px var(--accent)}
-.rollrow{display:flex;gap:16px;align-items:center}
-.die{width:92px;height:92px;flex:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.16))}
+.big{font-family:var(--font-head);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+
+/* Zar Kontrol Alanı */
+.rollbox{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px}
+.rollrow{display:flex;gap:14px;align-items:center}
+.die{width:82px;height:82px;flex:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.28))}
 .die svg{display:block;width:100%;height:100%}
-.die .face{fill:var(--die);stroke:var(--line);stroke-width:2}
-.die .tri{fill:none;stroke:var(--line);stroke-width:1.5}
+.die .face{fill:var(--die);stroke:#b8b4aa;stroke-width:2}
+.die .tri{fill:none;stroke:#cbc7bd;stroke-width:1.5}
 .die text{fill:var(--pip);font-family:var(--font-head);font-weight:700;text-anchor:middle;dominant-baseline:central}
-.die.empty{opacity:.55}
-.die.rolling{animation:shake .16s linear infinite}
-@keyframes shake{0%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}100%{transform:rotate(-5deg) translateY(0)}}
-@media (prefers-reduced-motion:reduce){.die.rolling{animation:none}}
-.rollcol{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
-.btn{font:600 15px var(--font-head);padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
-.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.big{font-family:var(--font-head);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
-#status{margin:14px 0 0;font-weight:500;min-height:3em}
-#hint{margin:6px 0 0;color:var(--muted);font-size:13.5px;min-height:4.6em}
-.cap{display:flex;gap:8px;align-items:center;min-height:28px;font-size:13px;color:var(--muted)}
-.cap b{width:52px;font-weight:500;flex:none}
-.cap span.g{font-size:20px;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;letter-spacing:1px}
-.cap .g.w{color:var(--w-fill);-webkit-text-stroke:.6px var(--w-line)}
-.cap .g.b{color:var(--b-fill)}
-#log{list-style:none;margin:0;padding:0;max-height:210px;overflow:auto;font-size:13.5px;font-variant-numeric:tabular-nums}
-#log li{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-bottom:1px dashed var(--line)}
+.die.empty{opacity:.5}
+.die.rolling{animation:shake .15s linear infinite}
+@keyframes shake{0%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-3px)}100%{transform:rotate(-6deg)}}
+.rollcol{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.pts-bar{display:flex;gap:4px;height:6px}
+.pts-pip{flex:1;border-radius:3px;background:var(--line);transition:background .2s}
+.pts-pip.on{background:var(--amber)}
+
+.btn{font:600 14.5px var(--font-head);padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer;transition:background .15s,transform .05s}
+.btn:hover:not(:disabled){background:#3a3733}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;box-shadow:0 3px 0 #5b8532}
+.btn.primary:hover:not(:disabled){background:var(--accent-hover)}
+.btn.danger{color:#f2746b;border-color:rgba(224,72,62,.35)}
+.btn.danger:hover:not(:disabled){background:rgba(224,72,62,.15)}
+.btn:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{flex:1;padding-inline:8px;font-size:13px}
+
+#status{margin:12px 0 0;font-weight:600;font-size:14px;min-height:2.6em;color:var(--fg)}
+#hint{margin:4px 0 0;color:var(--muted);font-size:12.5px;min-height:3.6em}
+
+/* Hamle Listesi & Rozetler */
+#log{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;font-size:13px;font-variant-numeric:tabular-nums;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+#log li{display:flex;gap:8px;align-items:center;padding:5px 2px;border-bottom:1px solid rgba(255,255,255,.05)}
 #log li:last-child{border-bottom:0}
-#log .n{width:24px;color:var(--muted);flex:none}
-#log .r{width:62px;color:var(--muted);flex:none}
-#log .e{color:var(--muted);text-align:center;padding:6px 0}
-#log i{width:10px;height:10px;border-radius:50%;flex:none;border:2px solid var(--w-line);align-self:center}
-#log li.w i{background:var(--w-fill)}
-#log li.b i{background:var(--b-fill);border-color:var(--b-line)}
-details{font-size:14px}
-summary{cursor:pointer;font-family:var(--font-head);font-weight:500}
+#log .n{width:22px;color:var(--muted);flex:none;font-size:12px}
+#log .r{width:54px;color:var(--amber);font-weight:600;flex:none;font-size:12px}
+#log .mvtxt{flex:1;min-width:0}
+#log .e{color:var(--muted);text-align:center;padding:12px 0;justify-content:center}
+#log i{width:10px;height:10px;border-radius:50%;flex:none;border:1.5px solid #888}
+#log li.w i{background:#fff;border-color:#222}
+#log li.b i{background:#1c1b19;border-color:#aaa}
+.mbadge{font-size:11px;font-weight:700;padding:1px 6px;border-radius:99px;flex:none}
+.mb-brilliant{background:#1baca6;color:#fff}
+.mb-great{background:#5c8bb0;color:#fff}
+.mb-good{background:#81b64c;color:#fff}
+.mb-inacc{background:#f0c15c;color:#1e1c18}
+.mb-blunder{background:#ca3431;color:#fff}
+
+/* Araç Çubuğu */
+.toolbar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.toolbar .btn{padding:8px 6px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:4px}
+
+details{font-size:13.5px}
+summary{cursor:pointer;font-family:var(--font-head);font-weight:600;color:var(--muted)}
+summary:hover{color:var(--fg)}
 details ul{margin:10px 0 0;padding-left:18px;display:grid;gap:6px;color:var(--muted)}
 details ul b{color:var(--fg);font-weight:600}
-.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
-.modes label{display:grid;gap:4px;font-size:12px;color:var(--muted);min-width:0}
-.modes label.off{visibility:hidden}
-.modes select{width:100%;min-width:0;font:500 13px var(--font-body);padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
-.btnrow{display:flex;gap:8px}
-.btnrow .btn{flex:1;padding-inline:10px}
-.end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,16,15,.55);border-radius:6px;z-index:6;animation:endin .35s .7s both}
+
+/* Oyun Sonu */
+.end{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,14,13,.68);border-radius:5px;z-index:6;animation:endin .3s .35s both}
 .end[hidden]{display:none}
-.chip{min-width:0;overflow-wrap:anywhere}
+.endbox{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--muted);border-radius:12px;padding:22px;text-align:center;width:min(360px,100%);box-shadow:0 16px 48px rgba(0,0,0,.55);max-height:100%;overflow:auto}
+.end.win .endbox{border-top-color:var(--accent)}
+.end.lose .endbox{border-top-color:var(--check)}
+.endbox h2{font-family:var(--font-head);font-weight:700;font-size:clamp(26px,6vw,36px);line-height:1.1;margin:0 0 6px}
+.endbox p{margin:0 0 14px;color:var(--muted)}
+.quote{margin:0 0 16px;padding:10px 12px;border-left:3px solid var(--amber);border-radius:0 8px 8px 0;background:var(--surface-2);text-align:left}
+.quote blockquote{margin:0;font-size:13px;line-height:1.45;font-style:italic;color:var(--fg)}
+.quote figcaption{margin-top:5px;font-size:11.5px;color:var(--muted)}
+@keyframes endin{from{opacity:0}to{opacity:1}}
+
+/* Lobi ve Menü */
 .lobby{display:grid;gap:10px;margin-bottom:4px}
 .lobby [hidden]{display:none!important}
 #lbEntry,#lbHost,#lbGuest,#lbCount{display:grid;gap:10px}
-.lobby .big{margin:0}
 .field{display:grid;gap:4px;font-size:12px;color:var(--muted)}
-.lobby input{font:500 15px var(--font-body);padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%;min-width:0}
-.lobby input:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.lobby input{font:500 14.5px var(--font-body);padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);width:100%}
 .lbcols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.lbcard{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;align-content:start;min-width:0}
-.lbcode{font-family:var(--font-head);font-weight:700;font-size:38px;letter-spacing:.12em;text-align:center;font-variant-numeric:tabular-nums;padding:10px 6px;border:1px dashed var(--accent);border-radius:12px;user-select:all}
-.lbnote{margin:0;color:var(--muted);font-size:14px}
-.lbreq{display:grid;gap:8px;padding:12px;border:1px solid var(--accent);border-radius:10px}
-.lbreq .lbnote{color:var(--fg)}
-.lbmsg{margin:0;min-height:2.6em;color:var(--muted);font-size:13.5px}
-.lbnum{font-family:var(--font-head);font-weight:700;font-size:96px;line-height:1;text-align:center;color:var(--accent);font-variant-numeric:tabular-nums}
-@media (max-width:420px){.lbcols{grid-template-columns:minmax(0,1fr)}}
-.endbox{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--muted);border-radius:14px;padding:22px 24px;text-align:center;width:min(360px,100%);box-shadow:0 10px 40px rgba(0,0,0,.35)}
-.end.win .endbox{border-top-color:var(--accent)}
-.end.lose .endbox{border-top-color:var(--check)}
-.endbox h2{font-family:var(--font-head);font-weight:700;font-size:clamp(28px,7vw,42px);line-height:1.1;margin:0 0 8px;text-wrap:balance}
-.endbox p{margin:0 0 18px;color:var(--muted)}
-.endbox{max-height:100%;overflow:auto}
-.quote{margin:0 0 18px;padding:10px 12px;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;background:var(--bg);text-align:left}
-.quote blockquote{margin:0;font-size:14px;line-height:1.45;font-style:italic;color:var(--fg);text-wrap:pretty}
-.quote figcaption{margin-top:6px;font-size:12px;color:var(--muted)}
-@media (max-width:520px){.end{padding:8px}.endbox{padding:12px 14px}.endbox h2{font-size:24px;margin-bottom:4px}.endbox p{margin-bottom:8px;font-size:13px}.quote{margin-bottom:10px;padding:7px 10px}.quote blockquote{font-size:12.5px;line-height:1.35}.quote figcaption{margin-top:3px;font-size:11px}.endbox .btnrow .btn{padding-block:8px}}
-@keyframes endin{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.end{animation:none}}
-.modes select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
-.menuview{min-height:calc(100vh - 90px);display:flex;align-items:center;justify-content:center}
+.lbcard{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);align-content:start}
+.lbcode{font-family:var(--font-head);font-weight:700;font-size:34px;letter-spacing:.1em;text-align:center;font-variant-numeric:tabular-nums;padding:10px 6px;border:1px dashed var(--accent);border-radius:10px;user-select:all}
+.lbnote{margin:0;color:var(--muted);font-size:13px}
+.lbreq{display:grid;gap:8px;padding:12px;border:1px solid var(--accent);border-radius:10px;background:var(--surface-2)}
+.lbmsg{margin:0;min-height:2.4em;color:var(--muted);font-size:13px}
+.lbnum{font-family:var(--font-head);font-weight:700;font-size:84px;line-height:1;text-align:center;color:var(--accent)}
+
+.menuview{min-height:calc(100vh - 50px);display:flex;align-items:center;justify-content:center}
 .menuview[hidden],#gameView[hidden],.modal[hidden]{display:none}
-.menucard{width:min(440px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px 24px;display:grid;gap:14px}
-.menucard h1{font-size:34px;margin:0}
-.menucard .tag{margin:0;color:var(--muted);font-size:14px}
-.menusel{display:grid;gap:12px}
-.menusel label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.menucard{width:min(460px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 24px;display:grid;gap:14px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.menucard h1{font-family:var(--font-head);font-size:32px;margin:0;display:flex;align-items:center;gap:10px}
+.menucard .tag{margin:0;color:var(--muted);font-size:13.5px;line-height:1.5}
+.menusel{display:grid;gap:10px}
+.menusel label{display:grid;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
 .menusel label.off{display:none}
-.menusel select{width:100%;font:500 15px var(--font-body);padding:11px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
-.menusel select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
-.menubtn{width:100%}
-.menulink{width:100%;margin-top:12px}
-.modal{position:fixed;inset:0;background:rgba(10,16,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
-.modalbox{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:16px}
-.modalbox h2{margin:0;font-family:var(--font-head);font-size:22px}
+.menusel select{width:100%;font:500 14.5px var(--font-body);padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg)}
+.menubtn{width:100%;padding:12px;font-size:15px}
+
+.modal{position:fixed;inset:0;background:rgba(10,10,9,.68);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modalbox{width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:16px}
+.modalbox h2{margin:0;font-family:var(--font-head);font-size:20px}
 .setrow{display:grid;gap:8px}
 .setrow .big{margin:0}
-.seg{display:flex;gap:6px}
-.seg button{flex:1;font:600 14px var(--font-head);padding:10px 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:70px;font:600 13px var(--font-head);padding:9px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
-.seg button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.bgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.bgrid button{display:flex;align-items:center;gap:8px;font:600 13.5px var(--font-head);padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;text-align:left}
-.bgrid button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:transparent}
-.bgrid button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.swatch{display:inline-grid;grid-template-columns:1fr 1fr;width:20px;height:20px;border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,.22);flex:none}
-.swatch i{display:block;width:100%;height:100%}
 </style>
 
 <div class="app">
   <div id="menuView" class="menuview">
     <div class="menucard">
-      <h1 data-i18n="title">Zarlı Satranç</h1>
+      <h1><span>♟️</span><span data-i18n="title">Zarlı Satranç</span></h1>
       <p class="tag" data-i18n="tagline"></p>
       <div class="menusel">
         <label><span data-i18n="mode"></span>
-          <select id="mode"><option value="cpu" data-i18n="mode_cpu" selected></option><option value="pvp" data-i18n="mode_pvp"></option><option value="online" data-i18n="mode_online"></option></select>
+          <select id="mode">
+            <option value="cpu" data-i18n="mode_cpu" selected></option>
+            <option value="pvp" data-i18n="mode_pvp"></option>
+            <option value="online" data-i18n="mode_online"></option>
+          </select>
+        </label>
+        <label><span data-i18n="time_ctrl"></span>
+          <select id="timeCtrl">
+            <option value="0" data-i18n="tc_none" selected></option>
+            <option value="60|0" data-i18n="tc_bullet"></option>
+            <option value="180|2" data-i18n="tc_blitz"></option>
+            <option value="600|0" data-i18n="tc_rapid"></option>
+          </select>
         </label>
         <label id="sidel"><span data-i18n="side"></span>
           <select id="side"><option value="w" data-i18n="w" selected></option><option value="b" data-i18n="b"></option></select>
         </label>
         <label id="levl"><span data-i18n="level"></span>
-          <select id="level"><option value="easy" data-i18n="lv_easy"></option><option value="medium" data-i18n="lv_medium" selected></option><option value="hard" data-i18n="lv_hard"></option><option value="expert" data-i18n="lv_expert"></option></select>
+          <select id="level">
+            <option value="easy" data-i18n="lv_easy"></option>
+            <option value="medium" data-i18n="lv_medium" selected></option>
+            <option value="hard" data-i18n="lv_hard"></option>
+            <option value="expert" data-i18n="lv_expert"></option>
+          </select>
         </label>
       </div>
       <button class="btn primary menubtn" id="menuStart"></button>
@@ -213,107 +239,147 @@ details ul b{color:var(--fg);font-weight:600}
   </div>
 
   <div id="gameView" hidden>
-  <header>
-    <h1 data-i18n="title">Zarlı Satranç</h1>
-  </header>
-  <div class="layout">
-    <div class="boardcol" id="boardcol">
-      <div class="boardwrap" id="bw">
-        <div class="board" id="board"></div>
-        <div class="promo" id="promo" hidden></div>
-        <div class="end" id="end" hidden>
-          <div class="endbox">
-            <h2 id="endT"></h2>
-            <p id="endS"></p>
-            <figure class="quote" id="endQ" hidden><blockquote id="endQt"></blockquote><figcaption id="endQa"></figcaption></figure>
-            <div class="btnrow">
-              <button class="btn primary" id="endNew"></button>
-              <button class="btn" id="endView" data-i18n="view"></button>
+    <div class="layout">
+      <div class="boardcol" id="boardcol">
+        <!-- Üst Oyuncu Barı -->
+        <div class="pbar" id="topBar">
+          <div class="pinfo">
+            <div class="avatar" id="topAv">🤖</div>
+            <div class="pmeta">
+              <div class="pname"><span id="topName">Rakip</span><span class="badge-lvl" id="topBadge" hidden></span></div>
+              <div class="pcap" id="topCap"></div>
+            </div>
+          </div>
+          <div class="clock" id="topClock" hidden>10:00</div>
+        </div>
+
+        <!-- Değerlendirme Çubuğu + Satranç Tahtası -->
+        <div class="boardarea">
+          <div class="evalbar" id="evalBar" title="Pozisyon Değerlendirmesi">
+            <span class="evaltxt top" id="evalTop">0.0</span>
+            <div class="evalfill" id="evalFill" style="height:50%"></div>
+            <span class="evaltxt bot" id="evalBot"></span>
+          </div>
+          <div class="boardwrap" id="bw">
+            <div class="board" id="board"></div>
+            <div class="promo" id="promo" hidden></div>
+            <div class="end" id="end" hidden>
+              <div class="endbox">
+                <h2 id="endT"></h2>
+                <p id="endS"></p>
+                <figure class="quote" id="endQ" hidden><blockquote id="endQt"></blockquote><figcaption id="endQa"></figcaption></figure>
+                <div class="btnrow">
+                  <button class="btn primary" id="endNew"></button>
+                  <button class="btn" id="endView" data-i18n="view"></button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Alt Oyuncu Barı -->
+        <div class="pbar" id="botBar">
+          <div class="pinfo">
+            <div class="avatar" id="botAv">👤</div>
+            <div class="pmeta">
+              <div class="pname"><span id="botName">Sen</span><span class="badge-lvl" id="botBadge" hidden></span></div>
+              <div class="pcap" id="botCap"></div>
+            </div>
+          </div>
+          <div class="clock" id="botClock" hidden>10:00</div>
+        </div>
       </div>
+
+      <aside class="panel">
+        <div class="sec">
+          <!-- Çevrimiçi Lobi -->
+          <div class="lobby" id="lobby" hidden>
+            <div id="lbEntry">
+              <label class="field"><span data-i18n="lb_name"></span>
+                <input id="lbName" maxlength="16" autocomplete="off" data-i18n-ph="lb_name_ph">
+              </label>
+              <div class="lbcols">
+                <div class="lbcard"><p class="big" data-i18n="lb_make"></p><button class="btn primary" id="lbCreate" data-i18n="lb_create"></button></div>
+                <div class="lbcard"><p class="big" data-i18n="lb_joinT"></p><input id="lbCode" inputmode="numeric" maxlength="6" autocomplete="off" data-i18n-ph="lb_code_ph" data-i18n-aria="lb_code_aria"><button class="btn" id="lbJoin" data-i18n="lb_join"></button></div>
+              </div>
+            </div>
+            <div id="lbHost" hidden>
+              <p class="big" data-i18n="lb_yourcode"></p>
+              <div class="lbcode" id="lbCodeBig"></div>
+              <div class="btnrow"><button class="btn" id="lbCopy" data-i18n="lb_copy"></button><button class="btn" id="lbRegen" data-i18n="lb_regen"></button></div>
+              <p id="lbHostWait" class="lbnote" data-i18n="lb_wait"></p>
+              <div id="lbHostReq" class="lbreq" hidden>
+                <p class="lbnote"><b id="lbReqName"></b><span data-i18n="lb_wants"></span></p>
+                <div class="btnrow"><button class="btn primary" id="lbApprove" data-i18n="lb_approve"></button><button class="btn" id="lbReject" data-i18n="lb_reject"></button></div>
+              </div>
+              <button class="btn" id="lbClose" data-i18n="lb_closeBtn"></button>
+            </div>
+            <div id="lbGuest" hidden>
+              <p class="big" data-i18n="lb_waitT"></p>
+              <p class="lbnote" data-i18n="lb_waitNote"></p>
+              <button class="btn" id="lbCancel" data-i18n="lb_cancel"></button>
+            </div>
+            <div id="lbCount" hidden>
+              <p class="big" data-i18n="lb_startT"></p>
+              <div class="lbnum" id="lbNum">3</div>
+              <p class="lbnote" id="lbCountInfo"></p>
+            </div>
+            <p class="lbmsg" id="lbMsg" aria-live="polite"></p>
+          </div>
+
+          <!-- Oyun İçi Zar ve Durum -->
+          <div id="gamectl">
+            <div class="rollbox">
+              <div class="rollrow">
+                <div class="die empty" id="die" aria-live="polite"></div>
+                <div class="rollcol">
+                  <button class="btn primary" id="roll" data-i18n="roll"></button>
+                  <div class="pts-bar" id="ptsBar" title="Kalan Zar Puanı"></div>
+                </div>
+              </div>
+              <p id="status" aria-live="polite"></p>
+              <p id="hint"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <p class="big" data-i18n="moves"></p>
+          <ol id="log"></ol>
+        </div>
+
+        <div class="sec">
+          <div class="toolbar">
+            <button class="btn" id="btnFlip" data-i18n="flip">⇅ Çevir</button>
+            <button class="btn" id="btnSettings" data-i18n="settings">⚙ Ayarlar</button>
+            <button class="btn danger" id="btnResign" data-i18n="resign">🏳 Terk Et</button>
+          </div>
+          <button class="btn" style="width:100%;margin-top:8px" id="toMenu" data-i18n="menu"></button>
+        </div>
+
+        <div class="sec">
+          <details>
+            <summary data-i18n="rules"></summary>
+            <ul>
+              <li data-i18n-html="r1"></li>
+              <li data-i18n-html="r2"></li>
+              <li data-i18n-html="r3"></li>
+              <li data-i18n-html="r4"></li>
+              <li data-i18n-html="r5"></li>
+              <li data-i18n-html="r6"></li>
+              <li data-i18n-html="r7"></li>
+            </ul>
+          </details>
+        </div>
+      </aside>
     </div>
-    <aside class="panel">
-      <div class="sec">
-        <div class="lobby" id="lobby" hidden>
-          <div id="lbEntry">
-            <label class="field"><span data-i18n="lb_name"></span>
-              <input id="lbName" maxlength="16" autocomplete="off" data-i18n-ph="lb_name_ph">
-            </label>
-            <div class="lbcols">
-              <div class="lbcard"><p class="big" data-i18n="lb_make"></p><button class="btn primary" id="lbCreate" data-i18n="lb_create"></button></div>
-              <div class="lbcard"><p class="big" data-i18n="lb_joinT"></p><input id="lbCode" inputmode="numeric" maxlength="6" autocomplete="off" data-i18n-ph="lb_code_ph" data-i18n-aria="lb_code_aria"><button class="btn" id="lbJoin" data-i18n="lb_join"></button></div>
-            </div>
-          </div>
-          <div id="lbHost" hidden>
-            <p class="big" data-i18n="lb_yourcode"></p>
-            <div class="lbcode" id="lbCodeBig"></div>
-            <div class="btnrow"><button class="btn" id="lbCopy" data-i18n="lb_copy"></button><button class="btn" id="lbRegen" data-i18n="lb_regen"></button></div>
-            <p id="lbHostWait" class="lbnote" data-i18n="lb_wait"></p>
-            <div id="lbHostReq" class="lbreq" hidden>
-              <p class="lbnote"><b id="lbReqName"></b><span data-i18n="lb_wants"></span></p>
-              <div class="btnrow"><button class="btn primary" id="lbApprove" data-i18n="lb_approve"></button><button class="btn" id="lbReject" data-i18n="lb_reject"></button></div>
-            </div>
-            <button class="btn" id="lbClose" data-i18n="lb_closeBtn"></button>
-          </div>
-          <div id="lbGuest" hidden>
-            <p class="big" data-i18n="lb_waitT"></p>
-            <p class="lbnote" data-i18n="lb_waitNote"></p>
-            <button class="btn" id="lbCancel" data-i18n="lb_cancel"></button>
-          </div>
-          <div id="lbCount" hidden>
-            <p class="big" data-i18n="lb_startT"></p>
-            <div class="lbnum" id="lbNum">3</div>
-            <p class="lbnote" id="lbCountInfo"></p>
-          </div>
-          <p class="lbmsg" id="lbMsg" aria-live="polite"></p>
-        </div>
-        <div id="gamectl">
-        <div class="chips" id="chips"></div>
-        <div class="rollrow">
-          <div class="die empty" id="die" aria-live="polite"></div>
-          <div class="rollcol">
-            <button class="btn primary" id="roll" data-i18n="roll"></button>
-          </div>
-        </div>
-        <p id="status" aria-live="polite"></p>
-        <p id="hint"></p>
-        </div>
-        <button class="btn menulink" id="toMenu" data-i18n="menu"></button>
-      </div>
-      <div class="sec">
-        <p class="big" data-i18n="captured"></p>
-        <div class="cap"><b data-i18n="w"></b><span id="capW"></span></div>
-        <div class="cap"><b data-i18n="b"></b><span id="capB"></span></div>
-      </div>
-      <div class="sec">
-        <p class="big" data-i18n="moves"></p>
-        <ol id="log"></ol>
-      </div>
-      <div class="sec">
-        <details>
-          <summary data-i18n="rules"></summary>
-          <ul>
-            <li data-i18n-html="r1"></li>
-            <li data-i18n-html="r2"></li>
-            <li data-i18n-html="r3"></li>
-            <li data-i18n-html="r4"></li>
-            <li data-i18n-html="r5"></li>
-            <li data-i18n-html="r6"></li>
-            <li data-i18n-html="r7"></li>
-          </ul>
-        </details>
-      </div>
-    </aside>
-  </div>
   </div>
 
   <div class="modal" id="settingsModal" hidden>
     <div class="modalbox" role="dialog" aria-modal="true" aria-labelledby="setT">
       <h2 id="setT" data-i18n="settings"></h2>
+      <div class="setrow"><p class="big" data-i18n="board_theme"></p><div class="seg" id="themeSeg"></div></div>
       <div class="setrow"><p class="big" data-i18n="lang"></p><div class="seg" id="langSeg"></div></div>
-      <div class="setrow"><p class="big" data-i18n="board_color"></p><div class="bgrid" id="boardSeg"></div></div>
       <div class="setrow"><p class="big" data-i18n="sound"></p><div class="seg"><button type="button" id="sndOn"></button><button type="button" id="sndOff"></button></div></div>
       <button class="btn primary" id="setClose" data-i18n="close"></button>
     </div>
@@ -435,7 +501,6 @@ function legalMoves(s,color){
 }
 
 const DIE=7,PAWN_CAP=5;
-// sp: bu turda her piyonun (bulunduğu kareye göre) şimdiye kadar harcadığı puan. Bir piyon tek turda en fazla PAWN_CAP puan harcar.
 function playable(s,color,left,sp){
   return legalMoves(s,color).filter(m=>m.cost<=left&&!(m.piece[1]==='p'&&sp&&(sp[m.from]||0)+m.cost>PAWN_CAP));
 }
@@ -451,8 +516,9 @@ function insufficient(b){
   if(rest.length===1&&(rest[0][1]==='b'||rest[0][1]==='n'))return true;
   return false;
 }
-// Bilgisayar rakibi: kolay (açgözlü + hata), orta (iki vuruşluk beklenen değer), zor (daha derin, mat farkındalığı).
+
 const VAL={p:100,n:320,b:330,r:500,q:900,k:0};
+const MAT_VAL={p:1,n:3,b:3,r:5,q:9,k:0};
 function pstBonus(p,i){
   const t=p[1],r=i>>3,c=i&7,w=p[0]==='w';
   const adv=w?7-r:r;
@@ -473,7 +539,7 @@ function evalFor(board,color){
   }
   return sc;
 }
-// Rakibin her zar sonucundaki en iyi cevabını varsayarak durumun beklenen değeri.
+
 function leafValue(n,color){
   const en=opp(color);
   const replies=legalMoves(n,en);
@@ -491,53 +557,9 @@ function leafValue(n,color){
   }
   return sum/DIE;
 }
-// Zor seviye: rakibin cevabını mat tehdidiyle değerlendirir, ardından kendi en iyi karşılığımıza da bakar.
-function followUp(n,color){
-  const base=evalFor(n.board,color);
-  const mv=legalMoves(n,color);
-  if(mv.length===0)return base;
-  const vs=mv.map(m=>({c:m.cost,v:evalFor(applyMove(n,m,m.promo?'q':undefined).board,color)}));
-  let sum=0;
-  for(let e=1;e<=DIE;e++){
-    let best=base,any=false;
-    for(const x of vs){
-      if(x.c>e)continue;
-      if(!any||x.v>best){best=x.v;any=true;}
-    }
-    sum+=best;
-  }
-  return sum/DIE;
-}
-function leafHard(n,color){
-  const en=opp(color);
-  const replies=legalMoves(n,en);
-  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
-  const ev=replies.map(r=>{
-    const ns=applyMove(n,r,'q');
-    let v=evalFor(ns.board,color),mate=false;
-    if(attacked(ns.board,ns.board.indexOf(color+'k'),en)&&legalMoves(ns,color).length===0){v=-100000;mate=true;}
-    return {c:r.cost,ns,v,mate};
-  });
-  const weight=new Map();
-  for(let d=1;d<=DIE;d++){
-    let bi=-1,bv=Infinity;
-    for(let i=0;i<ev.length;i++){
-      if(ev[i].c>d)continue;
-      if(ev[i].v<bv){bv=ev[i].v;bi=i;}
-    }
-    weight.set(bi,(weight.get(bi)||0)+1);
-  }
-  let sum=0;
-  for(const [i,w] of weight){
-    const val=i<0?followUp(n,color):(ev[i].mate?-100000:followUp(ev[i].ns,color));
-    sum+=w*val;
-  }
-  return sum/DIE;
-}
-// Derin yaprak: rakip kendi turunda en çok iki hamle yapar. Zar bitene kadar oynamak zorunda olduğu için
-// ilk hamleden sonra kalan puanla ikinci bir hamle de hesaba katılır. K1: bakılan ilk cevap sayısı, K2: ikinci hamle sayısı.
+
 function leafDeep(n,color,K1,K2){
-  const en=opp(color),myK=n.board.indexOf(color+'k');
+  const en=opp(color);
   const replies=legalMoves(n,en);
   if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
   const base=evalFor(n.board,color);
@@ -588,7 +610,6 @@ function aiEasy(s,color,moves){
   }
   return best;
 }
-// Seviye ayarları: top = her hamle için bakılan devam sayısı, noise = rastgelelik, k1/k2 > 0 ise derin yaprak.
 const AI_CFG={
   medium:{top:3,noise:130,k1:0,k2:0},
   hard:{top:8,noise:1,k1:6,k2:4},
@@ -623,23 +644,20 @@ function aiChoose(s,color,moves,left,level,sp){
 }
 // ENGINE END
 
-// ---- Diller: Türkçe, İngilizce, Çince ----
+// ---- Diller ----
 const LANGS=[['tr','Türkçe'],['en','English'],['zh','中文']];
-const BOARDS=[
-  ['classic','bd_classic','#d3ded6','#6c8d83'],
-  ['wood','bd_wood','#f0d9b5','#b58863'],
-  ['blue','bd_blue','#dee3e6','#6c8ca8'],
-  ['slate','bd_slate','#d4d6d8','#6e7378']
-];
+const THEMES=[['green','Klasik Yeşil'],['blue','Turnuva Mavi'],['wood','Ahşap'],['sage','Adaçayı']];
 const I18N={
 tr:{
 title:'Zarlı Satranç',
 tagline:'Klasik satranç kuralları geçerli. Sıra gelince 7 yüzlü zarı at. Zar kadar puanın olur, her hamle gittiği kare kadar puan harcar. Puanlar bitmeden sıra geçmez.',
 mode:'Rakip',mode_cpu:'Bilgisayar',mode_pvp:'İki kişi (aynı ekran)',mode_online:'Çevrimiçi (kod ile)',
+time_ctrl:'Süre Kontrolü',tc_none:'Süresiz',tc_bullet:'Kurşun (1 dk)',tc_blitz:'Yıldırım (3+2)',tc_rapid:'Rapid (10 dk)',
 side:'Rengin',level:'Zorluk',lv_easy:'Kolay',lv_medium:'Orta',lv_hard:'Zor',lv_expert:'Çok zor',
-start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',lang:'Dil',sound:'Ses',board_color:'Tahta rengi',bd_classic:'Yeşil',bd_wood:'Ahşap',bd_blue:'Mavi',bd_slate:'Gri',on:'Açık',off:'Kapalı',close:'Kapat',
-w:'Beyaz',b:'Siyah',you:'sen',computer:'bilgisayar',Computer:'Bilgisayar',
-roll:'Zarı at',menu:'Ana menüye dön',captured:'Alınan taşlar',moves:'Hamleler',nomoves:'Henüz hamle yok',
+start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',board_theme:'Tahta Teması',lang:'Dil',sound:'Ses',on:'Açık',off:'Kapalı',close:'Kapat',
+w:'Beyaz',b:'Siyah',you:'Sen',computer:'Bilgisayar',Computer:'Bilgisayar',
+roll:'Zarı at',menu:'Ana menü',captured:'Alınan taşlar',moves:'Hamleler & Analiz',nomoves:'Henüz hamle yok',
+flip:'⇅ Çevir',resign:'🏳 Terk Et',
 rules:'Zar kuralları',
 r1:'<b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.',
 r2:'<b>Bir piyon</b> tek turda en fazla 5 puan harcar. Zar 7 ise bir piyon 5 puan oynar, kalan 2 puanı başka bir taşla harcarsın.',
@@ -650,249 +668,195 @@ r6:'<b>Şah çekildiyse</b> ve zar kurtarmaya yetmiyorsa sıra geçer. Şah alı
 r7:'<b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir.',
 pc_k:'Şah',pc_q:'Vezir',pc_r:'Kale',pc_b:'Fil',pc_n:'At',pc_p:'Piyon',
 view:'Tahtayı gör',
-log_roll:'zar {n}',log_rest:'kalan {n}',log_pass:'Hamle yok, sıra geçti',log_ck:'Kısa rok',log_cq:'Uzun rok',log_ep:' (geçerken alma)',
+log_roll:'zar {n}',log_rest:'kalan {n}',log_pass:'Hamle yok, sıra geçti',log_ck:'Kısa rok',log_cq:'Uzun rok',log_ep:' (geçerken)',
 st_left:'{name} oyundan ayrıldı. Kazandın.',st_mate_side:'Şah mat. {side} kazandı.',st_mate_win:'Şah mat. Kazandın!',st_mate_lose:'Şah mat. {opn} kazandı.',
+st_resign_side:'{side} terk etti. {winner} kazandı.',st_resign_win:'Rakip terk etti. Kazandın!',st_resign_lose:'Terk ettin. {opn} kazandı.',
+st_time_side:'Süre bitti. {winner} kazandı.',st_time_win:'Rakibin süresi bitti. Kazandın!',st_time_lose:'Süren bitti. {opn} kazandı.',
 st_stalemate:'Pat. Oyun berabere bitti.',st_material:'Yetersiz materyal. Oyun berabere bitti.',st_fifty:'50 hamle kuralı. Oyun berabere bitti.',
 st_promo:'Piyon terfi ediyor. Bir taş seç.',
 warn_me:' Şahın tehdit altında.',warn_cpu:' Bilgisayarın şahı tehdit altında.',warn_opp:' {opn} oyuncusunun şahı tehdit altında.',
 st_roll_side:'{side} sırada, zarı at.',st_roll_mine:'Sıra sende, zarı at.',st_roll_opp:'{opn} zar atıyor.',
 st_first_side:'{side} {n} attı.',st_rest_side:'{side} için kalan {n} puan.',st_play:' Altı çizili taşlardan biriyle oyna.',
 st_first_me:'{n} attın.',st_rest_me:'Kalan {n} puanın var.',st_first_opp:'{opn} {n} attı, hamlesini seçiyor.',st_rest_opp:'{opn} oyuncusunun kalan {n} puanı var.',
-pass_me_online:'{n} attın ama bu zarla oynayabileceğin hamle yok. Sıra {opn} oyuncusuna geçiyor.',
-pass_opp_online:'{opn} {n} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.',
-pass_pvp:'{side} {n} attı ama bu zarla oynayabileceği hamle yok. Sıra rakibe geçiyor.',
-pass_me_cpu:'{n} attın ama bu zarla oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.',
-pass_cpu:'Bilgisayar {n} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.',
-hint_roll:'Zar {r}, kalan {left} puan. Her hamle gittiği kare kadar puan harcar (rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.',
-hint_idle:'Zar (1-7) puan verir: her kare 1 puan. Bir piyon tek turda en fazla 5 puan harcar.',
+pass_me_online:'{n} attın ama oynayabileceğin hamle yok. Sıra {opn} oyuncusuna geçiyor.',
+pass_opp_online:'{opn} {n} attı ama oynayabileceği hamle yok. Sıra sana geçiyor.',
+pass_pvp:'{side} {n} attı ama oynayabileceği hamle yok. Sıra rakibe geçiyor.',
+pass_me_cpu:'{n} attın ama oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.',
+pass_cpu:'Bilgisayar {n} attı ama oynayabileceği hamle yok. Sıra sana geçiyor.',
+hint_roll:'Zar {r}, kalan {left} puan. Her hamle gittiği kare kadar puan harcar (rok 2).',
+hint_idle:'Zar (1-7) puan verir: her kare 1 puan. Bir piyon en fazla 5 puan harcar.',
 die_aria:'Zar: {v}',die_none:'Zar henüz atılmadı',
 end_win:'Kazandın!',end_lose:'Kaybettin',end_draw:'Berabere',end_left:'Kazandın',end_side_wins:'{side} kazandı',
-why_mate:'Şah mat.',why_stalemate:'Pat.',why_material:'Yetersiz materyal.',why_fifty:'50 hamle kuralı.',
-end_left_sub:'{name} oyundan ayrıldı.',end_cpu_win:'{why} Bilgisayarı yendin. Zorluk: {lvl}.',end_cpu_lose:'{why} Bilgisayar kazandı. Zorluk: {lvl}.',
+why_mate:'Şah mat.',why_resign:'Terk ile.',why_time:'Süre doldu.',why_stalemate:'Pat.',why_material:'Yetersiz materyal.',why_fifty:'50 hamle kuralı.',
+end_left_sub:'{name} oyundan ayrıldı.',end_cpu_win:'{why} Bilgisayarı yendin ({lvl}).',end_cpu_lose:'{why} Bilgisayar kazandı ({lvl}).',
 end_on_win:'{why} {name} adlı rakibi yendin.',end_on_lose:'{why} {name} kazandı.',
 attrib:'atfedilir',
 lb_name:'Oyun adın',lb_name_ph:'örn. KaraAt',lb_make:'Lobi kur',lb_create:'Lobi oluştur',lb_joinT:'Lobiye katıl',lb_code_ph:'6 haneli kod',lb_code_aria:'Lobi kodu',lb_join:'Katıl',
-lb_yourcode:'Lobi kodun',lb_copy:'Kodu kopyala',lb_regen:'Yeni kod',lb_wait:'Rakip bekleniyor. Kodu oynayacağın kişiyle paylaş.',lb_wants:' katılmak istiyor.',
+lb_yourcode:'Lobi kodun',lb_copy:'Kodu kopyala',lb_regen:'Yeni kod',lb_wait:'Rakip bekleniyor. Kodu paylaş.',lb_wants:' katılmak istiyor.',
 lb_approve:'Onayla',lb_reject:'Reddet',lb_closeBtn:'Lobiyi kapat',lb_waitT:'Onay bekleniyor',
-lb_waitNote:'Lobi sahibi isteğini görünce kabul edebilir. Kabul edilirsen oyun 3 saniye sonra başlar.',lb_cancel:'İsteği geri çek',lb_startT:'Oyun başlıyor',
+lb_waitNote:'Lobi sahibi kabul edince oyun 3 saniye içinde başlar.',lb_cancel:'İsteği geri çek',lb_startT:'Oyun başlıyor',
 lb_countInfo:'{name} ile oynuyorsun. Rengin: {side}.',
-lb_nolib:'Bu tarayıcı doğrudan bağlantıyı desteklemiyor. Chrome, Edge, Firefox ya da Safari kullan.',
-lb_err_net:'Bağlantı sunucularına ulaşılamıyor. İnternet bağlantını kontrol edip tekrar dene.',lb_err_generic:'Bağlantı hatası{x}. Tekrar dene.',
-lb_name_short:'Önce 2 ile 16 karakter arası bir oyun adı yaz.',lb_player:'Oyuncu',lb_aplayer:'Bir oyuncu',lb_preparing:'Lobi hazırlanıyor...',
-lb_nocode:'Boş bir kod bulunamadı, tekrar dene.',lb_code6:'Kod 6 haneli olmalı.',lb_connecting:'Lobiye bağlanılıyor...',lb_unreach:'Lobiye ulaşılamadı. Kodu kontrol et.',
-lb_notfound:'Bu kodla açık bir lobi bulunamadı.',lb_rejected_msg:'İstek reddedildi. Lobi yeniden açık.',lb_rejected_guest:'Lobi sahibi isteğini kabul etmedi.',
-lb_full:'Bu lobi dolu: başka bir oyuncu katılma isteği gönderdi ya da oyun başladı.',lb_baddata:'Geçersiz oyun verisi alındı.',
-lb_opp_left:'Rakip bağlantıdan ayrıldı. Lobi yeniden açık.',lb_closed:'Lobi kapandı ya da bağlantı koptu.',lb_startfail:'Oyun başlatılamadı, tekrar dene.',
-lb_unreach_opp:'Rakibe ulaşılamadı.',lb_sendfail:'Hamle rakibe gönderilemedi. Bağlantını kontrol et.',lb_closed_ok:'Lobi kapatıldı.',lb_withdrawn:'Katılma isteğin geri çekildi.',
-lb_copied:'Kod kopyalandı.',lb_selected:'Kodu seçtim, kopyalamak için Ctrl+C bas.',
+lb_nolib:'Bu tarayıcı doğrudan bağlantıyı desteklemiyor.',
+lb_err_net:'Bağlantı sunucularına ulaşılamıyor.',lb_err_generic:'Bağlantı hatası{x}.',
+lb_name_short:'En az 2 karakterlik oyun adı yaz.',lb_player:'Oyuncu',lb_aplayer:'Bir oyuncu',lb_preparing:'Lobi hazırlanıyor...',
+lb_nocode:'Boş kod bulunamadı, tekrar dene.',lb_code6:'Kod 6 haneli olmalı.',lb_connecting:'Lobiye bağlanılıyor...',lb_unreach:'Lobiye ulaşılamadı.',
+lb_notfound:'Bu kodla açık lobi bulunamadı.',lb_rejected_msg:'İstek reddedildi.',lb_rejected_guest:'Lobi sahibi isteği kabul etmedi.',
+lb_full:'Bu lobi dolu.',lb_baddata:'Geçersiz veri alındı.',
+lb_opp_left:'Rakip ayrıldı. Lobi yeniden açık.',lb_closed:'Lobi kapandı veya bağlantı koptu.',lb_startfail:'Oyun başlatılamadı.',
+lb_unreach_opp:'Rakibe ulaşılamadı.',lb_sendfail:'Hamle gönderilemedi.',lb_closed_ok:'Lobi kapatıldı.',lb_withdrawn:'İstek geri çekildi.',
+lb_copied:'Kod kopyalandı.',lb_selected:'Kod seçildi.',
 rl_ok:'bağlandı',rl_drop:'koptu',rl_fail:'ulaşılamadı',
-a_tolstoy:'Tolstoy',a_suntzu:'Sun Tzu',a_clausewitz:'Clausewitz',a_napoleon:'Napolyon Bonapart',a_ataturk:'Mustafa Kemal Atatürk',a_fatih:'Fatih Sultan Mehmed',a_marcus:'Marcus Aurelius',a_epictetus:'Epiktetos',a_seneca:'Seneca',a_nietzsche:'Nietzsche',a_laotzu:'Lao Tzu',a_japanese:'Japon atasözü',a_musashi:'Miyamoto Musashi',a_hannibal:'Hannibal',a_leonidas:'Kral Leonidas',a_terence:'Terentius',a_churchill:'Winston Churchill',a_ovid:'Ovidius',a_shakespeare:'William Shakespeare',a_kipling:'Rudyard Kipling',a_rumi:'Mevlânâ',a_caesar:'Julius Caesar',a_wellington:'Wellington Dükü',a_machiavelli:'Machiavelli',a_thucydides:'Thukydides',a_dhammapada:'Dhammapada',a_vegetius:'Vegetius',
-s_artofwar:'Savaş Sanatı',s_warpeace:'Savaş ve Barış',s_onwar:'Savaş Üzerine',s_sakarya:'Sakarya Meydan Muharebesi, 1921',s_meditations:'Kendime Düşünceler',s_enchiridion:'El Kitabı',s_discourses:'Sohbetler',s_letters:'Ahlaki Mektuplar',s_twilight:'Putların Alacakaranlığı',s_tao:'Tao Te Ching',s_fivering:'Beş Halka Kitabı',s_plutarch:'Plutarkhos, Lakon Sözleri',s_phormio:'Phormio',s_harrow:'Harrow Okulu konuşması, 1941',s_amores:'Aşk Şiirleri',s_henryv:'V. Henry',s_if:'Eğer',s_zela:'Zela Savaşı sonrası',s_suetonius:'Suetonius',s_aug30:'30 Ağustos 1922',s_waterloo:'Waterloo sonrası',s_prince:'Prens',s_ww2:'İkinci Dünya Savaşı',s_peloponnese:'Peloponnes Savaşı, Perikles\'e atfedilir',s_vegetius:'Askerlik Sanatı Üzerine'
+a_caesar:'Julius Caesar',a_ataturk:'Mustafa Kemal Atatürk',a_suntzu:'Sun Tzu',a_tolstoy:'Tolstoy',
+s_zela:'Zela Savaşı sonrası',s_suetonius:'Suetonius',s_aug30:'30 Ağustos 1922',s_artofwar:'Savaş Sanatı',s_warpeace:'Savaş ve Barış'
 },
 en:{
 title:'Dice Chess',
-tagline:'Classic chess rules apply. On your turn, roll the 7-sided die. The roll is your point pool, and each move costs as many points as the squares it moves. Your turn does not end until the points are spent.',
+tagline:'Classic chess rules apply. Roll the 7-sided die on your turn. Each move costs points equal to squares moved.',
 mode:'Opponent',mode_cpu:'Computer',mode_pvp:'Two players (same screen)',mode_online:'Online (with code)',
+time_ctrl:'Time Control',tc_none:'Unlimited',tc_bullet:'Bullet (1 min)',tc_blitz:'Blitz (3+2)',tc_rapid:'Rapid (10 min)',
 side:'Your color',level:'Difficulty',lv_easy:'Easy',lv_medium:'Medium',lv_hard:'Hard',lv_expert:'Very hard',
-start:'Start game',start_online:'Go to lobby',settings:'Settings',lang:'Language',sound:'Sound',board_color:'Board color',bd_classic:'Green',bd_wood:'Wood',bd_blue:'Blue',bd_slate:'Gray',on:'On',off:'Off',close:'Close',
-w:'White',b:'Black',you:'you',computer:'computer',Computer:'Computer',
-roll:'Roll the die',menu:'Back to main menu',captured:'Captured pieces',moves:'Moves',nomoves:'No moves yet',
+start:'Start game',start_online:'Go to lobby',settings:'Settings',board_theme:'Board Theme',lang:'Language',sound:'Sound',on:'On',off:'Off',close:'Close',
+w:'White',b:'Black',you:'You',computer:'Computer',Computer:'Computer',
+roll:'Roll the die',menu:'Main menu',captured:'Captured pieces',moves:'Moves & Analysis',nomoves:'No moves yet',
+flip:'⇅ Flip',resign:'🏳 Resign',
 rules:'Dice rules',
-r1:'<b>The die is a point pool (1-7).</b> Each move costs as many points as the squares it moves. With a 4 you can advance the same pawn 4 squares.',
-r2:'<b>A pawn</b> spends at most 5 points per turn. With a 7, one pawn plays 5 points and you spend the remaining 2 with another piece.',
-r3:'<b>Remaining points</b> are spent on other moves. If no playable move is left, the turn ends.',
-r4:'<b>A pawn\'s two-square move</b> and <b>castling</b> need at least 2 points.',
-r5:'<b>If there is no move,</b> the turn passes to the opponent.',
-r6:'<b>If your king is in check</b> and the roll cannot resolve it, the turn passes. The king is never captured; the game ends only by checkmate.',
-r7:'<b>Checkmate and stalemate</b> follow the classic rules, independent of the die.',
+r1:'<b>The die is a point pool (1-7).</b> Each move costs points equal to squares moved.',
+r2:'<b>A pawn</b> spends at most 5 points per turn.',
+r3:'<b>Remaining points</b> are spent on other moves.',
+r4:'<b>Pawn two-square move</b> and <b>castling</b> cost 2 points.',
+r5:'<b>If no move exists,</b> turn passes.',
+r6:'<b>Check</b> must be resolved if possible; otherwise turn passes.',
+r7:'<b>Checkmate and stalemate</b> follow classic rules.',
 pc_k:'King',pc_q:'Queen',pc_r:'Rook',pc_b:'Bishop',pc_n:'Knight',pc_p:'Pawn',
 view:'View board',
-log_roll:'roll {n}',log_rest:'left {n}',log_pass:'No moves, turn passed',log_ck:'Castles kingside',log_cq:'Castles queenside',log_ep:' (en passant)',
-st_left:'{name} left the game. You win.',st_mate_side:'Checkmate. {side} wins.',st_mate_win:'Checkmate. You win!',st_mate_lose:'Checkmate. {opn} wins.',
-st_stalemate:'Stalemate. The game is a draw.',st_material:'Insufficient material. The game is a draw.',st_fifty:'Fifty-move rule. The game is a draw.',
+log_roll:'roll {n}',log_rest:'left {n}',log_pass:'No moves, passed',log_ck:'Castles O-O',log_cq:'Castles O-O-O',log_ep:' (e.p.)',
+st_left:'{name} left. You win.',st_mate_side:'Checkmate. {side} wins.',st_mate_win:'Checkmate. You win!',st_mate_lose:'Checkmate. {opn} wins.',
+st_resign_side:'{side} resigned. {winner} wins.',st_resign_win:'Opponent resigned. You win!',st_resign_lose:'You resigned. {opn} wins.',
+st_time_side:'Time out. {winner} wins.',st_time_win:'Opponent ran out of time. You win!',st_time_lose:'Time out. {opn} wins.',
+st_stalemate:'Stalemate. Draw.',st_material:'Insufficient material. Draw.',st_fifty:'50-move rule. Draw.',
 st_promo:'Pawn promotion. Choose a piece.',
-warn_me:' Your king is in check.',warn_cpu:' The computer\'s king is in check.',warn_opp:' {opn}\'s king is in check.',
-st_roll_side:'{side} to move, roll the die.',st_roll_mine:'Your turn, roll the die.',st_roll_opp:'{opn} is rolling.',
-st_first_side:'{side} rolled {n}.',st_rest_side:'{side} has {n} points left.',st_play:' Play with one of the underlined pieces.',
-st_first_me:'You rolled {n}.',st_rest_me:'You have {n} points left.',st_first_opp:'{opn} rolled {n} and is choosing a move.',st_rest_opp:'{opn} has {n} points left.',
-pass_me_online:'You rolled {n} but have no playable move with it. The turn passes to {opn}.',
-pass_opp_online:'{opn} rolled {n} but has no playable move with it. The turn passes to you.',
-pass_pvp:'{side} rolled {n} but has no playable move with it. The turn passes to the opponent.',
-pass_me_cpu:'You rolled {n} but have no playable move with it. The turn passes to the computer.',
-pass_cpu:'The computer rolled {n} but has no playable move with it. The turn passes to you.',
-hint_roll:'Roll {r}, {left} points left. Each move costs as many points as the squares it moves (castling 2). A pawn can spend at most 5 points per turn. Your turn does not end until the points are spent.',
-hint_idle:'The die (1-7) gives points: each square costs 1 point. A pawn can spend at most 5 points per turn.',
-die_aria:'Die: {v}',die_none:'The die has not been rolled yet',
+warn_me:' Your king is in check.',warn_cpu:' Computer king is in check.',warn_opp:' {opn}\'s king is in check.',
+st_roll_side:'{side} to move, roll die.',st_roll_mine:'Your turn, roll the die.',st_roll_opp:'{opn} is rolling.',
+st_first_side:'{side} rolled {n}.',st_rest_side:'{side} has {n} pts left.',st_play:' Move a highlighted piece.',
+st_first_me:'You rolled {n}.',st_rest_me:'You have {n} points left.',st_first_opp:'{opn} rolled {n}.',st_rest_opp:'{opn} has {n} pts left.',
+pass_me_online:'Rolled {n}, no legal moves. Passing to {opn}.',
+pass_opp_online:'{opn} rolled {n}, no legal moves. Your turn.',
+pass_pvp:'{side} rolled {n}, no moves. Turn passes.',
+pass_me_cpu:'Rolled {n}, no legal moves. Computer\'s turn.',
+pass_cpu:'Computer rolled {n}, no moves. Your turn.',
+hint_roll:'Roll {r}, {left} pts left. Each square costs 1 pt (castling 2).',
+hint_idle:'Die (1-7) gives points: 1 pt per square. Pawns max 5 pts/turn.',
+die_aria:'Die: {v}',die_none:'Not rolled yet',
 end_win:'You win!',end_lose:'You lost',end_draw:'Draw',end_left:'You win',end_side_wins:'{side} wins',
-why_mate:'Checkmate.',why_stalemate:'Stalemate.',why_material:'Insufficient material.',why_fifty:'Fifty-move rule.',
-end_left_sub:'{name} left the game.',end_cpu_win:'{why} You beat the computer. Difficulty: {lvl}.',end_cpu_lose:'{why} The computer won. Difficulty: {lvl}.',
+why_mate:'Checkmate.',why_resign:'By resignation.',why_time:'On time.',why_stalemate:'Stalemate.',why_material:'Insufficient material.',why_fifty:'50-move rule.',
+end_left_sub:'{name} left the game.',end_cpu_win:'{why} You beat Computer ({lvl}).',end_cpu_lose:'{why} Computer won ({lvl}).',
 end_on_win:'{why} You beat {name}.',end_on_lose:'{why} {name} won.',
 attrib:'attributed',
-lb_name:'Your game name',lb_name_ph:'e.g. BlackKnight',lb_make:'Create a lobby',lb_create:'Create lobby',lb_joinT:'Join a lobby',lb_code_ph:'6-digit code',lb_code_aria:'Lobby code',lb_join:'Join',
-lb_yourcode:'Your lobby code',lb_copy:'Copy code',lb_regen:'New code',lb_wait:'Waiting for an opponent. Share the code with the person you want to play.',lb_wants:' wants to join.',
-lb_approve:'Approve',lb_reject:'Reject',lb_closeBtn:'Close lobby',lb_waitT:'Waiting for approval',
-lb_waitNote:'The lobby owner can accept your request when they see it. If accepted, the game starts in 3 seconds.',lb_cancel:'Withdraw request',lb_startT:'Game starting',
-lb_countInfo:'You are playing against {name}. Your color: {side}.',
-lb_nolib:'This browser does not support direct connections. Use Chrome, Edge, Firefox or Safari.',
-lb_err_net:'Cannot reach the connection servers. Check your internet connection and try again.',lb_err_generic:'Connection error{x}. Try again.',
-lb_name_short:'First enter a game name of 2 to 16 characters.',lb_player:'Player',lb_aplayer:'A player',lb_preparing:'Preparing the lobby...',
-lb_nocode:'Could not find a free code, try again.',lb_code6:'The code must be 6 digits.',lb_connecting:'Connecting to the lobby...',lb_unreach:'Could not reach the lobby. Check the code.',
-lb_notfound:'No open lobby found with this code.',lb_rejected_msg:'Request rejected. The lobby is open again.',lb_rejected_guest:'The lobby owner did not accept your request.',
-lb_full:'This lobby is full: another player has sent a request or the game has started.',lb_baddata:'Invalid game data received.',
-lb_opp_left:'The opponent disconnected. The lobby is open again.',lb_closed:'The lobby closed or the connection was lost.',lb_startfail:'Could not start the game, try again.',
-lb_unreach_opp:'Could not reach the opponent.',lb_sendfail:'The move could not be sent to the opponent. Check your connection.',lb_closed_ok:'Lobby closed.',lb_withdrawn:'Your join request was withdrawn.',
-lb_copied:'Code copied.',lb_selected:'I selected the code. Press Ctrl+C to copy.',
-rl_ok:'connected',rl_drop:'dropped',rl_fail:'unreachable',
-a_tolstoy:'Leo Tolstoy',a_suntzu:'Sun Tzu',a_clausewitz:'Carl von Clausewitz',a_napoleon:'Napoleon Bonaparte',a_ataturk:'Mustafa Kemal Atatürk',a_fatih:'Mehmed the Conqueror',a_marcus:'Marcus Aurelius',a_epictetus:'Epictetus',a_seneca:'Seneca',a_nietzsche:'Friedrich Nietzsche',a_laotzu:'Laozi',a_japanese:'Japanese proverb',a_musashi:'Miyamoto Musashi',a_hannibal:'Hannibal',a_leonidas:'King Leonidas',a_terence:'Terence',a_churchill:'Winston Churchill',a_ovid:'Ovid',a_shakespeare:'William Shakespeare',a_kipling:'Rudyard Kipling',a_rumi:'Rumi',a_caesar:'Julius Caesar',a_wellington:'Duke of Wellington',a_machiavelli:'Machiavelli',a_thucydides:'Thucydides',a_dhammapada:'Dhammapada',a_vegetius:'Vegetius',
-s_artofwar:'The Art of War',s_warpeace:'War and Peace',s_onwar:'On War',s_sakarya:'Battle of the Sakarya, 1921',s_meditations:'Meditations',s_enchiridion:'Enchiridion',s_discourses:'Discourses',s_letters:'Moral Letters',s_twilight:'Twilight of the Idols',s_tao:'Tao Te Ching',s_fivering:'The Book of Five Rings',s_plutarch:'Plutarch, Sayings of Spartans',s_phormio:'Phormio',s_harrow:'Speech at Harrow School, 1941',s_amores:'Amores',s_henryv:'Henry V',s_if:'If—',s_zela:'After the Battle of Zela',s_suetonius:'Suetonius',s_aug30:'30 August 1922',s_waterloo:'After Waterloo',s_prince:'The Prince',s_ww2:'The Second World War',s_peloponnese:'History of the Peloponnesian War, attributed to Pericles',s_vegetius:'On Military Matters'
+lb_name:'Your name',lb_name_ph:'e.g. Knight',lb_make:'Create lobby',lb_create:'Create',lb_joinT:'Join lobby',lb_code_ph:'6-digit code',lb_code_aria:'Code',lb_join:'Join',
+lb_yourcode:'Lobby code',lb_copy:'Copy',lb_regen:'New code',lb_wait:'Waiting for opponent.',lb_wants:' wants to join.',
+lb_approve:'Approve',lb_reject:'Reject',lb_closeBtn:'Close lobby',lb_waitT:'Waiting approval',
+lb_waitNote:'Game starts 3s after host approves.',lb_cancel:'Cancel',lb_startT:'Starting',
+lb_countInfo:'Playing vs {name}. Color: {side}.',
+lb_nolib:'WebRTC/WS not supported.',lb_err_net:'Network error.',lb_err_generic:'Error{x}.',
+lb_name_short:'Enter 2-16 chars.',lb_player:'Player',lb_aplayer:'A player',lb_preparing:'Preparing...',
+lb_nocode:'No code free.',lb_code6:'Must be 6 digits.',lb_connecting:'Connecting...',lb_unreach:'Unreachable.',
+lb_notfound:'Lobby not found.',lb_rejected_msg:'Rejected.',lb_rejected_guest:'Host rejected request.',
+lb_full:'Lobby full.',lb_baddata:'Invalid data.',lb_opp_left:'Opponent left.',lb_closed:'Disconnected.',lb_startfail:'Start failed.',
+lb_unreach_opp:'Opponent unreachable.',lb_sendfail:'Send failed.',lb_closed_ok:'Closed.',lb_withdrawn:'Withdrawn.',
+lb_copied:'Copied.',lb_selected:'Selected.',
+rl_ok:'ok',rl_drop:'dropped',rl_fail:'failed',
+a_caesar:'Julius Caesar',a_ataturk:'Mustafa Kemal Atatürk',a_suntzu:'Sun Tzu',a_tolstoy:'Leo Tolstoy',
+s_zela:'After Battle of Zela',s_suetonius:'Suetonius',s_aug30:'30 August 1922',s_artofwar:'The Art of War',s_warpeace:'War and Peace'
 },
 zh:{
 title:'骰子国际象棋',
-tagline:'遵循经典国际象棋规则。轮到你时掷一个7面骰子。点数就是你的点数池，每步棋消耗的点数等于移动的格数。点数用完前不会换对手。',
-mode:'对手',mode_cpu:'电脑',mode_pvp:'双人（同一屏幕）',mode_online:'在线（输入代码）',
+tagline:'遵循经典国际象棋规则。轮到你时掷7面骰子。点数即点数池，每步消耗移动格数的点数。',
+mode:'对手',mode_cpu:'电脑',mode_pvp:'双人（同屏）',mode_online:'在线（代码）',
+time_ctrl:'时间控制',tc_none:'无限制',tc_bullet:'子弹棋 (1分钟)',tc_blitz:'闪电战 (3+2)',tc_rapid:'快棋 (10分钟)',
 side:'你的颜色',level:'难度',lv_easy:'简单',lv_medium:'中等',lv_hard:'困难',lv_expert:'极难',
-start:'开始游戏',start_online:'进入大厅',settings:'设置',lang:'语言',sound:'声音',board_color:'棋盘颜色',bd_classic:'绿色',bd_wood:'木纹',bd_blue:'蓝色',bd_slate:'灰色',on:'开',off:'关',close:'关闭',
+start:'开始游戏',start_online:'进入大厅',settings:'设置',board_theme:'棋盘主题',lang:'语言',sound:'声音',on:'开',off:'关',close:'关闭',
 w:'白方',b:'黑方',you:'你',computer:'电脑',Computer:'电脑',
-roll:'掷骰子',menu:'返回主菜单',captured:'被吃的棋子',moves:'走法',nomoves:'还没有走棋',
+roll:'掷骰子',menu:'主菜单',captured:'被吃棋子',moves:'走法与分析',nomoves:'暂无走棋',
+flip:'⇅ 翻转',resign:'🏳 认输',
 rules:'骰子规则',
-r1:'<b>骰子是一个点数池（1-7）。</b>每步棋消耗的点数等于移动的格数。掷出4时，同一个兵可以前进4格。',
-r2:'<b>一个兵</b>每回合最多消耗5点。掷出7时，一个兵走5点，剩下的2点用其他棋子走。',
-r3:'<b>剩余点数</b>用于其他走法。如果没有可走的棋，回合结束。',
+r1:'<b>骰子是点数池（1-7）。</b>每步消耗移动格数对应的点数。',
+r2:'<b>兵</b>每回合最多消耗5点。',
+r3:'<b>剩余点数</b>用于其他走法。',
 r4:'<b>兵走两格</b>和<b>王车易位</b>至少需要2点。',
-r5:'<b>如果无棋可走，</b>轮到对手。',
-r6:'<b>如果王被将军</b>而骰子点数不足以解围，则轮空。王不会被吃掉，只有将杀才会结束游戏。',
-r7:'<b>将杀和逼和</b>按经典规则判定，与骰子无关。',
+r5:'<b>无棋可走</b>则轮空。',
+r6:'<b>被将军</b>时若点数不足解围则轮空。',
+r7:'<b>将杀和逼和</b>按经典规则判定。',
 pc_k:'王',pc_q:'后',pc_r:'车',pc_b:'象',pc_n:'马',pc_p:'兵',
 view:'查看棋盘',
-log_roll:'骰子 {n}',log_rest:'剩余 {n}',log_pass:'无棋可走，轮空',log_ck:'短易位',log_cq:'长易位',log_ep:'（吃过路兵）',
+log_roll:'骰子 {n}',log_rest:'剩余 {n}',log_pass:'无棋可走，轮空',log_ck:'短易位',log_cq:'长易位',log_ep:'（过路兵）',
 st_left:'{name}离开了游戏。你赢了。',st_mate_side:'将杀。{side}获胜。',st_mate_win:'将杀。你赢了！',st_mate_lose:'将杀。{opn}获胜。',
-st_stalemate:'逼和。本局和棋。',st_material:'子力不足。本局和棋。',st_fifty:'五十回合规则。本局和棋。',
-st_promo:'兵升变。请选择一个棋子。',
-warn_me:' 你的王被将军了。',warn_cpu:' 电脑的王被将军了。',warn_opp:' {opn}的王被将军了。',
+st_resign_side:'{side}认输。{winner}获胜。',st_resign_win:'对手认输。你赢了！',st_resign_lose:'你认输了。{opn}获胜。',
+st_time_side:'超时。{winner}获胜。',st_time_win:'对手超时。你赢了！',st_time_lose:'你超时了。{opn}获胜。',
+st_stalemate:'逼和。和棋。',st_material:'子力不足。和棋。',st_fifty:'五十回合规则。和棋。',
+st_promo:'兵升变，请选择棋子。',
+warn_me:' 你的王被将军。',warn_cpu:' 电脑的王被将军。',warn_opp:' {opn}的王被将军。',
 st_roll_side:'轮到{side}，请掷骰子。',st_roll_mine:'轮到你了，请掷骰子。',st_roll_opp:'{opn}正在掷骰子。',
-st_first_side:'{side}掷出了{n}。',st_rest_side:'{side}还剩{n}点。',st_play:' 请走带下划线的棋子。',
-st_first_me:'你掷出了{n}。',st_rest_me:'你还剩{n}点。',st_first_opp:'{opn}掷出了{n}，正在选择走法。',st_rest_opp:'{opn}还剩{n}点。',
-pass_me_online:'你掷出了{n}，但没有可走的棋。轮到{opn}。',
-pass_opp_online:'{opn}掷出了{n}，但没有可走的棋。轮到你。',
-pass_pvp:'{side}掷出了{n}，但没有可走的棋。轮到对手。',
-pass_me_cpu:'你掷出了{n}，但没有可走的棋。轮到电脑。',
-pass_cpu:'电脑掷出了{n}，但没有可走的棋。轮到你。',
-hint_roll:'骰子{r}，还剩{left}点。每步棋消耗的点数等于移动的格数（王车易位为2）。一个兵每回合最多消耗5点。点数用完前不会换对手。',
-hint_idle:'骰子（1-7）提供点数：每格消耗1点。一个兵每回合最多消耗5点。',
-die_aria:'骰子：{v}',die_none:'骰子还没有掷出',
+st_first_side:'{side}掷出了{n}。',st_rest_side:'{side}还剩{n}点。',st_play:' 请走高亮棋子。',
+st_first_me:'你掷出了{n}。',st_rest_me:'你还剩{n}点。',st_first_opp:'{opn}掷出了{n}。',st_rest_opp:'{opn}还剩{n}点。',
+pass_me_online:'掷出{n}但无棋可走，轮到{opn}。',
+pass_opp_online:'{opn}掷出{n}但无棋可走，轮到你。',
+pass_pvp:'{side}掷出{n}但无棋可走，轮空。',
+pass_me_cpu:'掷出{n}但无棋可走，轮到电脑。',
+pass_cpu:'电脑掷出{n}但无棋可走，轮到你。',
+hint_roll:'骰子{r}，剩{left}点。每格1点（易位2点）。',
+hint_idle:'骰子（1-7）提供点数：每格1点，兵每回合上限5点。',
+die_aria:'骰子：{v}',die_none:'尚未掷骰',
 end_win:'你赢了！',end_lose:'你输了',end_draw:'和棋',end_left:'你赢了',end_side_wins:'{side}获胜',
-why_mate:'将杀。',why_stalemate:'逼和。',why_material:'子力不足。',why_fifty:'五十回合规则。',
-end_left_sub:'{name}离开了游戏。',end_cpu_win:'{why}你击败了电脑。难度：{lvl}。',end_cpu_lose:'{why}电脑获胜。难度：{lvl}。',
+why_mate:'将杀。',why_resign:'认输。',why_time:'超时。',why_stalemate:'逼和。',why_material:'子力不足。',why_fifty:'五十回合规则。',
+end_left_sub:'{name}离开了游戏。',end_cpu_win:'{why}你击败了电脑（{lvl}）。',end_cpu_lose:'{why}电脑获胜（{lvl}）。',
 end_on_win:'{why}你击败了{name}。',end_on_lose:'{why}{name}获胜。',
 attrib:'相传',
-lb_name:'你的昵称',lb_name_ph:'例如：黑骑士',lb_make:'创建大厅',lb_create:'创建大厅',lb_joinT:'加入大厅',lb_code_ph:'6位代码',lb_code_aria:'大厅代码',lb_join:'加入',
-lb_yourcode:'你的大厅代码',lb_copy:'复制代码',lb_regen:'新代码',lb_wait:'正在等待对手。请把代码分享给你想一起玩的人。',lb_wants:' 想要加入。',
+lb_name:'昵称',lb_name_ph:'如：黑骑士',lb_make:'创建大厅',lb_create:'创建',lb_joinT:'加入大厅',lb_code_ph:'6位代码',lb_code_aria:'代码',lb_join:'加入',
+lb_yourcode:'大厅代码',lb_copy:'复制',lb_regen:'新代码',lb_wait:'等待对手加入。',lb_wants:' 请求加入。',
 lb_approve:'同意',lb_reject:'拒绝',lb_closeBtn:'关闭大厅',lb_waitT:'等待同意',
-lb_waitNote:'大厅主人看到后可以接受你的请求。接受后游戏将在3秒后开始。',lb_cancel:'撤回请求',lb_startT:'游戏即将开始',
-lb_countInfo:'你正在与{name}对战。你的颜色：{side}。',
-lb_nolib:'此浏览器不支持直接连接。请使用Chrome、Edge、Firefox或Safari。',
-lb_err_net:'无法连接到服务器。请检查网络后重试。',lb_err_generic:'连接错误{x}。请重试。',
-lb_name_short:'请先输入2到16个字符的昵称。',lb_player:'玩家',lb_aplayer:'一位玩家',lb_preparing:'正在准备大厅……',
-lb_nocode:'没有找到可用的代码，请重试。',lb_code6:'代码必须是6位数字。',lb_connecting:'正在连接大厅……',lb_unreach:'无法连接大厅。请检查代码。',
-lb_notfound:'没有找到使用此代码的开放大厅。',lb_rejected_msg:'请求已被拒绝。大厅已重新开放。',lb_rejected_guest:'大厅主人没有接受你的请求。',
-lb_full:'此大厅已满：已有其他玩家发出请求，或游戏已经开始。',lb_baddata:'收到无效的游戏数据。',
-lb_opp_left:'对手已断开连接。大厅已重新开放。',lb_closed:'大厅已关闭或连接已断开。',lb_startfail:'无法开始游戏，请重试。',
-lb_unreach_opp:'无法联系对手。',lb_sendfail:'走法无法发送给对手。请检查网络。',lb_closed_ok:'大厅已关闭。',lb_withdrawn:'你的加入请求已撤回。',
-lb_copied:'代码已复制。',lb_selected:'已选中代码，请按Ctrl+C复制。',
-rl_ok:'已连接',rl_drop:'已断开',rl_fail:'无法访问',
-a_tolstoy:'列夫·托尔斯泰',a_suntzu:'孙子',a_clausewitz:'克劳塞维茨',a_napoleon:'拿破仑·波拿巴',a_ataturk:'穆斯塔法·凯末尔·阿塔图尔克',a_fatih:'征服者穆罕默德',a_marcus:'马可·奥勒留',a_epictetus:'爱比克泰德',a_seneca:'塞涅卡',a_nietzsche:'尼采',a_laotzu:'老子',a_japanese:'日本谚语',a_musashi:'宫本武藏',a_hannibal:'汉尼拔',a_leonidas:'列奥尼达国王',a_terence:'泰伦提乌斯',a_churchill:'温斯顿·丘吉尔',a_ovid:'奥维德',a_shakespeare:'威廉·莎士比亚',a_kipling:'鲁德亚德·吉卜林',a_rumi:'鲁米',a_caesar:'尤利乌斯·凯撒',a_wellington:'威灵顿公爵',a_machiavelli:'马基雅维利',a_thucydides:'修昔底德',a_dhammapada:'《法句经》',a_vegetius:'维吉提乌斯',
-s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》',s_onwar:'《战争论》',s_sakarya:'1921年萨卡里亚战役',s_meditations:'《沉思录》',s_enchiridion:'《手册》',s_discourses:'《论说集》',s_letters:'《道德书简》',s_twilight:'《偶像的黄昏》',s_tao:'《道德经》',s_fivering:'《五轮书》',s_plutarch:'普鲁塔克《斯巴达人箴言》',s_phormio:'《福尔弥奥》',s_harrow:'1941年哈罗公学演讲',s_amores:'《恋歌》',s_henryv:'《亨利五世》',s_if:'《如果》',s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_waterloo:'滑铁卢战役之后',s_prince:'《君主论》',s_ww2:'《第二次世界大战》',s_peloponnese:'《伯罗奔尼撒战争史》，相传为伯里克利所言',s_vegetius:'《论军事》'
+lb_waitNote:'同意后3秒开始游戏。',lb_cancel:'撤回',lb_startT:'即将开始',
+lb_countInfo:'对手：{name}。你的颜色：{side}。',
+lb_nolib:'浏览器不支持。',lb_err_net:'网络错误。',lb_err_generic:'错误{x}。',
+lb_name_short:'请输入2-16位昵称。',lb_player:'玩家',lb_aplayer:'一位玩家',lb_preparing:'准备中...',
+lb_nocode:'无可用代码。',lb_code6:'需6位数字。',lb_connecting:'连接中...',lb_unreach:'无法连接。',
+lb_notfound:'未找到大厅。',lb_rejected_msg:'已拒绝。',lb_rejected_guest:'房主拒绝了请求。',
+lb_full:'大厅已满。',lb_baddata:'数据无效。',lb_opp_left:'对手已离开。',lb_closed:'连接断开。',lb_startfail:'启动失败。',
+lb_unreach_opp:'无法联系对手。',lb_sendfail:'发送失败。',lb_closed_ok:'已关闭。',lb_withdrawn:'已撤回。',
+lb_copied:'已复制。',lb_selected:'已选中。',
+rl_ok:'已连接',rl_drop:'已断开',rl_fail:'失败',
+a_caesar:'尤利乌斯·凯撒',a_ataturk:'穆斯塔法·凯末尔·阿塔图尔克',a_suntzu:'孙子',a_tolstoy:'列夫·托尔斯泰',
+s_zela:'泽拉战役之后',s_suetonius:'苏埃托尼乌斯',s_aug30:'1922年8月30日',s_artofwar:'《孙子兵法》',s_warpeace:'《战争与和平》'
 }};
-let LANG='tr',BOARD='classic';
-try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
-try{const b=localStorage.getItem('zs-board');if(b&&BOARDS.some(x=>x[0]===b))BOARD=b;}catch(e){}
-document.documentElement.dataset.board=BOARD;
+
+let LANG='tr',BOARD_THEME='green';
+try{
+  const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;
+  const th=localStorage.getItem('zs-theme');if(th)BOARD_THEME=th;
+}catch(e){}
+document.documentElement.dataset.board=BOARD_THEME;
+
 function t(k,v){
-  let s=(I18N[LANG]&&I18N[LANG][k]);
-  if(s===undefined)s=I18N.tr[k];
-  if(s===undefined)return k;
+  let s=(I18N[LANG]&&I18N[LANG][k])||I18N.tr[k]||k;
   if(v)s=s.replace(/\{(\w+)\}/g,(m,x)=>v[x]===undefined?m:v[x]);
   return s;
 }
-// [yazar, kaynak, atfedilir?, tr, en, zh]
+
 const QD={
-l:[
-['tolstoy','warpeace',0,'Savaşta en güçlü iki savaşçı sabır ve zamandır.','The two most powerful warriors are patience and time.','最强大的两位战士，是耐心与时间。'],
-['suntzu','artofwar',0,'Yenilmezlik kendi elindedir; yenme fırsatını ise düşman verir.','Invincibility lies in your own hands; the chance to defeat the enemy is given by the enemy.','不可胜在己，可胜在敌。'],
-['suntzu','artofwar',0,'Ne zaman savaşıp ne zaman savaşmayacağını bilen kazanır.','He who knows when to fight and when not to fight will win.','知可以战与不可以战者胜。'],
-['suntzu','artofwar',0,'Usta savaşçı önce yenilmez olur, sonra düşmanın hata yapmasını bekler.','The skilled warrior first makes himself unbeatable, then waits for the enemy to make a mistake.','昔之善战者，先为不可胜，以待敌之可胜。'],
-['suntzu','artofwar',0,'Su, toprağın şekline göre akar; usta komutan da düşmanına göre şekil alır.','Water shapes its course to the ground it flows over; a master commander shapes his plan to the enemy.','水因地而制流，兵因敌而制胜。'],
-['suntzu','artofwar',0,'Güçlüyken zayıf, zayıfken güçlü görün.','Appear weak when you are strong, and strong when you are weak.','能而示之不能，用而示之不用。'],
-['suntzu','artofwar',0,'Bilge komutan planlarında yararı ve zararı birlikte düşünür; böylece zorluktan çıkış yolunu bulur.','The wise commander weighs gain and loss together in his plans, and so finds his way out of difficulty.','智者之虑，必杂于利害；杂于利而务可信也，杂于害而患可解也。'],
-['clausewitz','onwar',0,'Savaşta her şey basittir, ama en basit şey bile zordur.','In war everything is very simple, but the simplest thing is difficult.','战争中一切都很简单，但最简单的事情也很困难。'],
-['napoleon','',1,'Savaşta manevi güç, maddi gücün üç katı değerindedir.','In war, the moral is to the physical as three is to one.','在战争中，精神的力量是物质力量的三倍。'],
-['napoleon','',1,'Zafer, en çok direnenindir.','Victory belongs to the most persevering.','胜利属于最坚持的人。'],
-['ataturk','sakarya',0,'Hattı müdafaa yoktur, sath-ı müdafaa vardır. O satıh bütün vatandır.','There is no line of defense, only a surface of defense, and that surface is the entire homeland.','防御不是一条线，而是一个面，这个面就是整个祖国。'],
-['fatih','',1,'Ya ben İstanbul\'u alırım, ya İstanbul beni.','Either I take Istanbul, or Istanbul takes me.','要么我夺取伊斯坦布尔，要么伊斯坦布尔夺取我。'],
-['marcus','meditations',0,'Engel, eylemi ilerletir; yolun önündeki engel yolun kendisi olur.','The impediment to action advances action; what stands in the way becomes the way.','阻碍行动的东西反而推动行动，挡在路上的障碍本身就成了道路。'],
-['marcus','meditations',0,'Ruhun, düşüncelerinin rengini alır.','Your soul takes on the color of your thoughts.','灵魂会染上思想的颜色。'],
-['epictetus','enchiridion',0,'İnsanları rahatsız eden olaylar değil, olaylar hakkındaki yargılarıdır.','People are disturbed not by events, but by their judgments about events.','困扰人们的不是事件本身，而是他们对事件的看法。'],
-['epictetus','discourses',0,'Önce kendine ne olmak istediğini söyle; sonra yapman gerekeni yap.','First say to yourself what you would be; then do what you have to do.','先告诉自己你想成为什么样的人，然后去做你该做的事。'],
-['seneca','letters',0,'Bir şey zor olduğu için cesaret etmiyor değiliz; cesaret etmediğimiz için zor.','It is not because things are difficult that we do not dare; it is because we do not dare that they are difficult.','不是因为事情困难我们才不敢，而是因为我们不敢，事情才显得困难。'],
-['nietzsche','twilight',0,'Beni öldürmeyen şey güçlendirir.','What does not kill me makes me stronger.','杀不死我的，使我更强大。'],
-['laotzu','tao',0,'Bin millik yolculuk tek bir adımla başlar.','A journey of a thousand miles begins with a single step.','千里之行，始于足下。'],
-['japanese','',0,'Yedi kez düş, sekiz kez kalk.','Fall seven times, stand up eight.','七转八起。'],
-['musashi','fivering',0,'Bin günlük çalışma ustalık içindir, on bin günlük çalışma parlamak için.','A thousand days of practice to forge, ten thousand days of practice to polish.','千日之功为锻，万日之功为炼。'],
-['hannibal','',1,'Ya bir yol bulacağız ya da yol açacağız.','We will either find a way, or make one.','我们要么找到一条路，要么开辟一条路。'],
-['leonidas','plutarch',0,'Gelip alsınlar.','Come and take them.','来拿吧。'],
-['terence','phormio',0,'Talih cesurlara yardım eder.','Fortune favors the bold.','命运眷顾勇者。'],
-['churchill','harrow',0,'Asla, asla, asla pes etmeyin.','Never give in, never, never, never.','永不放弃，永不，永不，永不。'],
-['ovid','amores',0,'Dayan ve sabret; bu acı bir gün işine yarayacak.','Endure and persist; this pain will one day be of use to you.','忍耐，坚持；这痛苦终有一天会对你有益。'],
-['shakespeare','henryv',0,'Bir kez daha gedikten içeri, sevgili dostlar, bir kez daha!','Once more unto the breach, dear friends, once more!','再冲一次缺口，亲爱的朋友们，再冲一次！'],
-['kipling','if',0,'Zafere de yenilgiye de rastlayıp o iki sahtekâra aynı gözle bakabilirsen...','If you can meet with Triumph and Disaster and treat those two impostors just the same...','如果你遇到成功和失败，能把这两个骗子一视同仁……'],
-['rumi','',1,'Dün dünde kaldı cancağızım, bugün yeni şeyler söylemek lazım.','Yesterday is gone, my dear; today we must say new things.','昨天已经过去，亲爱的，今天我们要说新的话。']
-],
+l:[['tolstoy','warpeace',0,'Savaşta en güçlü iki savaşçı sabır ve zamandır.','The two most powerful warriors are patience and time.','最强大的两位战士，是耐心与时间。']],
 w:[
-['caesar','zela',0,'Geldim, gördüm, yendim.','I came, I saw, I conquered.','我来了，我看见了，我征服了。'],
-['caesar','suetonius',0,'Zar atıldı.','The die is cast.','骰子已经掷下。'],
-['ataturk','aug30',0,'Ordular! İlk hedefiniz Akdeniz\'dir, ileri!','Armies! Your first target is the Mediterranean. Forward!','军队！你们的第一个目标是地中海，前进！'],
-['ataturk','',1,'Zafer, “zafer benimdir” diyebilenindir. Başarı ise “başaracağım” diyebilenindir.','Victory belongs to those who can say “victory is mine.” Success belongs to those who can say “I will succeed.”','胜利属于敢说“胜利是我的”的人，成功属于敢说“我会成功”的人。'],
-['ataturk','',0,'Yurtta sulh, cihanda sulh.','Peace at home, peace in the world.','国内和平，世界和平。'],
-['suntzu','artofwar',0,'Yüz savaşta yüz zafer kazanmak en büyük beceri değildir; düşmanı savaşmadan boyun eğdirmek en büyük beceridir.','To win a hundred victories in a hundred battles is not the highest skill; to subdue the enemy without fighting is.','百战百胜，非善之善者也；不战而屈人之兵，善之善者也。'],
-['suntzu','artofwar',0,'Hız, savaşın özüdür.','Speed is the essence of war.','兵之情主速。'],
-['suntzu','artofwar',0,'Planların gece kadar karanlık olsun; harekete geçtiğinde yıldırım gibi düş.','Let your plans be dark and impenetrable as night, and when you move, fall like a thunderbolt.','难知如阴，动如雷震。'],
-['suntzu','artofwar',0,'Kuşatılmış düşmana bir çıkış yolu bırak.','Leave a way out for a surrounded enemy.','围师必阙。'],
-['suntzu','artofwar',0,'Düşmanını da kendini de bilirsen, yüz savaşın sonucundan korkmazsın.','Know the enemy and know yourself, and you need not fear the result of a hundred battles.','知彼知己，百战不殆。'],
-['suntzu','artofwar',0,'Savaşı kazananlar önce kazanır, sonra savaşa girer.','The victorious army wins first and then seeks the battle.','胜兵先胜而后求战。'],
-['suntzu','artofwar',0,'Bütün savaş aldatmaya dayanır.','All warfare is based on deception.','兵者，诡道也。'],
-['suntzu','artofwar',0,'İyi savaşçı düşmanı kendi istediği yere çeker; düşmanın istediği yere gitmez.','The skilled fighter draws the enemy to the ground of his choosing and is not drawn by the enemy.','善战者，致人而不致于人。'],
-['wellington','waterloo',1,'Hayatımda gördüğüm en çekişmeli, ucu ucuna iş buydu.','It was the nearest-run thing you ever saw in your life.','这是我一生中见过的最险的一仗。'],
-['machiavelli','prince',0,'Prens hem tilki gibi kurnaz hem aslan gibi güçlü olmalıdır.','A prince must be as cunning as a fox and as strong as a lion.','君主既要像狐狸一样狡猾，又要像狮子一样强大。'],
-['napoleon','',1,'İmkânsız, aptalların sözlüğünde bulunan bir kelimedir.','Impossible is a word found only in the dictionary of fools.','“不可能”这个词只存在于愚人的字典里。'],
-['clausewitz','onwar',0,'Savunma, saldırıdan daha güçlü bir savaş biçimidir.','Defense is a stronger form of war than attack.','防御是比进攻更强的作战形式。'],
-['churchill','ww2',0,'Savaşta azim, yenilgide dik duruş, zaferde cömertlik, barışta iyi niyet.','In war, resolution; in defeat, defiance; in victory, magnanimity; in peace, goodwill.','战时要坚定，败时要不屈，胜时要宽宏，和平时要善意。'],
-['thucydides','peloponnese',0,'Mutluluğun sırrı özgürlük, özgürlüğün sırrı cesarettir.','The secret of happiness is freedom, and the secret of freedom is courage.','幸福的秘诀是自由，自由的秘诀是勇气。'],
-['marcus','meditations',0,'En güzel öç, kendini düşmana benzetmemektir.','The best revenge is not to be like your enemy.','最好的报复，就是不要变得像你的敌人。'],
-['laotzu','tao',0,'Başkalarını yenen güçlüdür; kendini yenen gerçekten kudretlidir.','Those who overcome others are strong; those who overcome themselves are truly mighty.','胜人者有力，自胜者强。'],
-['dhammapada','',0,'Savaşta bin kişiyi yenen değil, kendini yenen en büyük savaşçıdır.','Better than conquering a thousand in battle is conquering oneself.','战场上战胜千人，不如战胜自己，那才是最伟大的战士。'],
-['shakespeare','henryv',0,'Bugün kanını benimle dökecek olan, benim kardeşim olacaktır.','He who sheds his blood with me today shall be my brother.','今天与我一同流血的人，就是我的兄弟。'],
-['vegetius','vegetius',0,'Barışı isteyen savaşa hazırlansın.','Let him who desires peace prepare for war.','想要和平的人，就要准备战争。']
+  ['caesar','suetonius',0,'Zar atıldı.','The die is cast.','骰子已经掷下。'],
+  ['caesar','zela',0,'Geldim, gördüm, yendim.','I came, I saw, I conquered.','我来了，我看见了，我征服了。'],
+  ['ataturk','aug30',0,'Ordular! İlk hedefiniz Akdeniz\'dir, ileri!','Armies! Your first target is the Mediterranean. Forward!','军队！你们的第一个目标是地中海，前进！'],
+  ['suntzu','artofwar',0,'Hız, savaşın özüdür.','Speed is the essence of war.','兵之情主速。']
 ]};
-const MEMQ={};
-// Her cihaz için çıkan sözler kaydedilir; havuz bitmeden aynı söz tekrar çıkmaz, bitince yeniden karışır.
-// Havuz dilden bağımsız sıralanır, yani dil değişse de aynı söz tekrar gelmez.
 function pickQuote(kind){
   const pool=QD[kind];if(!pool||!pool.length)return null;
-  const key='zs-q-'+kind;let used=[];
-  try{used=JSON.parse(localStorage.getItem(key)||'[]');if(!Array.isArray(used))used=[];}catch(e){used=MEMQ[kind]||[];}
-  used=used.filter(i=>Number.isInteger(i)&&i>=0&&i<pool.length);
-  let free=pool.map((_,i)=>i).filter(i=>!used.includes(i));
-  if(!free.length){const last=used[used.length-1];used=[];free=pool.map((_,i)=>i).filter(i=>i!==last);}
-  const i=free[Math.floor(Math.random()*free.length)];
-  used.push(i);MEMQ[kind]=used;
-  try{localStorage.setItem(key,JSON.stringify(used));}catch(e){}
-  return {kind,i};
+  return {kind,i:Math.floor(Math.random()*pool.length)};
 }
 function quoteParts(q){
   const d=QD[q.kind][q.i],ix={tr:3,en:4,zh:5}[LANG]||3;
   return {text:d[ix],by:t('a_'+d[0]),src:d[1]?t('s_'+d[1]):'',att:d[2]?t('attrib'):''};
 }
-
 
 const GLYPH={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
 const NAME={},SIDE={},LEVEL={};
@@ -906,12 +870,12 @@ const FILES='abcdefgh';
 const sq=i=>FILES[i&7]+(8-(i>>3));
 const glyph=t=>GLYPH[t]+'︎';
 
-let G,timer=null,aiTimer=null,token=0;
+let G,timer=null,aiTimer=null,clkTimer=null,token=0,manualFlip=false,marks=new Set(),dragFrom=-1;
 const $=id=>document.getElementById(id);
 const isAI=()=>G.ai!==null&&G.s.turn===G.ai;
 const rollDie=()=>1+Math.floor(Math.random()*DIE);
 
-// Sesler tarayıcıda üretilir, dış dosya yok.
+// Ses Motoru
 const Snd=(()=>{
   let ctx=null,on=true;
   try{on=localStorage.getItem('zs-sound')!=='off';}catch(e){}
@@ -945,15 +909,15 @@ const Snd=(()=>{
     unlock(){ac();},
     isOn:()=>on,
     toggle(){on=!on;try{localStorage.setItem('zs-sound',on?'on':'off');}catch(e){}if(on)ac();},
-    tick(){noise(0,0.03,0.5,1800+Math.random()*1800);tone(300+Math.random()*200,0,0.03,'square',0.04);},
-    land(){noise(0,0.09,0.7,900);tone(220,0,0.12,'triangle',0.18,140);},
-    move(){noise(0,0.04,0.45,1200);tone(190,0,0.09,'triangle',0.25,120);},
-    capture(){noise(0,0.09,0.8,700);tone(150,0,0.16,'triangle',0.35,70);tone(95,0.01,0.12,'sine',0.25);},
-    check(){tone(740,0,0.14,'square',0.07);tone(988,0.16,0.2,'square',0.07);},
-    pass(){tone(260,0,0.18,'sine',0.14,190);},
-    win(){[523,659,784,1047].forEach((f,i)=>tone(f,i*0.14,0.28,'triangle',0.2));tone(1319,0.6,0.5,'triangle',0.18);},
-    lose(){[392,349,311,262].forEach((f,i)=>tone(f,i*0.22,0.34,'sawtooth',0.07));},
-    draw(){tone(440,0,0.25,'triangle',0.16);tone(415,0.28,0.4,'triangle',0.14);}
+    tick(){noise(0,0.03,0.45,1800+Math.random()*1600);tone(300+Math.random()*200,0,0.03,'square',0.03);},
+    land(){noise(0,0.08,0.65,900);tone(220,0,0.12,'triangle',0.16,140);},
+    move(){noise(0,0.04,0.45,1200);tone(185,0,0.08,'triangle',0.22,115);},
+    capture(){noise(0,0.09,0.75,680);tone(145,0,0.15,'triangle',0.32,68);},
+    check(){tone(740,0,0.13,'square',0.06);tone(988,0.15,0.18,'square',0.06);},
+    pass(){tone(260,0,0.16,'sine',0.12,190);},
+    win(){[523,659,784,1047].forEach((f,i)=>tone(f,i*0.13,0.26,'triangle',0.18));},
+    lose(){[392,349,311,262].forEach((f,i)=>tone(f,i*0.2,0.32,'sawtooth',0.06));},
+    draw(){tone(440,0,0.22,'triangle',0.14);tone(415,0.25,0.35,'triangle',0.12);}
   };
 })();
 
@@ -966,20 +930,71 @@ function locked(){
   return false;
 }
 
+// Chess.com Tarzı Hamle Sınıflandırması
+function classifyMove(deltaCentipawns){
+  if(deltaCentipawns>=250)return {cls:'mb-brilliant',txt:'!!'};
+  if(deltaCentipawns>=90)return {cls:'mb-great',txt:'!'};
+  if(deltaCentipawns>=-45)return {cls:'mb-good',txt:'✓'};
+  if(deltaCentipawns>=-140)return {cls:'mb-inacc',txt:'?!'};
+  return {cls:'mb-blunder',txt:'??'};
+}
+
+// Satranç Saati Yönetimi
+function startClockLoop(){
+  clearInterval(clkTimer);
+  if(!G||!G.clock.enabled)return;
+  let lastTick=performance.now();
+  clkTimer=setInterval(()=>{
+    const now=performance.now(),dt=(now-lastTick)/1000;
+    lastTick=now;
+    if(!G||G.phase==='over'||G.phase==='wait'||G.rolling)return;
+    const tn=G.s.turn;
+    G.clock[tn]=Math.max(0,G.clock[tn]-dt);
+    renderClocks();
+    if(G.clock[tn]<=0){
+      clearInterval(clkTimer);
+      G.result={type:'time',winner:opp(tn)};
+      G.phase='over';G.moves=[];G.sel=-1;G.promo=null;
+      outcomeSound();render();outSync();
+    }
+  },100);
+}
+
+function fmtClock(sec){
+  const s=Math.ceil(Math.max(0,sec));
+  const m=Math.floor(s/60),r=s%60;
+  return `${m}:${r<10?'0':''}${r}`;
+}
+
+function renderClocks(){
+  if(!G)return;
+  const topEl=$('topClock'),botEl=$('botClock');
+  if(!G.clock.enabled){topEl.hidden=true;botEl.hidden=true;return;}
+  topEl.hidden=false;botEl.hidden=false;
+  const flip=isFlipped();
+  const topC=flip?'w':'b',botC=flip?'b':'w';
+  topEl.textContent=fmtClock(G.clock[topC]);
+  botEl.textContent=fmtClock(G.clock[botC]);
+  const activeTurn=G.phase!=='over'&&G.phase!=='wait'?G.s.turn:null;
+  topEl.className='clock'+(topC==='b'?' b-clk':'')+(activeTurn===topC?' active':'')+(G.clock[topC]<=10?' low':'');
+  botEl.className='clock'+(botC==='b'?' b-clk':'')+(activeTurn===botC?' active':'')+(G.clock[botC]<=10?' low':'');
+}
+
 function outcomeSound(){
   const r=G.result,me=mySide();
-  if(r.type==='left'){setTimeout(()=>Snd.win(),350);return;}
-  if(r.type==='mate'){
-    if(me&&r.winner!==me)setTimeout(()=>Snd.lose(),350);
-    else setTimeout(()=>Snd.win(),350);
-  }else setTimeout(()=>Snd.draw(),350);
+  if(r.type==='left'){setTimeout(()=>Snd.win(),300);return;}
+  if(r.type==='mate'||r.type==='resign'||r.type==='time'){
+    if(me&&r.winner!==me)setTimeout(()=>Snd.lose(),300);
+    else setTimeout(()=>Snd.win(),300);
+  }else setTimeout(()=>Snd.draw(),300);
 }
 
 function endTexts(){
   const r=G.result,me=mySide(),cpu=G.mode==='cpu';
   if(r.type==='left')return {kind:'win',title:t('end_left'),sub:t('end_left_sub',{name:G.oppName})};
-  const why=t('why_'+(r.type==='mate'?'mate':r.type==='stalemate'?'stalemate':r.type==='material'?'material':'fifty'));
-  if(r.type==='mate'){
+  const whyKey={mate:'why_mate',resign:'why_resign',time:'why_time',stalemate:'why_stalemate',material:'why_material',fifty:'why_fifty'}[r.type]||'why_mate';
+  const why=t(whyKey);
+  if(r.winner){
     if(!me)return {kind:'win',title:t('end_side_wins',{side:SIDE[r.winner]}),sub:why};
     const win=r.winner===me;
     if(cpu)return win
@@ -999,10 +1014,8 @@ function syncModes(){
   $('menuStart').textContent=t(m==='online'?'start_online':'start');
 }
 function renderSettings(){
-  const seg=$('langSeg');
-  seg.innerHTML=LANGS.map(([c,n])=>`<button type="button" data-l="${c}" aria-pressed="${c===LANG}">${n}</button>`).join('');
-  const bseg=$('boardSeg');
-  bseg.innerHTML=BOARDS.map(([id,lbl,l,d])=>`<button type="button" data-b="${id}" aria-pressed="${id===BOARD}"><span class="swatch" aria-hidden="true"><i style="background:${l}"></i><i style="background:${d}"></i><i style="background:${d}"></i><i style="background:${l}"></i></span>${t(lbl)}</button>`).join('');
+  $('themeSeg').innerHTML=THEMES.map(([c,n])=>`<button type="button" data-th="${c}" aria-pressed="${c===BOARD_THEME}">${n}</button>`).join('');
+  $('langSeg').innerHTML=LANGS.map(([c,n])=>`<button type="button" data-l="${c}" aria-pressed="${c===LANG}">${n}</button>`).join('');
   $('sndOn').textContent=t('on');$('sndOff').textContent=t('off');
   $('sndOn').setAttribute('aria-pressed',String(Snd.isOn()));
   $('sndOff').setAttribute('aria-pressed',String(!Snd.isOn()));
@@ -1018,55 +1031,50 @@ function applyI18n(){
   syncModes();renderSettings();
   if(typeof G!=='undefined'&&G&&!$('gameView').hidden)render();
 }
-function setLang(l){
-  if(!I18N[l])return;
-  LANG=l;
-  try{localStorage.setItem('zs-lang',l);}catch(e){}
-  applyI18n();
-}
-function setBoard(b){
-  if(!BOARDS.some(x=>x[0]===b))return;
-  BOARD=b;
-  document.documentElement.dataset.board=b;
-  try{localStorage.setItem('zs-board',b);}catch(e){}
-  renderSettings();
-}
-function showView(v){
-  $('menuView').hidden=v!=='menu';
-  $('gameView').hidden=v!=='game';
-  window.scrollTo(0,0);
-  if(v==='game')fitBoard();
-}
+function setLang(l){if(!I18N[l])return;LANG=l;try{localStorage.setItem('zs-lang',l);}catch(e){}applyI18n();}
+function setBoardTheme(th){BOARD_THEME=th;document.documentElement.dataset.board=th;try{localStorage.setItem('zs-theme',th);}catch(e){}renderSettings();}
+function showView(v){$('menuView').hidden=v!=='menu';$('gameView').hidden=v!=='game';window.scrollTo(0,0);if(v==='game')fitBoard();}
 function openSettings(){renderSettings();$('settingsModal').hidden=false;$('setClose').focus();}
-function closeSettings(){$('settingsModal').hidden=true;$('menuSettings').focus();}
+function closeSettings(){$('settingsModal').hidden=true;}
 function startGame(){showView('game');newGame();}
 function backToMenu(){
-  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  token++;clearTimeout(timer);clearTimeout(aiTimer);clearInterval(clkTimer);
   if(G)G.rolling=false;
-  lbLeave();
-  showView('menu');
+  lbLeave();showView('menu');
 }
-// Kareler tam eşit piksel olsun diye tahta genişliği 8'in katına yuvarlanır.
 function fitBoard(){
   const col=$('boardcol'),bw=$('bw');
-  const w=Math.min(col.clientWidth,700);
-  bw.style.width=Math.max(240,Math.floor(w/8)*8)+'px';
+  const w=Math.min(col.clientWidth-34,680);
+  bw.style.width=Math.max(220,Math.floor(w/8)*8)+'px';
+}
+
+function isFlipped(){
+  const base=mySide()==='b';
+  return manualFlip?!base:base;
 }
 
 function newGame(){
-  token++;clearTimeout(timer);clearTimeout(aiTimer);
-  lbLeave();
+  token++;clearTimeout(timer);clearTimeout(aiTimer);clearInterval(clkTimer);
+  lbLeave();manualFlip=false;marks.clear();
   const mode=$('mode').value,human=$('side').value,level=$('level').value;
-  G={s:newState(),phase:mode==='online'?'wait':'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level,mode,human,myColor:null,oppName:'',ai:mode==='cpu'?opp(human):null};
+  const tc=$('timeCtrl').value;
+  let clk={enabled:false,w:0,b:0,inc:0};
+  if(tc!=='0'){
+    const [base,inc]=tc.split('|').map(Number);
+    clk={enabled:true,w:base,b:base,inc};
+  }
+  G={s:newState(),phase:mode==='online'?'wait':'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level,mode,human,myColor:null,oppName:'',ai:mode==='cpu'?opp(human):null,clock:clk};
   syncOnlineUI();
-  render();scheduleAI();
+  render();
+  if(mode!=='online')startClockLoop();
+  scheduleAI();
 }
 
 function scheduleAI(){
   clearTimeout(aiTimer);
   if(!isAI()||G.phase==='over'||G.phase==='pass'||G.rolling||G.promo)return;
   const my=token;
-  aiTimer=setTimeout(()=>{if(my===token)aiStep();},G.phase==='roll'?700:1000);
+  aiTimer=setTimeout(()=>{if(my===token)aiStep();},G.phase==='roll'?600:850);
 }
 
 function aiStep(){
@@ -1085,15 +1093,13 @@ function rollDice(){
   const iv=setInterval(()=>{
     if(my!==token){clearInterval(iv);return;}
     G.shown=rollDie();n++;renderDice();Snd.tick();
-    if(n>=9){clearInterval(iv);finishRoll(my);}
-  },75);
+    if(n>=8){clearInterval(iv);finishRoll(my);}
+  },65);
 }
 
 function passMsg(turn,n){
   if(G.mode==='online'){
-    return turn===G.myColor
-      ?t('pass_me_online',{n,opn:G.oppName})
-      :t('pass_opp_online',{n,opn:G.oppName});
+    return turn===G.myColor?t('pass_me_online',{n,opn:G.oppName}):t('pass_opp_online',{n,opn:G.oppName});
   }
   if(G.mode!=='cpu')return t('pass_pvp',{n,side:SIDE[turn]});
   return turn===G.human?t('pass_me_cpu',{n}):t('pass_cpu',{n});
@@ -1107,7 +1113,7 @@ function finishRoll(my){
   if(G.moves.length===0){
     G.phase='pass';G.msg=passMsg(turn,r);Snd.pass();
     render();
-    timer=setTimeout(()=>{if(my===token)passTurn();},1900);
+    timer=setTimeout(()=>{if(my===token)passTurn();},1700);
     outSync();
   }else{
     G.phase='move';G.msg='';render();scheduleAI();
@@ -1124,6 +1130,7 @@ function passTurn(){
 
 function endTurn(){
   const s=G.s;
+  if(G.clock.enabled&&G.clock.inc>0)G.clock[s.turn]+=G.clock.inc;
   s.turn=opp(s.turn);
   const col=s.turn;
   const all=legalMoves(s,col);
@@ -1133,7 +1140,7 @@ function endTurn(){
   else if(insufficient(s.board))G.result={type:'material'};
   else if(s.half>=100)G.result={type:'fifty'};
   G.phase=G.result?'over':'roll';
-  if(G.phase==='over')outcomeSound();else if(chk)setTimeout(()=>Snd.check(),160);
+  if(G.phase==='over')outcomeSound();else if(chk)setTimeout(()=>Snd.check(),150);
   render();scheduleAI();outSync();
 }
 
@@ -1148,11 +1155,16 @@ function logText(e){
 }
 
 function doMove(m,pt){
+  marks.clear();
   const s=G.s,color=s.turn,before=G.left;
+  const prevEval=evalFor(s.board,color);
   const ns=applyMove(s,m,pt);ns.turn=color;
+  const nextEval=evalFor(ns.board,color);
+  const badge=classifyMove(nextEval-prevEval);
+
   if(m.cap)G.cap[color].push(m.cap);
   if(m.cap)Snd.capture();else Snd.move();
-  G.log.push({color,ty:'mv',lk:before<G.roll?'rest':'roll',ln:before<G.roll?before:G.roll,ck:m.castle||'',p:m.piece[1],f:m.from,to:m.to,x:m.cap?1:0,ep:m.ep?1:0,pr:m.promo?(pt||'q'):''});
+  G.log.push({color,ty:'mv',lk:before<G.roll?'rest':'roll',ln:before<G.roll?before:G.roll,ck:m.castle||'',p:m.piece[1],f:m.from,to:m.to,x:m.cap?1:0,ep:m.ep?1:0,pr:m.promo?(pt||'q'):'',bCls:badge.cls,bTxt:badge.txt});
   G.s=ns;G.last={from:m.from,to:m.to};G.promo=null;
   G.left=before-m.cost;G.sp=spendAfter(G.sp,m);
   const more=G.left>0?playable(ns,color,G.left,G.sp):[];
@@ -1165,9 +1177,16 @@ function doMove(m,pt){
   endTurn();
 }
 
+function resignGame(){
+  if(!G||G.phase==='over'||G.phase==='wait')return;
+  const me=mySide()||G.s.turn;
+  G.result={type:'resign',winner:opp(me)};
+  G.phase='over';G.moves=[];G.sel=-1;G.promo=null;
+  outcomeSound();render();outSync();
+}
+
 function onSquare(i){
-  if(G.promo||locked())return;
-  if(G.phase!=='move')return;
+  if(G.promo||locked()||G.phase!=='move')return;
   const m=G.moves.find(x=>x.from===G.sel&&x.to===i);
   if(m){
     if(m.promo){G.promo=m;render();}else doMove(m);
@@ -1177,10 +1196,6 @@ function onSquare(i){
   if(p&&p[0]===G.s.turn&&G.moves.some(x=>x.from===i))G.sel=G.sel===i?-1:i;
   else G.sel=-1;
   render();
-}
-
-function hintFor(r,left){
-  return t('hint_roll',{r,left});
 }
 
 function statusText(){
@@ -1193,6 +1208,14 @@ function statusText(){
     if(r.type==='mate'){
       if(!vs)return t('st_mate_side',{side:SIDE[r.winner]});
       return r.winner===me?t('st_mate_win'):t('st_mate_lose',{opn});
+    }
+    if(r.type==='resign'){
+      if(!vs)return t('st_resign_side',{side:SIDE[opp(r.winner)],winner:SIDE[r.winner]});
+      return r.winner===me?t('st_resign_win'):t('st_resign_lose',{opn});
+    }
+    if(r.type==='time'){
+      if(!vs)return t('st_time_side',{winner:SIDE[r.winner]});
+      return r.winner===me?t('st_time_win'):t('st_time_lose',{opn});
     }
     if(r.type==='stalemate')return t('st_stalemate');
     if(r.type==='material')return t('st_material');
@@ -1211,6 +1234,56 @@ function statusText(){
   return (first?t('st_first_opp',{opn,n}):t('st_rest_opp',{opn,n}))+warn;
 }
 
+function renderEvalBar(){
+  const raw=evalFor(G.s.board,'w');
+  const pawns=(raw/100);
+  // Sigmoid benzeri yumuşatma (-10 ile +10 piyon arası %5-%95)
+  const pct=Math.max(5,Math.min(95,50+45*(2/(1+Math.exp(-0.35*pawns))-1)));
+  const flip=isFlipped();
+  const bar=$('evalBar');
+  bar.classList.toggle('flipped',flip);
+  $('evalFill').style.height=pct+'%';
+  const label=G.result&&G.result.type==='mate'?(G.result.winner==='w'?'1-0':'0-1'):Math.abs(pawns).toFixed(1);
+  if(pawns>=0){
+    $('evalBot').textContent=flip?'':label;
+    $('evalTop').textContent=flip?label:'';
+  }else{
+    $('evalTop').textContent=flip?'':label;
+    $('evalBot').textContent=flip?label:'';
+  }
+}
+
+function renderPlayerBars(){
+  const flip=isFlipped();
+  const topC=flip?'w':'b',botC=flip?'b':'w';
+  const order=['q','r','b','n','p'];
+
+  // Materyal puanları
+  let matW=0,matB=0;
+  for(const p of G.s.board){
+    if(!p)continue;
+    if(p[0]==='w')matW+=MAT_VAL[p[1]];
+    else matB+=MAT_VAL[p[1]];
+  }
+
+  const fillBar=(prefix,col)=>{
+    const isMe=mySide()===col;
+    const isCpu=G.ai===col;
+    $(prefix+'Av').textContent=isCpu?'🤖':(col==='w'?'♔':'♚');
+    $(prefix+'Name').textContent=G.mode==='cpu'?(isMe?t('you'):t('Computer')):G.mode==='online'?(isMe?t('you'):G.oppName):SIDE[col];
+    const badge=$(prefix+'Badge');
+    if(isCpu){badge.hidden=false;badge.textContent=LEVEL[G.level];}
+    else badge.hidden=true;
+
+    const arr=G.cap[col].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1]));
+    const diff=col==='w'?(matW-matB):(matB-matW);
+    $(prefix+'Cap').innerHTML=(arr.length?arr.map(p=>`<span class="g">${glyph(p[1])}</span>`).join(''):'')+(diff>0?`<span class="adv">+${diff}</span>`:'');
+  };
+  fillBar('top',topC);
+  fillBar('bot',botC);
+  renderClocks();
+}
+
 function renderDice(){
   const d=$('die');
   const v=G.rolling?G.shown:G.roll;
@@ -1218,10 +1291,19 @@ function renderDice(){
   d.className='die'+(v?'':' empty')+(G.rolling?' rolling':'');
   d.setAttribute('role','img');
   d.setAttribute('aria-label',v?t('die_aria',{v}):t('die_none'));
+
+  // Puan çubuğu (1-7)
+  const bar=$('ptsBar');
+  let pips='';
+  for(let k=1;k<=DIE;k++){
+    pips+=`<div class="pts-pip${(!G.rolling&&G.left>=k)?' on':''}"></div>`;
+  }
+  bar.innerHTML=pips;
 }
 
 function renderControls(){
   $('roll').disabled=!(G.phase==='roll'&&!G.rolling&&!locked());
+  $('btnResign').disabled=(G.phase==='over'||G.phase==='wait');
 }
 
 function render(){
@@ -1232,7 +1314,7 @@ function render(){
   const movers=new Set(active?G.moves.map(m=>m.from):[]);
   const tg=new Map();
   if(active&&G.sel>=0)G.moves.filter(m=>m.from===G.sel).forEach(m=>tg.set(m.to,m));
-  const flip=mySide()==='b';
+  const flip=isFlipped();
   let h='';
   for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
     const r=flip?7-rr:rr,c=flip?7-cc:cc;
@@ -1241,14 +1323,16 @@ function render(){
     if((r+c)%2)cls.push('d');
     if(G.last&&(G.last.from===i||G.last.to===i))cls.push('last');
     if(G.sel===i)cls.push('sel');
+    if(marks.has(i))cls.push('mark');
     if(inCheck&&i===kingIdx)cls.push('chk');
     if(movers.has(i))cls.push('mv');
     if(tg.has(i)){cls.push('tgt');if(tg.get(i).cap)cls.push('cap');}
     const label=sq(i)+(p?`, ${SIDE[p[0]]} ${NAME[p[1]]}`:'');
+    const canDrag=active&&movers.has(i);
     h+=`<button class="${cls.join(' ')}" data-i="${i}" aria-label="${label}">`
       +(cc===0?`<span class="co rk">${8-r}</span>`:'')
       +(rr===7?`<span class="co fl">${FILES[c]}</span>`:'')
-      +(p?`<span class="pc ${p[0]}">${glyph(p[1])}</span>`:'')
+      +(p?`<span class="pc ${p[0]}"${canDrag?' draggable="true"':''}>${glyph(p[1])}</span>`:'')
       +`</button>`;
   }
   $('board').innerHTML=h;
@@ -1259,21 +1343,18 @@ function render(){
     pr.hidden=false;
   }else pr.hidden=true;
 
-  $('chips').innerHTML=['w','b'].map(c=>{
-    const who=G.mode==='cpu'?` · ${c===G.human?t('you'):t('computer')}`:G.mode==='online'?` · ${c===G.myColor?t('you'):esc(G.oppName)}`:'';
-    return `<div class="chip ${c}${G.phase!=='over'&&turn===c?' on':''}"><i></i>${SIDE[c]}${who}</div>`;
-  }).join('');
-  renderDice();renderControls();
+  renderPlayerBars();
+  renderEvalBar();
+  renderDice();
+  renderControls();
+
   $('status').textContent=statusText();
-  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):t('hint_idle'));
-  const order=['q','r','b','n','p'];
-  for(const c of ['w','b']){
-    const arr=G.cap[c].slice().sort((a,b)=>order.indexOf(a[1])-order.indexOf(b[1]));
-    $(c==='w'?'capW':'capB').innerHTML=arr.length?arr.map(p=>`<span class="g ${p[0]}">${glyph(p[1])}</span>`).join(''):'—';
-  }
+  $('hint').textContent=G.phase==='over'?'':(G.roll!==null?t('hint_roll',{r:G.roll,left:G.left}):t('hint_idle'));
+
   const log=$('log');
-  log.innerHTML=G.log.length?G.log.map((e,k)=>`<li class="${e.color==='w'?'w':'b'}"><span class="n">${k+1}</span><i></i><span class="r">${logLabel(e)}</span><span>${logText(e)}</span></li>`).join(''):'<li class="e">'+t('nomoves')+'</li>';
+  log.innerHTML=G.log.length?G.log.map((e,k)=>`<li class="${e.color==='w'?'w':'b'}"><span class="n">${k+1}</span><i></i><span class="r">${logLabel(e)}</span><span class="mvtxt">${logText(e)}</span>${e.bTxt?`<span class="mbadge ${e.bCls}">${e.bTxt}</span>`:''}</li>`).join(''):'<li class="e">'+t('nomoves')+'</li>';
   log.scrollTop=log.scrollHeight;
+
   const over=G.phase==='over',end=$('end');
   end.hidden=!(over&&!G.endHidden);
   $('endNew').textContent=t('menu');
@@ -1288,16 +1369,12 @@ function render(){
   }
 }
 
-// ---- Aktarım katmanı: herkese açık MQTT sunucuları (WebSocket, 443 benzeri portlar), hesap gerekmez ----
-// Oyuncular aynı anda birkaç sunucuya bağlanır ve her mesajı hepsine gönderir, böylece biri engelliyse diğeri yeter.
-// Lobi kodu, sunucuda tutulan kısa ömürlü bir kayıttır. Mesajlar herkese açık sunucudan geçtiği için gizli değildir.
+// ---- Aktarım Katmanı (MQTT) ----
 const BROKERS=[
   {name:'emqx',url:'wss://broker.emqx.io:8084/mqtt'},
   {name:'hivemq',url:'wss://broker.hivemq.com:8884/mqtt'},
   {name:'mosquitto',url:'wss://test.mosquitto.org:8081/mqtt'}
 ];
-// Kendi sunucun: sayfa sunucudan açıldıysa aynı adresin /mqtt yolu; ya da adres sonuna ?broker=wss://adres/mqtt eklenirse o.
-// Kendi sunucu varsa yalnızca o kullanılır (gizlilik ve güvenilirlik için).
 (()=>{try{
   let own=null;
   const q=new URLSearchParams(location.search).get('broker');
@@ -1318,12 +1395,8 @@ const mstr=s=>{const b=enc.encode(s);return cat(Uint8Array.of(b.length>>8,b.leng
 const rlen=n=>{const o=[];do{let b=n%128;n=Math.floor(n/128);if(n>0)b|=128;o.push(b);}while(n>0);return Uint8Array.from(o);};
 const mpkt=(type,flags,body)=>cat(Uint8Array.of((type<<4)|flags),rlen(body.length),body);
 
-// Tek bir MQTT 3.1.1 bağlantısı (QoS 0)
 class MqttLink extends Emitter{
-  constructor(b,will){
-    super();
-    Object.assign(this,{b,will,up:false,ws:null,buf:new Uint8Array(0),ka:null,pid:1,dead:false});
-  }
+  constructor(b,will){super();Object.assign(this,{b,will,up:false,ws:null,buf:new Uint8Array(0),ka:null,pid:1,dead:false});}
   connect(){
     if(this.dead)return;
     let ws;
@@ -1341,23 +1414,15 @@ class MqttLink extends Emitter{
     };
     ws.onmessage=e=>{if(e.data instanceof ArrayBuffer)this._data(new Uint8Array(e.data));};
     ws.onerror=()=>{};
-    ws.onclose=()=>{
-      if(this.ws!==ws)return;
-      const was=this.up;this.up=false;clearInterval(this.ka);
-      this.emit('down',was);
-    };
+    ws.onclose=()=>{if(this.ws!==ws)return;const was=this.up;this.up=false;clearInterval(this.ka);this.emit('down',was);};
   }
   _send(u8){try{if(this.ws&&this.ws.readyState===1)this.ws.send(u8);}catch(e){}}
   _data(chunk){
     this.buf=cat(this.buf,chunk);
     for(;;){
-      const b=this.buf;
-      if(b.length<2)return;
+      const b=this.buf;if(b.length<2)return;
       let mul=1,len=0,i=1,dg;
-      do{
-        if(i>=b.length)return;
-        dg=b[i++];len+=(dg&127)*mul;mul*=128;
-      }while((dg&128)&&i<5);
+      do{if(i>=b.length)return;dg=b[i++];len+=(dg&127)*mul;mul*=128;}while((dg&128)&&i<5);
       if(b.length<i+len)return;
       const type=b[0]>>4,flags=b[0]&15,body=b.subarray(i,i+len);
       this.buf=b.subarray(i+len);
@@ -1366,38 +1431,19 @@ class MqttLink extends Emitter{
   }
   _pkt(type,flags,body){
     if(type===2){
-      if(body[1]===0){
-        this.up=true;
-        clearInterval(this.ka);this.ka=setInterval(()=>this._send(Uint8Array.of(0xC0,0)),25000);
-        this.emit('up');
-      }else{this.up=false;this.emit('down',false);try{this.ws.close();}catch(e){}}
+      if(body[1]===0){this.up=true;clearInterval(this.ka);this.ka=setInterval(()=>this._send(Uint8Array.of(0xC0,0)),25000);this.emit('up');}
+      else{this.up=false;this.emit('down',false);try{this.ws.close();}catch(e){}}
     }else if(type===3){
-      const tl=(body[0]<<8)|body[1];
-      const topic=dec.decode(body.subarray(2,2+tl));
-      let off=2+tl;
-      if(((flags>>1)&3)>0)off+=2;
+      const tl=(body[0]<<8)|body[1],topic=dec.decode(body.subarray(2,2+tl));
+      let off=2+tl;if(((flags>>1)&3)>0)off+=2;
       this.emit('msg',topic,body.subarray(off));
     }
   }
-  publish(topic,payload,retain){
-    if(!this.up)return;
-    const p=typeof payload==='string'?enc.encode(payload):payload;
-    this._send(mpkt(3,retain?1:0,cat(mstr(topic),p)));
-  }
-  subscribe(topic){
-    if(!this.up)return;
-    const id=this.pid++;if(this.pid>65000)this.pid=1;
-    this._send(mpkt(8,2,cat(Uint8Array.of(id>>8,id&255),mstr(topic),Uint8Array.of(0))));
-  }
-  close(){
-    this.dead=true;clearInterval(this.ka);
-    this._send(Uint8Array.of(0xE0,0));
-    const ws=this.ws;
-    setTimeout(()=>{try{if(ws)ws.close();}catch(e){}},150);
-  }
+  publish(topic,payload,retain){if(!this.up)return;const p=typeof payload==='string'?enc.encode(payload):payload;this._send(mpkt(3,retain?1:0,cat(mstr(topic),p)));}
+  subscribe(topic){if(!this.up)return;const id=this.pid++;if(this.pid>65000)this.pid=1;this._send(mpkt(8,2,cat(Uint8Array.of(id>>8,id&255),mstr(topic),Uint8Array.of(0))));}
+  close(){this.dead=true;clearInterval(this.ka);this._send(Uint8Array.of(0xE0,0));const ws=this.ws;setTimeout(()=>{try{if(ws)ws.close();}catch(e){}},150);}
 }
 
-// Birkaç sunucuya aynı anda bağlanan, mesajları tekilleştiren yol
 class Bus{
   constructor(will){
     Object.assign(this,{links:[],subs:new Set(),cb:null,seen:new Set(),seenQ:[],destroyed:false,status:{},_t:null});
@@ -1407,25 +1453,12 @@ class Bus{
     for(const b of BROKERS){
       const l=new MqttLink(b,will?{topic:will.topic,payload:will.payload}:null);
       this.status[b.name]='…';
-      l.on('up',()=>{
-        this.status[b.name]=t('rl_ok');
-        for(const t of this.subs)l.subscribe(t);
-        if(first){first=false;setTimeout(()=>this._res(),700);}
-      });
-      l.on('down',was=>{
-        this.status[b.name]=was?t('rl_drop'):t('rl_fail');
-        if(!this.destroyed)setTimeout(()=>l.connect(),was?1500:5000);
-      });
+      l.on('up',()=>{this.status[b.name]=t('rl_ok');for(const t of this.subs)l.subscribe(t);if(first){first=false;setTimeout(()=>this._res(),700);}});
+      l.on('down',was=>{this.status[b.name]=was?t('rl_drop'):t('rl_fail');if(!this.destroyed)setTimeout(()=>l.connect(),was?1500:5000);});
       l.on('msg',(topic,payload)=>this._in(topic,payload));
-      this.links.push(l);
-      l.connect();
+      this.links.push(l);l.connect();
     }
-    this._t=setTimeout(()=>{
-      if(!this.links.some(l=>l.up)){
-        window.__relayDiag=Object.entries(this.status).map(([k,v])=>`${k}: ${v==='…'?t('rl_fail'):v}`).join(', ');
-        this._rej(new Error('network'));
-      }
-    },10000);
+    this._t=setTimeout(()=>{if(!this.links.some(l=>l.up)){window.__relayDiag=Object.entries(this.status).map(([k,v])=>`${k}: ${v==='…'?t('rl_fail'):v}`).join(', ');this._rej(new Error('network'));}},10000);
   }
   ready(){return this.readyP;}
   onMessage(cb){this.cb=cb;}
@@ -1438,70 +1471,39 @@ class Bus{
     if(this.cb)this.cb(topic,o.d);
   }
   subscribe(t){this.subs.add(t);for(const l of this.links)l.subscribe(t);}
-  publish(topic,d,retain){
-    const body=JSON.stringify({i:rnd(10),d});
-    for(const l of this.links)l.publish(topic,body,retain);
-  }
+  publish(topic,d,retain){const body=JSON.stringify({i:rnd(10),d});for(const l of this.links)l.publish(topic,body,retain);}
   clearRetained(topic){for(const l of this.links)l.publish(topic,new Uint8Array(0),true);}
-  close(){
-    this.destroyed=true;clearTimeout(this._t);
-    for(const l of this.links)l.close();
-  }
+  close(){this.destroyed=true;clearTimeout(this._t);for(const l of this.links)l.close();}
 }
 
 class RelayConn extends Emitter{
-  constructor(peer,key,role){
-    super();
-    Object.assign(this,{peer,key,role,opened:false,closed:false,last:Date.now(),_iv:null});
-  }
+  constructor(peer,key,role){super();Object.assign(this,{peer,key,role,opened:false,closed:false,last:Date.now(),_iv:null});}
   _open(){
     if(this.opened||this.closed)return;
     this.opened=true;this.last=Date.now();
     if(this.role==='host')this._pub({t:'ack'});
-    this._iv=setInterval(()=>{
-      if(this.closed)return;
-      this._pub({t:'ping'});
-      if(Date.now()-this.last>16000)this._end();
-    },4000);
+    this._iv=setInterval(()=>{if(this.closed)return;this._pub({t:'ping'});if(Date.now()-this.last>16000)this._end();},4000);
     this.emit('open');
   }
   _recv(d){
     if(this.closed||!d||typeof d!=='object')return;
     this.last=Date.now();
-    if(d.t==='ack'){this._open();}
+    if(d.t==='ack')this._open();
     else if(d.t==='d'){if(this.opened)this.emit('data',d.d);}
-    else if(d.t==='bye'||d.t==='hostgone'){this._end();}
+    else if(d.t==='bye'||d.t==='hostgone')this._end();
   }
-  _pub(d){
-    const p=this.peer;
-    if(this.role==='host')p.bus.publish(`${p.base}/g/${this.key}`,d);
-    else p.bus.publish(`${p.base}/h`,{...d,from:p.id});
-  }
-  send(d){
-    if(!this.opened||this.closed)throw new Error('bağlantı açık değil');
-    this._pub({t:'d',d});
-  }
-  close(){
-    if(this.closed)return;
-    try{this._pub({t:'bye'});}catch(e){}
-    this._end();
-  }
-  _end(){
-    if(this.closed)return;
-    this.closed=true;clearInterval(this._iv);
-    if(this.peer.conns[this.key]===this)delete this.peer.conns[this.key];
-    this.emit('close');
-  }
+  _pub(d){const p=this.peer;if(this.role==='host')p.bus.publish(`${p.base}/g/${this.key}`,d);else p.bus.publish(`${p.base}/h`,{...d,from:p.id});}
+  send(d){if(!this.opened||this.closed)throw new Error('closed');this._pub({t:'d',d});}
+  close(){if(this.closed)return;try{this._pub({t:'bye'});}catch(e){}this._end();}
+  _end(){if(this.closed)return;this.closed=true;clearInterval(this._iv);if(this.peer.conns[this.key]===this)delete this.peer.conns[this.key];this.emit('close');}
 }
 
-// PeerJS benzeri küçük arayüz: new Peer(id) kuran taraf, new Peer() katılan taraf, peer.connect(kimlik)
 class RelayPeer extends Emitter{
   constructor(id){
     super();
     const host=!!id&&id.startsWith(PREFIX);
     Object.assign(this,{id:id||('g'+rnd(10)),isHost:host,code:host?id.slice(PREFIX.length):null,hid:rnd(10),conns:{},destroyed:false,bus:null,base:null,_hb:null,_failed:false,_info:false,_taken:false,claimed:false});
-    if(host)this._startHost();
-    else setTimeout(()=>{if(!this.destroyed)this.emit('open',this.id);},0);
+    if(host)this._startHost();else setTimeout(()=>{if(!this.destroyed)this.emit('open',this.id);},0);
   }
   _err(type){if(this._failed)return;this._failed=true;this.emit('error',{type});}
   reconnect(){}
@@ -1512,8 +1514,7 @@ class RelayPeer extends Emitter{
     this.bus.onMessage((topic,m)=>this._hostMsg(topic,m));
     try{await this.bus.ready();}catch(e){this._err('socket-error');return;}
     if(this.destroyed)return;
-    this.bus.subscribe(this.base+'/lobby');
-    this.bus.subscribe(this.base+'/h');
+    this.bus.subscribe(this.base+'/lobby');this.bus.subscribe(this.base+'/h');
     await new Promise(r=>setTimeout(r,1300));
     if(this.destroyed)return;
     if(this._taken){this._err('unavailable-id');return;}
@@ -1525,24 +1526,18 @@ class RelayPeer extends Emitter{
     if(!m||typeof m!=='object')return;
     if(topic===this.base+'/lobby'){if(this._fresh(m)&&m.hid!==this.hid)this._taken=true;return;}
     if(topic!==this.base+'/h')return;
-    const gid=m.from;
-    if(typeof gid!=='string'||!/^[a-z0-9]{1,40}$/.test(gid))return;
+    const gid=m.from;if(typeof gid!=='string'||!/^[a-z0-9]{1,40}$/.test(gid))return;
     let c=this.conns[gid];
     if(m.t==='hello'){
-      if(!c){
-        c=new RelayConn(this,gid,'host');this.conns[gid]=c;
-        this.emit('connection',c);
-        setTimeout(()=>c._open(),0);
-      }else if(c.opened)c._pub({t:'ack'});
+      if(!c){c=new RelayConn(this,gid,'host');this.conns[gid]=c;this.emit('connection',c);setTimeout(()=>c._open(),0);}
+      else if(c.opened)c._pub({t:'ack'});
     }else if(c)c._recv(m);
   }
   connect(remoteId){
     const code=String(remoteId).slice(PREFIX.length);
     this.code=code;this.base=TOPIC_BASE+code;
-    const conn=new RelayConn(this,code,'guest');
-    this.conns[code]=conn;
-    this._join(conn);
-    return conn;
+    const conn=new RelayConn(this,code,'guest');this.conns[code]=conn;
+    this._join(conn);return conn;
   }
   async _join(conn){
     const base=this.base;
@@ -1554,9 +1549,7 @@ class RelayPeer extends Emitter{
     });
     try{await this.bus.ready();}catch(e){this._err('socket-error');conn._end();return;}
     if(this.destroyed)return;
-    this.bus.subscribe(base+'/lobby');
-    this.bus.subscribe(base+'/g/'+this.id);
-    this.bus.subscribe(base+'/b');
+    this.bus.subscribe(base+'/lobby');this.bus.subscribe(base+'/g/'+this.id);this.bus.subscribe(base+'/b');
     for(let i=0;i<10&&!this._info&&!this.destroyed;i++)await new Promise(r=>setTimeout(r,250));
     if(this.destroyed)return;
     if(!this._info){this.emit('error',{type:'peer-unavailable'});conn._end();return;}
@@ -1569,30 +1562,21 @@ class RelayPeer extends Emitter{
     if(this.destroyed)return;
     this.destroyed=true;clearInterval(this._hb);
     for(const c of Object.values(this.conns))c.close();
-    if(this.bus){
-      if(this.isHost&&this.claimed&&this.base){
-        try{this.bus.clearRetained(this.base+'/lobby');this.bus.publish(this.base+'/b',{t:'hostgone'});}catch(e){}
-      }
-      this.bus.close();
-    }
+    if(this.bus){if(this.isHost&&this.claimed&&this.base){try{this.bus.clearRetained(this.base+'/lobby');this.bus.publish(this.base+'/b',{t:'hostgone'});}catch(e){}}this.bus.close();}
   }
 }
 if(!window.Peer&&typeof WebSocket!=='undefined')window.Peer=RelayPeer;
 
-// ---- Çevrimiçi lobi (herkese açık MQTT sunucuları üzerinden, hesap gerekmez) ----
-// Lobi kodu, sahibin kimliğidir ("zsatranc-123456"). Kod kullanımdaysa yeni kod seçilir.
-const LB={role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,
-  seq:0,name:'',oppName:'',myColor:null};
+// ---- Çevrimiçi Lobi ----
+const LB={role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,seq:0,name:'',oppName:'',myColor:null};
 const PREFIX='zsatranc-';
 try{const n=localStorage.getItem('zs-name');if(n)$('lbName').value=n;}catch(e){}
 
 function lbMsg(x){$('lbMsg').textContent=x||'';}
-function lbShow(w){
-  for(const k of ['Entry','Host','Guest','Count'])$('lb'+k).hidden=(k.toLowerCase()!==w);
-}
+function lbShow(w){for(const k of ['Entry','Host','Guest','Count'])$('lb'+k).hidden=(k.toLowerCase()!==w);}
 function lbBusy(b){for(const id of ['lbCreate','lbJoin','lbRegen','lbClose','lbApprove','lbReject','lbCancel'])$(id).disabled=b;}
 function lbErr(code){
-  if(code==='network'||code==='server-error'||code==='socket-error'||code==='socket-closed'||code==='timeout')return t('lb_err_net')+(window.__relayDiag?' ('+window.__relayDiag+')':'');
+  if(code==='network'||code==='server-error'||code==='socket-error'||code==='socket-closed'||code==='timeout')return t('lb_err_net');
   if(code==='browser-incompatible')return t('lb_nolib');
   return t('lb_err_generic',{x:code?' ('+code+')':''});
 }
@@ -1603,47 +1587,31 @@ function lbName(){
   return n;
 }
 function cleanName(x){const n=String(x==null?'':x).replace(/[\u0000-\u001f]/g,'').trim().slice(0,16);return n||t('lb_player');}
-
 function syncOnlineUI(){
   const on=$('mode').value==='online',playing=on&&LB.live;
   $('lobby').hidden=!on||playing;
   $('gamectl').hidden=on&&!playing;
   if(on&&!playing&&!LB.role){lbShow('entry');if(!window.Peer)lbMsg(t('lb_nolib'));}
 }
-
 function lbReset(){
   clearInterval(LB.cdTimer);
   const c=LB.conn,p=LB.peer;
-  Object.assign(LB,{role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,
-    seq:0,name:'',oppName:'',myColor:null});
+  Object.assign(LB,{role:null,code:null,peer:null,conn:null,status:'',init:null,buf:null,live:false,cd:false,closed:false,cdTimer:null,seq:0,name:'',oppName:'',myColor:null});
   try{if(c)c.close();}catch(e){}
   try{if(p)p.destroy();}catch(e){}
 }
 function lbLeave(){lbReset();}
-
-function lbBackToEntry(text){
-  lbReset();
-  lbBusy(false);
-  syncOnlineUI();
-  lbShow('entry');
-  lbMsg(text||'');
-}
-
+function lbBackToEntry(text){lbReset();lbBusy(false);syncOnlineUI();lbShow('entry');lbMsg(text||'');}
 function openPeer(id){
   return new Promise(resolve=>{
     let done=false,p=null,to=null;
-    const fin=r=>{
-      if(done)return;done=true;clearTimeout(to);
-      if(!r.peer){try{if(p)p.destroy();}catch(e){}}
-      resolve(r);
-    };
+    const fin=r=>{if(done)return;done=true;clearTimeout(to);if(!r.peer){try{if(p)p.destroy();}catch(e){}}resolve(r);};
     try{p=id?new Peer(id):new Peer();}catch(e){fin({err:'browser-incompatible'});return;}
     to=setTimeout(()=>fin({err:'timeout'}),16000);
     p.on('open',()=>fin({peer:p}));
     p.on('error',e=>fin({err:(e&&e.type)||'unknown'}));
   });
 }
-
 function lbEnter(role,code,peer,name){
   Object.assign(LB,{role,code,peer,name,conn:null,status:role==='host'?'open':'',init:null,buf:null,live:false,cd:false,closed:false,seq:0,oppName:'',myColor:null});
   peer.on('disconnected',()=>{if(LB.peer===peer){try{peer.reconnect();}catch(e){}}});
@@ -1656,8 +1624,6 @@ function lbEnter(role,code,peer,name){
   });
   if(role==='host'){peer.on('connection',hostIncoming);lbHostView('open');}
 }
-
-// Her yeni lobi, o anda kullanımda olmayan taze bir kod alır.
 async function createLobby(name){
   if(!window.Peer){lbMsg(t('lb_nolib'));return;}
   lbBusy(true);lbMsg(t('lb_preparing'));
@@ -1673,12 +1639,7 @@ async function createLobby(name){
   }finally{lbBusy(false);}
 }
 async function lbCreate(){const n=lbName();if(n)await createLobby(n);}
-async function lbRegen(){
-  const name=LB.name;if(!name||LB.role!=='host')return;
-  lbLeave();
-  await createLobby(name);
-}
-
+async function lbRegen(){const name=LB.name;if(!name||LB.role!=='host')return;lbLeave();await createLobby(name);}
 function lbHostView(kind){
   lbShow('host');
   $('lbCodeBig').textContent=LB.code.slice(0,3)+' '+LB.code.slice(3);
@@ -1686,8 +1647,6 @@ function lbHostView(kind){
   $('lbHostReq').hidden=kind!=='pending';
   if(kind==='pending')$('lbReqName').textContent=LB.oppName||t('lb_aplayer');
 }
-
-// Host tarafı: aynı anda tek bağlantı kabul edilir, diğerleri "dolu" yanıtı alır.
 function hostIncoming(conn){
   if(LB.role!=='host'||LB.conn||LB.live||LB.cd){
     conn.on('open',()=>{try{conn.send({t:'full'});}catch(e){}setTimeout(()=>{try{conn.close();}catch(e){}},500);});
@@ -1697,9 +1656,7 @@ function hostIncoming(conn){
   conn.on('data',m=>onMsg(conn,m));
   conn.on('close',()=>onConnClose(conn));
   conn.on('error',()=>onConnClose(conn));
-  setTimeout(()=>{if(LB.conn===conn&&LB.status==='joining'){LB.conn=null;LB.status='open';try{conn.close();}catch(e){}}},20000);
 }
-
 async function lbJoin(){
   const name=lbName();if(!name)return;
   const code=$('lbCode').value.replace(/\D/g,'');
@@ -1714,45 +1671,35 @@ async function lbJoin(){
   LB.conn=conn;
   let opened=false;
   const to=setTimeout(()=>{if(!opened&&LB.conn===conn)lbBackToEntry(t('lb_unreach'));},20000);
-  conn.on('open',()=>{
-    if(LB.conn!==conn)return;
-    opened=true;clearTimeout(to);
-    conn.send({t:'join',name});
-    lbShow('guest');lbMsg('');lbBusy(false);
-  });
+  conn.on('open',()=>{if(LB.conn!==conn)return;opened=true;clearTimeout(to);conn.send({t:'join',name});lbShow('guest');lbMsg('');lbBusy(false);});
   conn.on('data',m=>onMsg(conn,m));
   conn.on('close',()=>onConnClose(conn));
   conn.on('error',()=>onConnClose(conn));
 }
-
 function lbApprove(){
   if(LB.role!=='host'||LB.status!=='pending'||!LB.conn)return;
   const color=Math.random()<0.5?'w':'b';
   const st=newState();
-  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
+  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0,clock:G.clock};
   LB.myColor=color;LB.init=init;LB.status='countdown';
-  try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}
-  catch(e){lbMsg(t('lb_unreach_opp'));return;}
+  try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}catch(e){lbMsg(t('lb_unreach_opp'));return;}
   startCountdown();
 }
 function lbReject(){
   if(LB.role!=='host'||LB.status!=='pending'||!LB.conn)return;
-  const c=LB.conn;
-  LB.conn=null;LB.status='open';LB.oppName='';
+  const c=LB.conn;LB.conn=null;LB.status='open';LB.oppName='';
   try{c.send({t:'rejected'});}catch(e){}
   setTimeout(()=>{try{c.close();}catch(e){}},500);
-  lbHostView('open');
-  lbMsg(t('lb_rejected_msg'));
+  lbHostView('open');lbMsg(t('lb_rejected_msg'));
 }
-
 function onMsg(conn,m){
   if(LB.conn!==conn||!m||typeof m!=='object')return;
   if(LB.role==='host'){
     if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');}
     else if(m.t==='state')recvState(m.snap);
   }else{
-    if(m.t==='full'){lbBackToEntry(t('lb_full'));}
-    else if(m.t==='rejected'){lbBackToEntry(t('lb_rejected_guest'));}
+    if(m.t==='full')lbBackToEntry(t('lb_full'));
+    else if(m.t==='rejected')lbBackToEntry(t('lb_rejected_guest'));
     else if(m.t==='start'&&!LB.cd&&!LB.live){
       const init=validSnap(m.init);
       if(!init||(m.hostColor!=='w'&&m.hostColor!=='b')){lbBackToEntry(t('lb_baddata'));return;}
@@ -1762,7 +1709,6 @@ function onMsg(conn,m){
     else if(m.t==='state')recvState(m.snap);
   }
 }
-
 function onConnClose(conn){
   if(LB.conn!==conn)return;
   LB.conn=null;
@@ -1770,14 +1716,11 @@ function onConnClose(conn){
   if(LB.role==='host'){
     if(LB.cd){clearInterval(LB.cdTimer);LB.cdTimer=null;LB.cd=false;}
     LB.status='open';LB.oppName='';LB.init=null;LB.buf=null;
-    lbHostView('open');
-    lbMsg(t('lb_opp_left'));
+    lbHostView('open');lbMsg(t('lb_opp_left'));
   }else lbBackToEntry(t('lb_closed'));
 }
-
 function lbClosedRemote(){
-  const c=LB.conn,p=LB.peer;
-  LB.conn=null;LB.peer=null;LB.closed=true;
+  const c=LB.conn,p=LB.peer;LB.conn=null;LB.peer=null;LB.closed=true;
   try{if(c)c.close();}catch(e){}
   try{if(p)p.destroy();}catch(e){}
   if(G.mode==='online'&&G.phase!=='over'){
@@ -1785,11 +1728,8 @@ function lbClosedRemote(){
     outcomeSound();render();
   }
 }
-
-// 3 saniyelik geri sayım: iki tarafta da aynı anda çalışır.
 function startCountdown(){
-  LB.cd=true;
-  lbShow('count');
+  LB.cd=true;lbShow('count');
   $('lbCountInfo').textContent=t('lb_countInfo',{name:LB.oppName,side:SIDE[LB.myColor]});
   let n=3;$('lbNum').textContent=n;Snd.land();
   LB.cdTimer=setInterval(()=>{
@@ -1798,18 +1738,17 @@ function startCountdown(){
     else{clearInterval(LB.cdTimer);LB.cdTimer=null;beginOnlineGame();}
   },1000);
 }
-
 function beginOnlineGame(){
   token++;clearTimeout(timer);clearTimeout(aiTimer);
   const g=(LB.buf&&LB.buf.seq>0)?LB.buf:LB.init;
   if(!g){lbBackToEntry(t('lb_startfail'));return;}
   LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
-  G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
+  const clk=g.clock||G.clock;
+  G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null,clock:clk};
   $('lobby').hidden=true;$('gamectl').hidden=false;
+  startClockLoop();
   if(g.seq>0)applyRemote(g);else render();
 }
-
-// Gelen veri güvenilmez sayılır: yalnızca beklenen biçimdeki alanlar kabul edilir.
 function validSnap(g){
   try{
     if(!g||typeof g!=='object')return null;
@@ -1827,39 +1766,37 @@ function validSnap(g){
     const castle={wk:!!cs.wk,wq:!!cs.wq,bk:!!cs.bk,bq:!!cs.bq};
     let last=null;
     if(g.last){if(!num(g.last.from,0,63)||!num(g.last.to,0,63))return null;last={from:g.last.from,to:g.last.to};}
-    const log=(Array.isArray(g.log)?g.log:[]).slice(-2000).map(e=>{e=e||{};return {color:e.color==='w'?'w':'b',ty:e.ty==='pass'?'pass':'mv',lk:e.lk==='rest'?'rest':'roll',ln:num(e.ln,0,7)?e.ln:0,ck:(e.ck==='k'||e.ck==='q')?e.ck:'',p:/^[pnbrqk]$/.test(e.p)?e.p:'p',f:num(e.f,0,63)?e.f:0,to:num(e.to,0,63)?e.to:0,x:e.x?1:0,ep:e.ep?1:0,pr:/^[qrbn]$/.test(e.pr)?e.pr:''};});
+    const log=(Array.isArray(g.log)?g.log:[]).slice(-2000).map(e=>{e=e||{};return {color:e.color==='w'?'w':'b',ty:e.ty==='pass'?'pass':'mv',lk:e.lk==='rest'?'rest':'roll',ln:num(e.ln,0,7)?e.ln:0,ck:(e.ck==='k'||e.ck==='q')?e.ck:'',p:/^[pnbrqk]$/.test(e.p)?e.p:'p',f:num(e.f,0,63)?e.f:0,to:num(e.to,0,63)?e.to:0,x:e.x?1:0,ep:e.ep?1:0,pr:/^[qrbn]$/.test(e.pr)?e.pr:'',bCls:String(e.bCls||''),bTxt:String(e.bTxt||'')};});
     const cp=a=>(Array.isArray(a)?a:[]).filter(x=>typeof x==='string'&&pc.test(x)).slice(0,32);
     const cap={w:cp(g.cap&&g.cap.w),b:cp(g.cap&&g.cap.b)};
     let result=null;
     if(g.result){
       const t=g.result.type;
-      if(!['mate','stalemate','material','fifty'].includes(t))return null;
-      result={type:t};if(t==='mate')result.winner=g.result.winner==='w'?'w':'b';
+      if(!['mate','resign','time','stalemate','material','fifty'].includes(t))return null;
+      result={type:t};if(g.result.winner)result.winner=g.result.winner==='w'?'w':'b';
     }
-    return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,half:g.half,phase:g.phase,roll,left:g.left,sp,last,log,cap,result,seq:g.seq};
+    const clock=g.clock&&typeof g.clock==='object'?{enabled:!!g.clock.enabled,w:Number(g.clock.w)||0,b:Number(g.clock.b)||0,inc:Number(g.clock.inc)||0}:null;
+    return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,half:g.half,phase:g.phase,roll,left:g.left,sp,last,log,cap,result,seq:g.seq,clock};
   }catch(e){return null;}
 }
-
 function snapshotGame(){
-  return {board:G.s.board,turn:G.s.turn,castle:G.s.castle,ep:G.s.ep,half:G.s.half,phase:G.phase,roll:G.roll,left:G.left,sp:G.sp,last:G.last,log:G.log,cap:G.cap,result:G.result};
+  return {board:G.s.board,turn:G.s.turn,castle:G.s.castle,ep:G.s.ep,half:G.s.half,phase:G.phase,roll:G.roll,left:G.left,sp:G.sp,last:G.last,log:G.log,cap:G.cap,result:G.result,clock:G.clock};
 }
-// Her durum değişikliğinde tam oyun durumu rakibe gider. Sırası olan taraf gönderir, diğeri alır.
 function outSync(){
   if(G.mode!=='online'||!LB.live||LB.closed||!LB.conn)return;
   const snap=snapshotGame();snap.seq=++LB.seq;
-  try{LB.conn.send({t:'state',snap});}
-  catch(e){lbMsg(t('lb_sendfail'));}
+  try{LB.conn.send({t:'state',snap});}catch(e){lbMsg(t('lb_sendfail'));}
 }
 function recvState(raw){
   const g=validSnap(raw);if(!g)return;
   if(LB.live){if(g.seq>LB.seq){LB.seq=g.seq;applyRemote(g);}}
   else if(LB.cd){if(!LB.buf||g.seq>LB.buf.seq)LB.buf=g;}
 }
-
 function applyRemote(g){
   const prevLog=G.log.length,prevCaps=G.cap.w.length+G.cap.b.length,prevRoll=G.roll;
   G.s={board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half};
   G.phase=g.phase;G.roll=g.roll;G.shown=g.roll;G.left=g.left;G.sp=g.sp||{};G.last=g.last;G.log=g.log||[];G.cap=g.cap||{w:[],b:[]};
+  if(g.clock)G.clock=g.clock;
   G.result=g.result;G.sel=-1;G.promo=null;G.rolling=false;G.moves=[];
   G.msg=g.phase==='pass'?passMsg(g.turn,g.roll):'';
   if(g.phase==='move'&&g.turn===G.myColor)G.moves=playable(G.s,G.myColor,G.left,G.sp);
@@ -1868,11 +1805,12 @@ function applyRemote(g){
     if(caps>prevCaps)Snd.capture();else Snd.move();
   }else if(g.roll!==null&&g.roll!==prevRoll)Snd.land();
   if(g.phase==='pass')Snd.pass();
-  if(g.phase==='over'&&g.result)outcomeSound();
+  if(G.phase==='over'&&g.result)outcomeSound();
   else if(g.phase==='roll'&&g.turn===G.myColor&&attacked(g.board,g.board.indexOf(g.turn+'k'),opp(g.turn)))setTimeout(()=>Snd.check(),160);
   render();
 }
 
+// Event Listeners
 $('lbCreate').addEventListener('click',()=>{Snd.unlock();lbCreate();});
 $('lbJoin').addEventListener('click',()=>{Snd.unlock();lbJoin();});
 $('lbApprove').addEventListener('click',()=>{Snd.unlock();lbApprove();});
@@ -1884,21 +1822,48 @@ $('lbCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/
 $('lbCopy').addEventListener('click',async()=>{
   const code=LB.code||'';
   try{await navigator.clipboard.writeText(code);lbMsg(t('lb_copied'));}
-  catch(e){
-    try{const r=document.createRange();r.selectNodeContents($('lbCodeBig'));const s=getSelection();s.removeAllRanges();s.addRange(r);lbMsg(t('lb_selected'));}catch(x){}
-  }
+  catch(e){try{const r=document.createRange();r.selectNodeContents($('lbCodeBig'));const s=getSelection();s.removeAllRanges();s.addRange(r);lbMsg(t('lb_selected'));}catch(x){}}
 });
 window.addEventListener('pagehide',()=>{if(LB.role)lbLeave();});
 
-$('board').addEventListener('click',e=>{
+// Tahta Tıklama, Sağ Tık Vurgulama ve Sürükle-Bırak
+const boardEl=$('board');
+boardEl.addEventListener('click',e=>{
   Snd.unlock();
+  if(marks.size>0){marks.clear();render();}
   const b=e.target.closest('.sq');if(b)onSquare(+b.dataset.i);
 });
+boardEl.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const b=e.target.closest('.sq');if(!b)return;
+  const idx=+b.dataset.i;
+  if(marks.has(idx))marks.delete(idx);else marks.add(idx);
+  render();
+});
+boardEl.addEventListener('dragstart',e=>{
+  const b=e.target.closest('.sq');if(!b)return;
+  dragFrom=+b.dataset.i;
+  G.sel=dragFrom;
+  setTimeout(()=>render(),0);
+});
+boardEl.addEventListener('dragover',e=>e.preventDefault());
+boardEl.addEventListener('drop',e=>{
+  e.preventDefault();
+  const b=e.target.closest('.sq');
+  if(!b||dragFrom<0)return;
+  const to=+b.dataset.i;
+  dragFrom=-1;
+  if(to!==G.sel)onSquare(to);
+});
+
 $('promo').addEventListener('click',e=>{
   const b=e.target.closest('button[data-pt]');
   if(b&&G.promo&&!locked())doMove(G.promo,b.dataset.pt);
 });
 $('roll').addEventListener('click',()=>{Snd.unlock();if(!locked())rollDice();});
+$('btnFlip').addEventListener('click',()=>{manualFlip=!manualFlip;render();});
+$('btnSettings').addEventListener('click',openSettings);
+$('btnResign').addEventListener('click',resignGame);
 $('toMenu').addEventListener('click',backToMenu);
 $('endNew').addEventListener('click',backToMenu);
 $('endView').addEventListener('click',()=>{G.endHidden=true;render();});
@@ -1908,8 +1873,8 @@ $('menuSettings').addEventListener('click',openSettings);
 $('setClose').addEventListener('click',closeSettings);
 $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('settingsModal').hidden)closeSettings();});
+$('themeSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-th]');if(b)setBoardTheme(b.dataset.th);});
 $('langSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(b)setLang(b.dataset.l);});
-$('boardSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)setBoard(b.dataset.b);});
 $('sndOn').addEventListener('click',()=>{if(!Snd.isOn())Snd.toggle();renderSettings();Snd.unlock();});
 $('sndOff').addEventListener('click',()=>{if(Snd.isOn())Snd.toggle();renderSettings();});
 if(window.ResizeObserver)new ResizeObserver(fitBoard).observe($('boardcol'));
@@ -1918,5 +1883,4 @@ fitBoard();
 applyI18n();
 showView('menu');
 </script>
-
 </body></html>
