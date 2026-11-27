@@ -54,6 +54,8 @@ header p{margin:0;color:var(--muted);max-width:60ch}
 .sq.tgt{cursor:pointer}
 .sq.tgt::after{content:"";position:absolute;inset:36%;border-radius:50%;background:var(--dot);pointer-events:none}
 .sq.tgt.cap::after{inset:5%;background:none;border:.9cqw solid var(--dot)}
+.costtag{position:absolute;z-index:3;top:3px;right:3px;min-width:18px;padding:1px 4px;border-radius:5px;background:var(--accent);color:var(--accent-fg);font:700 clamp(9px,2.2cqw,13px) var(--font-head);line-height:1.4;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sq.tgt .costtag{opacity:1}
 .sq:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;z-index:2}
 .pc{position:relative;z-index:1;font-size:10.4cqw;line-height:1;font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols","DejaVu Sans",sans-serif;paint-order:stroke fill;pointer-events:none}
 .pc.w{color:var(--w-fill);-webkit-text-stroke:.45cqw var(--w-line)}
@@ -86,6 +88,12 @@ header p{margin:0;color:var(--muted);max-width:60ch}
 @keyframes shake{0%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}100%{transform:rotate(-5deg) translateY(0)}}
 @media (prefers-reduced-motion:reduce){.die.rolling{animation:none}}
 .rollcol{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.forecast{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:12px;padding:9px;background:var(--bg);border:1px solid var(--line);border-radius:9px}
+.forecast .fitem{display:grid;gap:2px;text-align:center;min-width:0}
+.forecast .fnum{font:700 13px var(--font-head);color:var(--fg)}
+.forecast .fcount{font:500 11px var(--font-body);color:var(--muted)}
+.forecast .fitem.best{background:var(--last);border-radius:6px}
+.forecast .ftitle{grid-column:1/-1;margin:0 0 2px;font-size:11px;color:var(--muted)}
 .btn{font:600 15px var(--font-head);padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
 .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -285,10 +293,13 @@ details ul b{color:var(--fg);font-weight:600}
           <div class="die empty" id="die" aria-live="polite"></div>
           <div class="rollcol">
             <button class="btn primary" id="roll" data-i18n="roll"></button>
+            <button class="btn" id="rerollBtn" data-i18n="reroll" hidden></button>
             <button class="btn" id="hintBtn" data-i18n="hint" hidden></button>
+            <button class="btn" id="undoBtn" data-i18n="undo" hidden></button>
           </div>
         </div>
         <p id="status" aria-live="polite"></p>
+        <div id="diceForecast" class="forecast" hidden></div>
         <p id="hint"></p>
         </div>
         <div id="review" hidden>
@@ -321,6 +332,7 @@ details ul b{color:var(--fg);font-weight:600}
             <li data-i18n-html="r5"></li>
             <li data-i18n-html="r6"></li>
             <li data-i18n-html="r7"></li>
+            <li data-i18n-html="r8"></li>
           </ul>
         </details>
       </div>
@@ -355,8 +367,12 @@ function startBoard(){
   for(let c=0;c<8;c++){b[c]='b'+back[c];b[8+c]='bp';b[48+c]='wp';b[56+c]='w'+back[c];}
   return b;
 }
-function newState(){return {board:startBoard(),turn:'w',castle:{wk:true,wq:true,bk:true,bq:true},ep:-1,half:0};}
-function cloneS(s){return {board:s.board.slice(),turn:s.turn,castle:{...s.castle},ep:s.ep,half:s.half};}
+function newState(){return {board:startBoard(),turn:'w',castle:{wk:true,wq:true,bk:true,bq:true},ep:-1,epFor:null,half:0,turnIrreversible:false};}
+function cloneS(s){return {board:s.board.slice(),turn:s.turn,castle:{...s.castle},ep:s.ep,epFor:s.epFor||null,half:s.half,turnIrreversible:!!s.turnIrreversible};}
+function positionKey(s){
+  const rights=['wk','wq','bk','bq'].map(k=>s.castle[k]?'1':'0').join('');
+  return s.board.map(p=>p||'-').join('')+'|'+s.turn+'|'+rights+'|'+(s.ep>=0?s.ep:'-')+'|'+(s.epFor||'-');
+}
 
 function attacked(b,i,by){
   const r=i>>3,c=i&7;
@@ -441,8 +457,15 @@ function applyMove(s,m,promoType){
   const corner={56:'wq',63:'wk',0:'bq',7:'bk'};
   if(corner[m.from])n.castle[corner[m.from]]=false;
   if(corner[m.to])n.castle[corner[m.to]]=false;
-  n.ep=m.dbl?(m.from+m.to)/2:-1;
-  n.half=(t==='p'||m.cap)?0:n.half+1;
+  // A double-step's en-passant right lasts until the eligible opponent completes
+  // their first action. Other moves by the same player in this multi-action turn
+  // must not erase it.
+  if(m.dbl){n.ep=(m.from+m.to)/2;n.epFor=opp(color);}
+  else if(m.ep||s.epFor===color){n.ep=-1;n.epFor=null;}
+  // The 50-move counter is updated once per completed player turn, not per
+  // individual sub-move. Any pawn move/capture marks this whole turn irreversible.
+  n.turnIrreversible=!!s.turnIrreversible||t==='p'||!!m.cap;
+  if(t==='p'||m.cap)n.half=0;
   return n;
 }
 
@@ -456,8 +479,12 @@ function legalMoves(s,color){
 
 const DIE=7,PAWN_CAP=5;
 // sp: bu turda her piyonun (bulunduğu kareye göre) şimdiye kadar harcadığı puan. Bir piyon tek turda en fazla PAWN_CAP puan harcar.
-function playable(s,color,left,sp){
-  return legalMoves(s,color).filter(m=>m.cost<=left&&!(m.piece[1]==='p'&&sp&&(sp[m.from]||0)+m.cost>PAWN_CAP));
+function playable(s,color,left,sp,roll=left){
+  return legalMoves(s,color).filter(m=>
+    m.cost<=left&&
+    !(m.piece[1]==='p'&&sp&&(sp[m.from]||0)+m.cost>PAWN_CAP)&&
+    !(m.piece[1]==='k'&&![4,5,6].includes(roll))
+  );
 }
 function spendAfter(sp,m){
   const n={};for(const k in (sp||{}))n[k]=sp[k];
@@ -471,7 +498,8 @@ function insufficient(b){
   if(rest.length===1&&(rest[0][1]==='b'||rest[0][1]==='n'))return true;
   return false;
 }
-// Bilgisayar rakibi: kolay (açgözlü + hata), orta (iki vuruşluk beklenen değer), zor (daha derin, mat farkındalığı).
+// Bilgisayar rakibi: tam zar turunu arayan, zar sonuçlarını olasılıksal
+// değerlendiren sınırlı genişlikte Expectiminimax yaklaşımı.
 const VAL={p:100,n:320,b:330,r:500,q:900,k:0};
 function pstBonus(p,i){
   const t=p[1],r=i>>3,c=i&7,w=p[0]==='w';
@@ -488,115 +516,14 @@ function evalFor(board,color){
   let sc=0;
   for(let i=0;i<64;i++){
     const p=board[i];if(!p)continue;
-    const v=VAL[p[1]]+pstBonus(p,i);
-    sc+=p[0]===color?v:-v;
+    const v=VAL[p[1]]+pstBonus(p,i),sign=p[0]===color?1:-1;
+    sc+=sign*v;
+    if(p[1]!=='k'&&attacked(board,i,opp(p[0]))&&!attacked(board,i,p[0]))sc-=sign*Math.min(60,v*.12);
   }
+  const wk=board.indexOf('wk'),bk=board.indexOf('bk');
+  if(wk>=0&&attacked(board,wk,'b'))sc-=color==='w'?85:-85;
+  if(bk>=0&&attacked(board,bk,'w'))sc+=color==='w'?85:-85;
   return sc;
-}
-// Rakibin her zar sonucundaki en iyi cevabını varsayarak durumun beklenen değeri.
-function leafValue(n,color){
-  const en=opp(color);
-  const replies=legalMoves(n,en);
-  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
-  const base=evalFor(n.board,color);
-  const ev=replies.map(r=>({c:r.cost,v:evalFor(applyMove(n,r,'q').board,color)}));
-  let sum=0;
-  for(let d=1;d<=DIE;d++){
-    let worst=base,any=false;
-    for(const e of ev){
-      if(e.c>d)continue;
-      if(!any||e.v<worst){worst=e.v;any=true;}
-    }
-    sum+=worst;
-  }
-  return sum/DIE;
-}
-// Zor seviye: rakibin cevabını mat tehdidiyle değerlendirir, ardından kendi en iyi karşılığımıza da bakar.
-function followUp(n,color){
-  const base=evalFor(n.board,color);
-  const mv=legalMoves(n,color);
-  if(mv.length===0)return base;
-  const vs=mv.map(m=>({c:m.cost,v:evalFor(applyMove(n,m,m.promo?'q':undefined).board,color)}));
-  let sum=0;
-  for(let e=1;e<=DIE;e++){
-    let best=base,any=false;
-    for(const x of vs){
-      if(x.c>e)continue;
-      if(!any||x.v>best){best=x.v;any=true;}
-    }
-    sum+=best;
-  }
-  return sum/DIE;
-}
-function leafHard(n,color){
-  const en=opp(color);
-  const replies=legalMoves(n,en);
-  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
-  const ev=replies.map(r=>{
-    const ns=applyMove(n,r,'q');
-    let v=evalFor(ns.board,color),mate=false;
-    if(attacked(ns.board,ns.board.indexOf(color+'k'),en)&&legalMoves(ns,color).length===0){v=-100000;mate=true;}
-    return {c:r.cost,ns,v,mate};
-  });
-  const weight=new Map();
-  for(let d=1;d<=DIE;d++){
-    let bi=-1,bv=Infinity;
-    for(let i=0;i<ev.length;i++){
-      if(ev[i].c>d)continue;
-      if(ev[i].v<bv){bv=ev[i].v;bi=i;}
-    }
-    weight.set(bi,(weight.get(bi)||0)+1);
-  }
-  let sum=0;
-  for(const [i,w] of weight){
-    const val=i<0?followUp(n,color):(ev[i].mate?-100000:followUp(ev[i].ns,color));
-    sum+=w*val;
-  }
-  return sum/DIE;
-}
-// Derin yaprak: rakip kendi turunda en çok iki hamle yapar. Zar bitene kadar oynamak zorunda olduğu için
-// ilk hamleden sonra kalan puanla ikinci bir hamle de hesaba katılır. K1: bakılan ilk cevap sayısı, K2: ikinci hamle sayısı.
-function leafDeep(n,color,K1,K2){
-  const en=opp(color),myK=n.board.indexOf(color+'k');
-  const replies=legalMoves(n,en);
-  if(replies.length===0)return attacked(n.board,n.board.indexOf(en+'k'),color)?100000:0;
-  const base=evalFor(n.board,color);
-  const cand=replies.map(r=>{
-    const ns=applyMove(n,r,'q');ns.turn=en;
-    let v=evalFor(ns.board,color),mate=false;
-    if(attacked(ns.board,ns.board.indexOf(color+'k'),en)&&legalMoves(ns,color).length===0){v=-100000;mate=true;}
-    return {c:r.cost,ns,v,mate};
-  }).sort((a,b)=>a.v-b.v);
-  const pick=cand.slice(0,K1),seen={};
-  for(const x of pick)seen[x.c]=1;
-  for(const x of cand.slice(K1)){if(!seen[x.c]){seen[x.c]=1;pick.push(x);}}
-  for(const x of pick){
-    x.v2=[];
-    if(x.mate)continue;
-    const mv2=legalMoves(x.ns,en);
-    if(!mv2.length)continue;
-    const e2=mv2.map(r=>({c:r.cost,v:evalFor(applyMove(x.ns,r,'q').board,color)})).sort((a,b)=>a.v-b.v);
-    const keep=e2.slice(0,K2),sc={};
-    for(const y of keep)sc[y.c]=1;
-    for(const y of e2.slice(K2)){if(!sc[y.c]){sc[y.c]=1;keep.push(y);}}
-    for(let b=1;b<=DIE;b++){
-      let best=null;
-      for(const y of keep)if(y.c<=b&&(best===null||y.v<best))best=y.v;
-      x.v2[b]=best;
-    }
-  }
-  let sum=0;
-  for(let d=1;d<=DIE;d++){
-    let worst=null;
-    for(const x of pick){
-      if(x.c>d)continue;
-      const b=d-x.c;
-      const val=(b>0&&x.v2[b]!=null)?x.v2[b]:x.v;
-      if(worst===null||val<worst)worst=val;
-    }
-    sum+=worst===null?base:worst;
-  }
-  return sum/DIE;
 }
 function aiEasy(s,color,moves){
   if(Math.random()<0.3)return moves[Math.floor(Math.random()*moves.length)];
@@ -608,38 +535,75 @@ function aiEasy(s,color,moves){
   }
   return best;
 }
-// Seviye ayarları: top = her hamle için bakılan devam sayısı, noise = rastgelelik, k1/k2 > 0 ise derin yaprak.
 const AI_CFG={
-  medium:{top:3,noise:130,k1:0,k2:0},
-  hard:{top:8,noise:1,k1:6,k2:4},
-  expert:{top:12,noise:0,k1:12,k2:10}
+  medium:{beam:1,noise:65,nodes:300},
+  hard:{beam:2,noise:8,nodes:700},
+  expert:{beam:2,noise:0,nodes:1400}
 };
-function aiSearch(s,color,moves,left,level,sp){
+function terminalAfterMove(s,mover,perspective){
+  const side=opp(mover),king=s.board.indexOf(side+'k'),moves=legalMoves(s,side);
+  if(!moves.length)return attacked(s.board,king,mover)?(mover===perspective?100000:-100000):0;
+  if(insufficient(s.board))return 0;
+  return null;
+}
+function rankedForSide(s,moves,perspective,side,beam){
+  const a=moves.map(m=>{
+    const n=applyMove(s,m,m.promo?'q':undefined);
+    return {m,n,v:evalFor(n.board,perspective)};
+  });
+  a.sort((x,y)=>side===perspective?y.v-x.v:x.v-y.v);
+  return a.slice(0,Math.max(1,beam));
+}
+function searchOwnTurn(s,left,sp,roll,perspective,cfg,budget){
+  if(budget.left--<=0)return expectedEnemyTurn(s,perspective,cfg,budget);
+  const moves=playable(s,perspective,left,sp,roll);
+  if(left<=0||!moves.length)return expectedEnemyTurn(s,perspective,cfg,budget);
+  let best=-Infinity;
+  for(const x of rankedForSide(s,moves,perspective,perspective,cfg.beam)){
+    const terminal=terminalAfterMove(x.n,perspective,perspective);
+    const v=terminal!==null?terminal:(left>x.m.cost?searchOwnTurn(x.n,left-x.m.cost,spendAfter(sp,x.m),roll,perspective,cfg,budget):expectedEnemyTurn(x.n,perspective,cfg,budget));
+    if(v>best)best=v;
+    if(budget.left<=0)break;
+  }
+  return best===-Infinity?evalFor(s.board,perspective):best;
+}
+function searchEnemyTurn(s,enemy,left,sp,roll,perspective,cfg,budget){
+  if(budget.left--<=0)return evalFor(s.board,perspective);
+  const moves=playable(s,enemy,left,sp,roll);
+  if(left<=0||!moves.length)return evalFor(s.board,perspective);
+  let worst=Infinity;
+  for(const x of rankedForSide(s,moves,perspective,enemy,cfg.beam)){
+    const terminal=terminalAfterMove(x.n,enemy,perspective);
+    const v=terminal!==null?terminal:(left>x.m.cost?searchEnemyTurn(x.n,enemy,left-x.m.cost,spendAfter(sp,x.m),roll,perspective,cfg,budget):evalFor(x.n.board,perspective));
+    if(v<worst)worst=v;
+    if(budget.left<=0)break;
+  }
+  return worst===Infinity?evalFor(s.board,perspective):worst;
+}
+function expectedEnemyTurn(s,perspective,cfg,budget){
+  const enemy=opp(perspective),king=s.board.indexOf(enemy+'k'),legal=legalMoves(s,enemy);
+  if(!legal.length)return attacked(s.board,king,perspective)?100000:0;
+  if(insufficient(s.board))return 0;
+  let total=0;
+  for(let d=1;d<=DIE;d++)total+=searchEnemyTurn(s,enemy,d,{},d,perspective,cfg,budget);
+  return total/DIE;
+}
+function aiSearch(s,color,moves,left,level,sp,roll){
   const cfg=AI_CFG[level]||AI_CFG.hard;
-  const leaf=cfg.k1>0?((n,c)=>leafDeep(n,c,cfg.k1,cfg.k2)):leafValue;
-  const top=cfg.top,noise=cfg.noise;
   let best=null,bestV=-Infinity;
   for(const m of moves){
-    const n=applyMove(s,m,m.promo?'q':undefined);
-    const rem=left-m.cost;
-    const conts=rem>0?playable(n,color,rem,spendAfter(sp,m)):[];
-    let v;
-    if(conts.length){
-      const scored=conts.map(c=>{const n2=applyMove(n,c,c.promo?'q':undefined);return {n2,q:evalFor(n2.board,color)};})
-        .sort((a,b)=>b.q-a.q).slice(0,top);
-      v=-Infinity;
-      for(const x of scored){const lv=leaf(x.n2,color);if(lv>v)v=lv;}
-    }else{
-      v=leaf(n,color);
-    }
-    v+=Math.random()*noise;
+    const n=applyMove(s,m,m.promo?'q':undefined),rem=left-m.cost;
+    const terminal=terminalAfterMove(n,color,color);
+    const budget={left:cfg.nodes};
+    let v=terminal!==null?terminal:(rem>0?searchOwnTurn(n,rem,spendAfter(sp,m),roll,color,cfg,budget):expectedEnemyTurn(n,color,cfg,budget));
+    v+=Math.random()*cfg.noise;
     if(v>bestV){bestV=v;best=m;}
   }
   return best;
 }
-function aiChoose(s,color,moves,left,level,sp){
+function aiChoose(s,color,moves,left,level,sp,roll){
   if(level==='easy')return aiEasy(s,color,moves);
-  return aiSearch(s,color,moves,left,level,sp);
+  return aiSearch(s,color,moves,left,level,sp,roll);
 }
 // ENGINE END
 
@@ -655,18 +619,19 @@ start:'Oyuna başla',start_online:'Lobiye git',settings:'Ayarlar',lang:'Dil',sou
 w:'Beyaz',b:'Siyah',you:'sen',computer:'bilgisayar',Computer:'Bilgisayar',
 roll:'Zarı at',menu:'Ana menüye dön',captured:'Alınan taşlar',moves:'Hamleler',nomoves:'Henüz hamle yok',
 rules:'Zar kuralları',
-r1:'<b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Zar 4 ise aynı piyonu 4 kare ilerletebilirsin.',
+r1:'<b>Zar bir puan havuzudur (1-7).</b> Her hamle gittiği kare kadar puan harcar. Aynı taşı, yasal hamleleri elverdiği sürece aynı turda birden fazla kez oynatabilirsin.',
 r2:'<b>Bir piyon</b> tek turda en fazla 5 puan harcar. Zar 7 ise bir piyon 5 puan oynar, kalan 2 puanı başka bir taşla harcarsın.',
 r3:'<b>Kalan puan</b> başka hamlelerle harcanır. Oynanabilecek hamle kalmadıysa sıra biter.',
-r4:'<b>Piyonun iki karesi</b> ve <b>rok</b> en az 2 gerektirir.',
+r4:'<b>Piyonun iki kare ilerlemesi</b> ve <b>rok</b> en az 2 puan gerektirir. <b>Şah</b> yalnızca zar 4, 5 veya 6 geldiğinde hareket edebilir; şah hamlesi 1 puandır.',
 r5:'<b>Hamle yoksa</b> sıra rakibe geçer.',
 r6:'<b>Şah çekildiyse</b> ve zar kurtarmaya yetmiyorsa sıra geçer. Şah alınmaz, oyun yalnızca mat ile biter.',
-r7:'<b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir.',
+r7:'<b>Mat ve pat</b> zardan bağımsız, klasik kurala göre belirlenir. Mat veya pat oluşturan hamle oyunu hemen bitirir.',
+r8:'<b>Beraberlik:</b> aynı konum üç kez tekrarlanırsa veya piyon hamlesi/taş alma olmadan 100 tamamlanmış oyuncu turu (her renk için 50 tur) geçerse oyun berabere biter.',
 pc_k:'Şah',pc_q:'Vezir',pc_r:'Kale',pc_b:'Fil',pc_n:'At',pc_p:'Piyon',
 view:'Tahtayı gör',
 log_roll:'zar {n}',log_rest:'kalan {n}',log_pass:'Hamle yok, sıra geçti',log_ck:'Kısa rok',log_cq:'Uzun rok',log_ep:' (geçerken alma)',
 st_left:'{name} oyundan ayrıldı. Kazandın.',st_mate_side:'Şah mat. {side} kazandı.',st_mate_win:'Şah mat. Kazandın!',st_mate_lose:'Şah mat. {opn} kazandı.',
-st_stalemate:'Pat. Oyun berabere bitti.',st_material:'Yetersiz materyal. Oyun berabere bitti.',st_fifty:'50 hamle kuralı. Oyun berabere bitti.',
+st_stalemate:'Pat. Oyun berabere bitti.',st_material:'Yetersiz materyal. Oyun berabere bitti.',st_fifty:'50 hamle kuralı. Oyun berabere bitti.',st_repetition:'Aynı konum üç kez tekrarlandı. Oyun berabere bitti.',
 st_promo:'Piyon terfi ediyor. Bir taş seç.',
 warn_me:' Şahın tehdit altında.',warn_cpu:' Bilgisayarın şahı tehdit altında.',warn_opp:' {opn} oyuncusunun şahı tehdit altında.',
 st_roll_side:'{side} sırada, zarı at.',st_roll_mine:'Sıra sende, zarı at.',st_roll_opp:'{opn} zar atıyor.',
@@ -678,10 +643,11 @@ pass_pvp:'{side} {n} attı ama bu zarla oynayabileceği hamle yok. Sıra rakibe 
 pass_me_cpu:'{n} attın ama bu zarla oynayabileceğin hamle yok. Sıra bilgisayara geçiyor.',
 pass_cpu:'Bilgisayar {n} attı ama bu zarla oynayabileceği hamle yok. Sıra sana geçiyor.',
 hint_roll:'Zar {r}, kalan {left} puan. Her hamle gittiği kare kadar puan harcar (rok 2). Bir piyon tek turda en fazla 5 puan harcar. Puanlar bitmeden sıra geçmez.',
-hint_idle:'Zar (1-7) puan verir: her kare 1 puan. Bir piyon tek turda en fazla 5 puan harcar.',
+hint_idle:'Zar (1-7) puan verir. Bir piyon tek turda en fazla 5 puan harcar. Şah yalnızca 4, 5 veya 6 gelen zar turunda oynayabilir.',
+undo:'Turu geri al',reroll:'Zarı yeniden at',forecast:'Zar analizi',forecast_hint:'Her zar sonucunda oynanabilecek ilk hamle sayısı',
 die_aria:'Zar: {v}',die_none:'Zar henüz atılmadı',
 end_win:'Kazandın!',end_lose:'Kaybettin',end_draw:'Berabere',end_left:'Kazandın',end_side_wins:'{side} kazandı',
-why_mate:'Şah mat.',why_stalemate:'Pat.',why_material:'Yetersiz materyal.',why_fifty:'50 hamle kuralı.',
+why_mate:'Şah mat.',why_stalemate:'Pat.',why_material:'Yetersiz materyal.',why_fifty:'50 hamle kuralı.',why_repetition:'Üç konum tekrarı.',
 end_left_sub:'{name} oyundan ayrıldı.',end_cpu_win:'{why} Bilgisayarı yendin. Zorluk: {lvl}.',end_cpu_lose:'{why} Bilgisayar kazandı. Zorluk: {lvl}.',
 end_on_win:'{why} {name} adlı rakibi yendin.',end_on_lose:'{why} {name} kazandı.',
 attrib:'atfedilir',
@@ -712,18 +678,19 @@ start:'Start game',start_online:'Go to lobby',settings:'Settings',lang:'Language
 w:'White',b:'Black',you:'you',computer:'computer',Computer:'Computer',
 roll:'Roll the die',menu:'Back to main menu',captured:'Captured pieces',moves:'Moves',nomoves:'No moves yet',
 rules:'Dice rules',
-r1:'<b>The die is a point pool (1-7).</b> Each move costs as many points as the squares it moves. With a 4 you can advance the same pawn 4 squares.',
+r1:'<b>The die is a point pool (1-7).</b> Each move costs as many points as the squares it moves. You may move the same piece more than once in a turn when legal.',
 r2:'<b>A pawn</b> spends at most 5 points per turn. With a 7, one pawn plays 5 points and you spend the remaining 2 with another piece.',
 r3:'<b>Remaining points</b> are spent on other moves. If no playable move is left, the turn ends.',
-r4:'<b>A pawn\'s two-square move</b> and <b>castling</b> need at least 2 points.',
+r4:'<b>A two-square pawn move</b> and <b>castling</b> cost at least 2 points. The <b>king</b> may move only on a turn with a 4, 5, or 6; a king move costs 1 point.',
 r5:'<b>If there is no move,</b> the turn passes to the opponent.',
 r6:'<b>If your king is in check</b> and the roll cannot resolve it, the turn passes. The king is never captured; the game ends only by checkmate.',
-r7:'<b>Checkmate and stalemate</b> follow the classic rules, independent of the die.',
+r7:'<b>Checkmate and stalemate</b> follow the classic rules, independent of the die. The game ends immediately when either occurs.',
+r8:'<b>Draws:</b> the game is drawn after a threefold position repetition or 100 completed player turns (50 per side) without a pawn move or capture.',
 pc_k:'King',pc_q:'Queen',pc_r:'Rook',pc_b:'Bishop',pc_n:'Knight',pc_p:'Pawn',
 view:'View board',
 log_roll:'roll {n}',log_rest:'left {n}',log_pass:'No moves, turn passed',log_ck:'Castles kingside',log_cq:'Castles queenside',log_ep:' (en passant)',
 st_left:'{name} left the game. You win.',st_mate_side:'Checkmate. {side} wins.',st_mate_win:'Checkmate. You win!',st_mate_lose:'Checkmate. {opn} wins.',
-st_stalemate:'Stalemate. The game is a draw.',st_material:'Insufficient material. The game is a draw.',st_fifty:'Fifty-move rule. The game is a draw.',
+st_stalemate:'Stalemate. The game is a draw.',st_material:'Insufficient material. The game is a draw.',st_fifty:'Fifty-move rule. The game is a draw.',st_repetition:'The same position occurred three times. The game is a draw.',
 st_promo:'Pawn promotion. Choose a piece.',
 warn_me:' Your king is in check.',warn_cpu:' The computer\'s king is in check.',warn_opp:' {opn}\'s king is in check.',
 st_roll_side:'{side} to move, roll the die.',st_roll_mine:'Your turn, roll the die.',st_roll_opp:'{opn} is rolling.',
@@ -735,10 +702,11 @@ pass_pvp:'{side} rolled {n} but has no playable move with it. The turn passes to
 pass_me_cpu:'You rolled {n} but have no playable move with it. The turn passes to the computer.',
 pass_cpu:'The computer rolled {n} but has no playable move with it. The turn passes to you.',
 hint_roll:'Roll {r}, {left} points left. Each move costs as many points as the squares it moves (castling 2). A pawn can spend at most 5 points per turn. Your turn does not end until the points are spent.',
-hint_idle:'The die (1-7) gives points: each square costs 1 point. A pawn can spend at most 5 points per turn.',
+hint_idle:'The die (1-7) gives points. A pawn can spend at most 5 points per turn. The king may move only when the turn roll is 4, 5, or 6.',
+undo:'Undo turn',reroll:'Reroll once',forecast:'Dice analysis',forecast_hint:'Number of available first moves for each roll',
 die_aria:'Die: {v}',die_none:'The die has not been rolled yet',
 end_win:'You win!',end_lose:'You lost',end_draw:'Draw',end_left:'You win',end_side_wins:'{side} wins',
-why_mate:'Checkmate.',why_stalemate:'Stalemate.',why_material:'Insufficient material.',why_fifty:'Fifty-move rule.',
+why_mate:'Checkmate.',why_stalemate:'Stalemate.',why_material:'Insufficient material.',why_fifty:'Fifty-move rule.',why_repetition:'Threefold repetition.',
 end_left_sub:'{name} left the game.',end_cpu_win:'{why} You beat the computer. Difficulty: {lvl}.',end_cpu_lose:'{why} The computer won. Difficulty: {lvl}.',
 end_on_win:'{why} You beat {name}.',end_on_lose:'{why} {name} won.',
 attrib:'attributed',
@@ -769,18 +737,19 @@ start:'开始游戏',start_online:'进入大厅',settings:'设置',lang:'语言'
 w:'白方',b:'黑方',you:'你',computer:'电脑',Computer:'电脑',
 roll:'掷骰子',menu:'返回主菜单',captured:'被吃的棋子',moves:'走法',nomoves:'还没有走棋',
 rules:'骰子规则',
-r1:'<b>骰子是一个点数池（1-7）。</b>每步棋消耗的点数等于移动的格数。掷出4时，同一个兵可以前进4格。',
+r1:'<b>骰子是一个点数池（1-7）。</b>每步棋消耗的点数等于移动的格数。只要符合规则，同一棋子在一回合内可以移动多次。',
 r2:'<b>一个兵</b>每回合最多消耗5点。掷出7时，一个兵走5点，剩下的2点用其他棋子走。',
 r3:'<b>剩余点数</b>用于其他走法。如果没有可走的棋，回合结束。',
-r4:'<b>兵走两格</b>和<b>王车易位</b>至少需要2点。',
+r4:'<b>兵走两格</b>和<b>王车易位</b>至少需要2点。<b>王</b>只能在掷出4、5或6的回合移动，移动消耗1点。',
 r5:'<b>如果无棋可走，</b>轮到对手。',
 r6:'<b>如果王被将军</b>而骰子点数不足以解围，则轮空。王不会被吃掉，只有将杀才会结束游戏。',
-r7:'<b>将杀和逼和</b>按经典规则判定，与骰子无关。',
+r7:'<b>将杀和逼和</b>按经典规则判定，与骰子无关。出现将杀或逼和时立即结束游戏。',
+r8:'<b>和棋：</b>同一局面重复三次，或在没有兵移动和吃子的情况下完成100个玩家回合（每方50回合），游戏和棋。',
 pc_k:'王',pc_q:'后',pc_r:'车',pc_b:'象',pc_n:'马',pc_p:'兵',
 view:'查看棋盘',
 log_roll:'骰子 {n}',log_rest:'剩余 {n}',log_pass:'无棋可走，轮空',log_ck:'短易位',log_cq:'长易位',log_ep:'（吃过路兵）',
 st_left:'{name}离开了游戏。你赢了。',st_mate_side:'将杀。{side}获胜。',st_mate_win:'将杀。你赢了！',st_mate_lose:'将杀。{opn}获胜。',
-st_stalemate:'逼和。本局和棋。',st_material:'子力不足。本局和棋。',st_fifty:'五十回合规则。本局和棋。',
+st_stalemate:'逼和。本局和棋。',st_material:'子力不足。本局和棋。',st_fifty:'五十回合规则。本局和棋。',st_repetition:'同一局面重复三次。本局和棋。',
 st_promo:'兵升变。请选择一个棋子。',
 warn_me:' 你的王被将军了。',warn_cpu:' 电脑的王被将军了。',warn_opp:' {opn}的王被将军了。',
 st_roll_side:'轮到{side}，请掷骰子。',st_roll_mine:'轮到你了，请掷骰子。',st_roll_opp:'{opn}正在掷骰子。',
@@ -792,10 +761,11 @@ pass_pvp:'{side}掷出了{n}，但没有可走的棋。轮到对手。',
 pass_me_cpu:'你掷出了{n}，但没有可走的棋。轮到电脑。',
 pass_cpu:'电脑掷出了{n}，但没有可走的棋。轮到你。',
 hint_roll:'骰子{r}，还剩{left}点。每步棋消耗的点数等于移动的格数（王车易位为2）。一个兵每回合最多消耗5点。点数用完前不会换对手。',
-hint_idle:'骰子（1-7）提供点数：每格消耗1点。一个兵每回合最多消耗5点。',
+hint_idle:'骰子（1-7）提供点数。一个兵每回合最多消耗5点。只有掷出4、5或6时王才能移动。',
+undo:'悔棋一回合',reroll:'重新掷骰一次',forecast:'骰子分析',forecast_hint:'每种骰子结果可执行的首步数量',
 die_aria:'骰子：{v}',die_none:'骰子还没有掷出',
 end_win:'你赢了！',end_lose:'你输了',end_draw:'和棋',end_left:'你赢了',end_side_wins:'{side}获胜',
-why_mate:'将杀。',why_stalemate:'逼和。',why_material:'子力不足。',why_fifty:'五十回合规则。',
+why_mate:'将杀。',why_stalemate:'逼和。',why_material:'子力不足。',why_fifty:'五十回合规则。',why_repetition:'三次重复局面。',
 end_left_sub:'{name}离开了游戏。',end_cpu_win:'{why}你击败了电脑。难度：{lvl}。',end_cpu_lose:'{why}电脑获胜。难度：{lvl}。',
 end_on_win:'{why}你击败了{name}。',end_on_lose:'{why}{name}获胜。',
 attrib:'相传',
@@ -1008,7 +978,7 @@ function outcomeSound(){
 function endTexts(){
   const r=G.result,me=mySide(),cpu=G.mode==='cpu';
   if(r.type==='left')return {kind:'win',title:t('end_left'),sub:t('end_left_sub',{name:G.oppName})};
-  const why=t('why_'+(r.type==='mate'?'mate':r.type==='stalemate'?'stalemate':r.type==='material'?'material':'fifty'));
+  const why=t('why_'+(r.type==='mate'?'mate':r.type==='stalemate'?'stalemate':r.type==='material'?'material':r.type==='repetition'?'repetition':'fifty'));
   if(r.type==='mate'){
     if(!me)return {kind:'win',title:t('end_side_wins',{side:SIDE[r.winner]}),sub:why};
     const win=r.winner===me;
@@ -1096,7 +1066,7 @@ function buildReview(){
   const pos=[{board:s.board.slice(),last:null}],logIdx=[-1];
   for(let k=0;k<G.log.length;k++){
     const e=G.log[k];
-    if(e.ty==='pass'){s=cloneS(s);s.ep=-1;continue;}
+    if(e.ty==='pass'){s=cloneS(s);s.ep=-1;s.epFor=null;continue;}
     s.turn=e.color;
     const m=legalMoves(s,e.color).find(x=>x.from===e.f&&x.to===e.to);
     if(!m)break;
@@ -1116,7 +1086,7 @@ function exitReview(){G.review=null;G.endHidden=false;render();}
 const PVAL={p:1,n:3,b:3,r:5,q:9};
 function hintStart(){
   if(G.mode!=='cpu'||G.phase!=='move'||locked()||G.promo||!G.moves.length)return;
-  const m=aiSearch(G.s,G.s.turn,G.moves,G.left,'hard',G.sp);
+  const m=aiSearch(G.s,G.s.turn,G.moves,G.left,'hard',G.sp,G.roll);
   if(!m)return;
   G.hint={from:m.from,to:m.to,piece:m.piece[1]};
   G.sel=m.from;
@@ -1175,8 +1145,8 @@ function fitBoard(){
 function newGame(){
   token++;clearTimeout(timer);clearTimeout(aiTimer);
   lbLeave();
-  const mode=$('mode').value,human=$('side').value,level=$('level').value;
-  G={s:newState(),phase:mode==='online'?'wait':'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level,mode,human,myColor:null,oppName:'',ai:mode==='cpu'?opp(human):null};
+  const mode=$('mode').value,human=$('side').value,level=$('level').value,initial=newState();
+  G={s:initial,phase:mode==='online'?'wait':'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level,mode,human,myColor:null,oppName:'',ai:mode==='cpu'?opp(human):null,reps:[positionKey(initial)],rerolls:{w:false,b:false},undoStack:[],undoTurnSaved:false};
   syncOnlineUI();
   render();scheduleAI();
 }
@@ -1192,15 +1162,17 @@ function aiStep(){
   if(!isAI())return;
   if(G.phase==='roll'){rollDice();return;}
   if(G.phase==='move'){
-    const m=aiChoose(G.s,G.s.turn,G.moves,G.left,G.level,G.sp);
+    const m=aiChoose(G.s,G.s.turn,G.moves,G.left,G.level,G.sp,G.roll);
     if(m)doMove(m,m.promo?'q':undefined);
   }
 }
 
-function rollDice(){
-  if(G.phase!=='roll'||G.rolling)return;
+function rollDice(isReroll=false){
+  if((!isReroll&&G.phase!=='roll')||(isReroll&&(G.phase!=='move'||G.left!==G.roll||G.rerolls?.[G.s.turn]))||G.rolling)return;
+  if(!isReroll)saveTurnStart();
+  else{G.rerolls[G.s.turn]=true;G.phase='roll';G.left=0;G.shown=null;G.sp={};G.moves=[];G.sel=-1;}
   G.rolling=true;const my=token;let n=0;
-  renderDice();renderControls();
+  render();
   const iv=setInterval(()=>{
     if(my!==token){clearInterval(iv);return;}
     G.shown=rollDie();n++;renderDice();Snd.tick();
@@ -1222,7 +1194,7 @@ function finishRoll(my){
   if(my!==token)return;
   const r=rollDie(),turn=G.s.turn;
   G.rolling=false;G.hint=null;G.roll=r;G.shown=r;G.left=r;G.sp={};Snd.land();
-  G.moves=playable(G.s,turn,r,G.sp);
+  G.moves=playable(G.s,turn,r,G.sp,r);
   if(G.moves.length===0){
     G.phase='pass';G.msg=passMsg(turn,r);Snd.pass();
     render();
@@ -1235,7 +1207,7 @@ function finishRoll(my){
 }
 
 function passTurn(){
-  const s=cloneS(G.s);s.ep=-1;
+  const s=cloneS(G.s);s.ep=-1;s.epFor=null;
   G.log.push({color:s.turn,ty:'pass',lk:'roll',ln:G.roll});
   G.s=s;G.sel=-1;
   endTurn();
@@ -1243,18 +1215,68 @@ function passTurn(){
 
 function endTurn(){
   const s=G.s;
+  s.half=s.turnIrreversible?0:s.half+1;
+  s.turnIrreversible=false;
   s.turn=opp(s.turn);
   const col=s.turn;
   const all=legalMoves(s,col);
   const chk=attacked(s.board,s.board.indexOf(col+'k'),opp(col));
-  G.roll=null;G.shown=null;G.left=0;G.sp={};G.moves=[];G.sel=-1;G.hint=null;
+  G.roll=null;G.shown=null;G.left=0;G.sp={};G.moves=[];G.sel=-1;G.hint=null;G.undoTurnSaved=false;
   if(all.length===0)G.result=chk?{type:'mate',winner:opp(col)}:{type:'stalemate'};
   else if(insufficient(s.board))G.result={type:'material'};
   else if(s.half>=100)G.result={type:'fifty'};
+  if(!G.result){
+    const key=positionKey(s);
+    G.reps=Array.isArray(G.reps)?G.reps:[positionKey(newState())];
+    G.reps.push(key);if(G.reps.length>1000)G.reps.shift();
+    if(G.reps.filter(x=>x===key).length>=3)G.result={type:'repetition'};
+  }
   G.phase=G.result?'over':'roll';
   if(G.phase==='over')outcomeSound();else if(chk)setTimeout(()=>Snd.check(),160);
   render();scheduleAI();outSync();
 }
+
+function adjudicateAfterMove(s,mover){
+  const next=opp(mover),king=s.board.indexOf(next+'k'),moves=legalMoves(s,next);
+  if(!moves.length)return attacked(s.board,king,mover)?{type:'mate',winner:mover}:{type:'stalemate'};
+  if(insufficient(s.board))return {type:'material'};
+  return null;
+}
+
+function turnSnapshot(){
+  const keys=['s','phase','roll','shown','left','sp','moves','sel','last','log','cap','msg','result','promo','rolling','endHidden','hint','reps','rerolls'];
+  const out={};for(const k of keys)out[k]=G[k]===undefined?undefined:JSON.parse(JSON.stringify(G[k]));
+  return out;
+}
+function saveTurnStart(){
+  if(!G||G.mode==='online'||G.undoTurnSaved)return;
+  G.undoStack=G.undoStack||[];
+  G.undoStack.push({color:G.s.turn,state:turnSnapshot()});
+  if(G.undoStack.length>24)G.undoStack.shift();
+  G.undoTurnSaved=true;
+}
+function undoTargetIndex(){
+  const stack=G.undoStack||[];
+  if(G.mode==='cpu'&&G.phase==='over'&&isAI()){
+    for(let i=stack.length-1;i>=0;i--)if(stack[i].color===G.human)return i;
+    return -1;
+  }
+  if(G.undoTurnSaved&&stack.length&&stack[stack.length-1].color===G.s.turn)return stack.length-1;
+  const target=G.mode==='cpu'?G.human:opp(G.s.turn);
+  for(let i=stack.length-1;i>=0;i--)if(stack[i].color===target)return i;
+  return -1;
+}
+function undoTurn(){
+  if(!G||G.mode==='online'||G.rolling||G.promo||G.review)return;
+  if(G.mode==='cpu'&&isAI()&&G.phase!=='over')return;
+  const idx=undoTargetIndex();if(idx<0)return;
+  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  const entry=G.undoStack[idx],stack=G.undoStack.slice(0,idx);
+  Object.assign(G,JSON.parse(JSON.stringify(entry.state)));
+  G.undoStack=stack;G.undoTurnSaved=false;G.rolling=false;G.review=null;G.endHidden=false;G.counted=false;G.quote=undefined;
+  render();scheduleAI();
+}
+function canUndo(){return !!G&&G.mode!=='online'&&!G.rolling&&!G.promo&&!G.review&&undoTargetIndex()>=0&&!(G.mode==='cpu'&&isAI()&&G.phase!=='over');}
 
 function logLabel(e){return t(e.lk==='rest'?'log_rest':'log_roll',{n:e.ln});}
 function logText(e){
@@ -1275,7 +1297,12 @@ function doMove(m,pt){
   G.s=ns;G.last={from:m.from,to:m.to};G.promo=null;
   G.hint=null;
   G.left=before-m.cost;G.sp=spendAfter(G.sp,m);
-  const more=G.left>0?playable(ns,color,G.left,G.sp):[];
+  const immediate=adjudicateAfterMove(ns,color);
+  if(immediate){
+    G.result=immediate;G.phase='over';G.moves=[];G.sel=-1;G.left=0;
+    outcomeSound();render();outSync();return;
+  }
+  const more=G.left>0?playable(ns,color,G.left,G.sp,G.roll):[];
   if(more.length){
     G.phase='move';G.moves=more;
     G.sel=(!isAI()&&more.some(x=>x.from===m.to))?m.to:-1;
@@ -1316,6 +1343,7 @@ function statusText(){
     }
     if(r.type==='stalemate')return t('st_stalemate');
     if(r.type==='material')return t('st_material');
+    if(r.type==='repetition')return t('st_repetition');
     return t('st_fifty');
   }
   if(G.promo)return t('st_promo');
@@ -1342,8 +1370,21 @@ function renderDice(){
 
 function renderControls(){
   $('roll').disabled=!(G.phase==='roll'&&!G.rolling&&!locked());
+  $('rerollBtn').hidden=G.phase!=='move'||G.left!==G.roll||!!G.rerolls?.[G.s.turn]||isAI()||!!G.promo||!!G.review;
+  $('rerollBtn').disabled=G.rolling||locked()||G.phase!=='move';
   $('hintBtn').hidden=G.mode!=='cpu';
   $('hintBtn').disabled=!(G.phase==='move'&&!locked()&&!G.promo&&!G.review);
+  $('undoBtn').hidden=G.mode==='online';
+  $('undoBtn').disabled=!canUndo();
+}
+function renderForecast(){
+  const el=$('diceForecast');
+  if(G.phase!=='roll'||G.rolling||G.review||G.phase==='over'){el.hidden=true;el.innerHTML='';return;}
+  const counts=[];
+  for(let d=1;d<=DIE;d++)counts.push({d,n:playable(G.s,G.s.turn,d,{},d).length});
+  const max=Math.max(0,...counts.map(x=>x.n));
+  el.hidden=false;
+  el.innerHTML=`<p class="ftitle">${t('forecast_hint')}</p>`+counts.map(x=>`<div class="fitem${x.n===max&&max>0?' best':''}"><span class="fnum">${x.d}</span><span class="fcount">${x.n}</span></div>`).join('');
 }
 
 function render(){
@@ -1371,11 +1412,12 @@ function render(){
     if(inCheck&&i===kingIdx)cls.push('chk');
     if(movers.has(i))cls.push('mv');
     if(tg.has(i)){cls.push('tgt');if(tg.get(i).cap)cls.push('cap');}
-    const label=sq(i)+(p?`, ${SIDE[p[0]]} ${NAME[p[1]]}`:'');
+    const label=sq(i)+(p?`, ${SIDE[p[0]]} ${NAME[p[1]]}`:'')+(tg.has(i)?`, ${tg.get(i).cost} ${LANG==='tr'?'puan':LANG==='zh'?'点':'points'}`:'');
     h+=`<button class="${cls.join(' ')}" data-i="${i}" aria-label="${label}">`
       +(cc===0?`<span class="co rk">${8-r}</span>`:'')
       +(rr===7?`<span class="co fl">${FILES[c]}</span>`:'')
       +(p?`<span class="pc ${p[0]}">${glyph(p[1])}</span>`:'')
+      +(tg.has(i)?`<span class="costtag">${tg.get(i).cost}</span>`:'')
       +`</button>`;
   }
   $('board').innerHTML=h;
@@ -1390,7 +1432,7 @@ function render(){
     const who=G.mode==='cpu'?` · ${c===G.human?t('you'):t('computer')}`:G.mode==='online'?` · ${c===G.myColor?t('you'):esc(G.oppName)}`:'';
     return `<div class="chip ${c}${G.phase!=='over'&&turn===c?' on':''}"><i></i>${SIDE[c]}${who}</div>`;
   }).join('');
-  renderDice();renderControls();
+  renderDice();renderControls();renderForecast();
   $('status').textContent=statusText();
   $('hint').textContent=G.phase==='over'?'':(G.roll!==null?hintFor(G.roll,G.left):t('hint_idle'));
   if(G.hint&&G.phase==='move'&&!rv)$('hint').textContent=t('hint_msg',{mv:`${NAME[G.hint.piece]} ${sq(G.hint.from)}→${sq(G.hint.to)}`});
@@ -1873,7 +1915,7 @@ function lbApprove(){
   if(LB.role!=='host'||LB.status!=='pending'||!LB.conn)return;
   const color=Math.random()<0.5?'w':'b';
   const st=newState();
-  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
+  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,epFor:null,half:0,turnIrreversible:false,reps:[positionKey(st)],phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
   LB.myColor=color;LB.init=init;LB.status='countdown';
   try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}
   catch(e){lbMsg(t('lb_unreach_opp'));return;}
@@ -1948,7 +1990,7 @@ function beginOnlineGame(){
   const g=(LB.buf&&LB.buf.seq>0)?LB.buf:LB.init;
   if(!g){lbBackToEntry(t('lb_startfail'));return;}
   LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
-  G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
+  G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,epFor:g.epFor||null,half:g.half,turnIrreversible:!!g.turnIrreversible},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null,reps:Array.isArray(g.reps)&&g.reps.length?g.reps:[positionKey({board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,epFor:g.epFor})],rerolls:g.rerolls&&typeof g.rerolls==='object'?{w:!!g.rerolls.w,b:!!g.rerolls.b}:{w:false,b:false},undoStack:[],undoTurnSaved:false};
   $('lobby').hidden=true;$('gamectl').hidden=false;
   if(g.seq>0)applyRemote(g);else render();
 }
@@ -1963,6 +2005,11 @@ function validSnap(g){
     if(g.turn!=='w'&&g.turn!=='b')return null;
     if(!['roll','move','pass','over'].includes(g.phase))return null;
     if(!num(g.ep,-1,63)||!num(g.half,0,1000)||!num(g.seq,0,10000000)||!num(g.left,0,7))return null;
+    const lastMove=Array.isArray(g.log)?[...g.log].reverse().find(e=>e&&e.ty==='mv'):null;
+    const epFor=(g.epFor==='w'||g.epFor==='b')?g.epFor:(g.ep>=0?(g.phase==='move'&&lastMove&&lastMove.color===g.turn?opp(g.turn):g.turn):null);
+    const turnIrreversible=!!g.turnIrreversible;
+    const reps=Array.isArray(g.reps)?g.reps.filter(x=>typeof x==='string'&&x.length<=160).slice(-1000):[];
+    const rerolls={w:!!(g.rerolls&&g.rerolls.w),b:!!(g.rerolls&&g.rerolls.b)};
     let roll=null;
     if(g.roll!==null&&g.roll!==undefined){if(!num(g.roll,1,7))return null;roll=g.roll;}
     const sp={};
@@ -1977,15 +2024,15 @@ function validSnap(g){
     let result=null;
     if(g.result){
       const t=g.result.type;
-      if(!['mate','stalemate','material','fifty'].includes(t))return null;
+      if(!['mate','stalemate','material','fifty','repetition'].includes(t))return null;
       result={type:t};if(t==='mate')result.winner=g.result.winner==='w'?'w':'b';
     }
-    return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,half:g.half,phase:g.phase,roll,left:g.left,sp,last,log,cap,result,seq:g.seq};
+    return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,epFor,half:g.half,turnIrreversible, reps,rerolls,phase:g.phase,roll,left:g.left,sp,last,log,cap,result,seq:g.seq};
   }catch(e){return null;}
 }
 
 function snapshotGame(){
-  return {board:G.s.board,turn:G.s.turn,castle:G.s.castle,ep:G.s.ep,half:G.s.half,phase:G.phase,roll:G.roll,left:G.left,sp:G.sp,last:G.last,log:G.log,cap:G.cap,result:G.result};
+  return {board:G.s.board,turn:G.s.turn,castle:G.s.castle,ep:G.s.ep,epFor:G.s.epFor||null,half:G.s.half,turnIrreversible:!!G.s.turnIrreversible,reps:G.reps||[],rerolls:G.rerolls||{w:false,b:false},phase:G.phase,roll:G.roll,left:G.left,sp:G.sp,last:G.last,log:G.log,cap:G.cap,result:G.result};
 }
 // Her durum değişikliğinde tam oyun durumu rakibe gider. Sırası olan taraf gönderir, diğeri alır.
 function outSync(){
@@ -2002,11 +2049,13 @@ function recvState(raw){
 
 function applyRemote(g){
   const prevLog=G.log.length,prevCaps=G.cap.w.length+G.cap.b.length,prevRoll=G.roll;
-  G.s={board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half};
+  G.s={board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,epFor:g.epFor||null,half:g.half,turnIrreversible:!!g.turnIrreversible};
+  G.reps=Array.isArray(g.reps)&&g.reps.length?g.reps:(G.reps||[positionKey(G.s)]);
+  G.rerolls=g.rerolls||G.rerolls||{w:false,b:false};
   G.phase=g.phase;G.roll=g.roll;G.shown=g.roll;G.left=g.left;G.sp=g.sp||{};G.last=g.last;G.log=g.log||[];G.cap=g.cap||{w:[],b:[]};
   G.result=g.result;G.sel=-1;G.promo=null;G.rolling=false;G.moves=[];
   G.msg=g.phase==='pass'?passMsg(g.turn,g.roll):'';
-  if(g.phase==='move'&&g.turn===G.myColor)G.moves=playable(G.s,G.myColor,G.left,G.sp);
+  if(g.phase==='move'&&g.turn===G.myColor)G.moves=playable(G.s,G.myColor,G.left,G.sp,G.roll);
   if(G.log.length>prevLog){
     const caps=G.cap.w.length+G.cap.b.length;
     if(caps>prevCaps)Snd.capture();else Snd.move();
@@ -2043,6 +2092,7 @@ $('promo').addEventListener('click',e=>{
   if(b&&G.promo&&!locked())doMove(G.promo,b.dataset.pt);
 });
 $('roll').addEventListener('click',()=>{Snd.unlock();if(!locked())rollDice();});
+$('rerollBtn').addEventListener('click',()=>{Snd.unlock();if(!locked())rollDice(true);});
 $('toMenu').addEventListener('click',backToMenu);
 $('endNew').addEventListener('click',backToMenu);
 $('endView').addEventListener('click',()=>{G.endHidden=true;startReview();});
@@ -2063,6 +2113,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='End'){reviewGo(1e9);e.preventDefault();}
 });
 $('hintBtn').addEventListener('click',()=>{Snd.unlock();hintStart();});
+$('undoBtn').addEventListener('click',()=>{Snd.unlock();undoTurn();});
 $('boardSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)setBoard(b.dataset.b);});
 $('piecesSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)setPieces(b.dataset.p);});
 $('mode').addEventListener('change',syncModes);
