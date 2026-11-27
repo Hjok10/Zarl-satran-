@@ -228,6 +228,12 @@ details ul b{color:var(--fg);font-weight:600}
 .adtbl th,.adtbl td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);white-space:nowrap}
 .adtbl .btn{padding:5px 9px;font-size:12px}
 .adtbl .btn.arm{background:#b3261e;color:#fff;border-color:transparent}
+.quickbox{display:grid;gap:8px;text-align:center;font-size:14px}
+.quickbox p{margin:0}
+.pts{margin:0 0 8px;font:700 18px var(--font-head)}
+.pts.up{color:#1d7a46}.pts.down{color:#b3261e}
+#bdTable tr.me td{background:var(--bg);font-weight:700}
+#bdTable td.n,#bdTable th.n{text-align:right}
 </style>
 
 <div class="app">
@@ -238,7 +244,7 @@ details ul b{color:var(--fg);font-weight:600}
       <p class="tag" data-i18n="tagline"></p>
       <div class="menusel">
         <label><span data-i18n="mode"></span>
-          <select id="mode"><option value="cpu" data-i18n="mode_cpu" selected></option><option value="pvp" data-i18n="mode_pvp"></option><option value="online" data-i18n="mode_online"></option></select>
+          <select id="mode"><option value="cpu" data-i18n="mode_cpu" selected></option><option value="pvp" data-i18n="mode_pvp"></option><option value="online" data-i18n="mode_online"></option><option value="quick" data-i18n="mode_quick" disabled hidden></option></select>
         </label>
         <label id="sidel"><span data-i18n="side"></span>
           <select id="side"><option value="w" data-i18n="w" selected></option><option value="b" data-i18n="b"></option></select>
@@ -248,6 +254,8 @@ details ul b{color:var(--fg);font-weight:600}
         </label>
       </div>
       <button class="btn primary menubtn" id="menuStart"></button>
+      <div class="quickbox" id="quickBox" hidden><p id="quickMsg"></p><button class="btn" id="quickCancel" data-i18n="q_cancel"></button></div>
+      <button class="btn menubtn" id="menuBoard" data-i18n="ac_board" hidden></button>
       <button class="btn menubtn" id="menuSettings" data-i18n="settings"></button>
       <details class="statsbox" id="statsBox"><summary data-i18n="stats"></summary><div id="statsBody"></div></details>
     </div>
@@ -270,6 +278,7 @@ details ul b{color:var(--fg);font-weight:600}
   <div id="profileView" class="menuview top" hidden>
     <div class="menucard wide">
       <div class="rowbar"><h1 id="pfName"></h1><button class="btn" id="pfBack" data-i18n="ac_back"></button></div>
+      <p class="tag" id="pfPts"></p>
       <h3 data-i18n="ac_stats"></h3>
       <div id="pfStats" class="statsbox"></div>
       <h3 data-i18n="ac_hist"></h3>
@@ -289,6 +298,15 @@ details ul b{color:var(--fg);font-weight:600}
     </div>
   </div>
 
+  <div id="boardView" class="menuview top" hidden>
+    <div class="menucard wide">
+      <div class="rowbar"><h1 data-i18n="bd_title"></h1><button class="btn" id="bdBack" data-i18n="ac_back"></button></div>
+      <p class="tag" id="bdMine"></p>
+      <div class="tblwrap"><table class="adtbl" id="bdTable"></table></div>
+      <p class="tag" data-i18n="bd_note"></p>
+    </div>
+  </div>
+
   <div id="gameView" hidden>
   <header>
     <h1 data-i18n="title">Zarlı Satranç</h1>
@@ -302,6 +320,7 @@ details ul b{color:var(--fg);font-weight:600}
           <div class="endbox">
             <h2 id="endT"></h2>
             <p id="endS"></p>
+            <p class="pts" id="endPts" hidden></p>
             <figure class="quote" id="endQ" hidden><blockquote id="endQt"></blockquote><figcaption id="endQa"></figcaption></figure>
             <div class="btnrow">
               <button class="btn primary" id="endNew"></button>
@@ -953,6 +972,36 @@ ae_name:'用户名需为 3–16 个字符（字母、数字、_）。',ae_pass:'
 ae_creds:'用户名或密码错误。',ae_banned:'该账号已被永久移出游戏。',ae_rate:'尝试次数过多，请稍后再试。',
 ae_auth:'登录已过期，请重新登录。',ae_forbidden:'你没有权限执行此操作。',ae_none:'未找到。',ae_bad:'请求无效。',ae_server:'服务器错误，请稍后再试。',ae_net:'无法连接服务器。'
 });
+Object.assign(I18N.tr,{
+mode_quick:'Hızlı oyun (puanlı)',start_quick:'Rakip bul',q_search:'Rakip aranıyor… {s} sn',q_cancel:'Aramayı bırak',q_none_found:'Şu an rakip bulunamadı. Biraz sonra tekrar dene.',
+q_matched:'Hızlı oyun: {name} ile eşleştin. Bağlanılıyor…',q_fail:'Rakibe bağlanılamadı. Ana menüye dönüp tekrar dene.',q_err:'Eşleştirme başlatılamadı.',
+q_pending:'Puanın hesaplanıyor…',q_gain:'+{d} puan · toplam {p}',q_lose:'−{d} puan · toplam {p}',q_zero:'Puan değişmedi · toplam {p}',
+q_limit:'Aynı rakiple günlük puanlı maç sınırına ulaşıldı, puan verilmedi.',q_dispute:'İki taraf farklı sonuç bildirdi, puan verilmedi.',q_nores:'Maç puanlanamadı.',
+ac_board:'Liderlik tablosu',ac_points:'{n} puan',bd_title:'Liderlik tablosu',bd_rank:'#',bd_player:'Oyuncu',bd_pts:'Puan',bd_rec:'G-M-B',
+bd_empty:'Henüz puanlı maç oynanmadı. İlk maçı sen oyna!',bd_mine:'Sıran: {r}. · {p} puan',bd_unranked:'Henüz sıralamada değilsin ({p} puan). Hızlı oyun oyna.',
+bd_note:'Puanlar yalnızca Hızlı oyundaki maçlardan gelir. Herkes 100 puanla başlar, puan 0\'ın altına inmez. Tablo kendiliğinden yenilenir.',
+pf_pts:'Puan: {p} · Hızlı oyun {w} G / {l} M / {d} B'
+});
+Object.assign(I18N.en,{
+mode_quick:'Quick play (ranked)',start_quick:'Find opponent',q_search:'Searching for an opponent… {s}s',q_cancel:'Stop searching',q_none_found:'No opponent found right now. Try again soon.',
+q_matched:'Quick play: matched with {name}. Connecting…',q_fail:'Could not connect to the opponent. Go back to the menu and try again.',q_err:'Could not start matchmaking.',
+q_pending:'Calculating your points…',q_gain:'+{d} points · total {p}',q_lose:'−{d} points · total {p}',q_zero:'Points unchanged · total {p}',
+q_limit:'Daily ranked-match limit against this opponent reached, no points awarded.',q_dispute:'The two players reported different results, no points awarded.',q_nores:'This match could not be scored.',
+ac_board:'Leaderboard',ac_points:'{n} pts',bd_title:'Leaderboard',bd_rank:'#',bd_player:'Player',bd_pts:'Points',bd_rec:'W-L-D',
+bd_empty:'No ranked games yet. Play the first one!',bd_mine:'Your rank: {r} · {p} pts',bd_unranked:'You are not ranked yet ({p} pts). Play a Quick play game.',
+bd_note:'Points come only from Quick play games. Everyone starts at 100 and points never drop below 0. The table refreshes automatically.',
+pf_pts:'Points: {p} · Quick play {w} W / {l} L / {d} D'
+});
+Object.assign(I18N.zh,{
+mode_quick:'快速对战（计分）',start_quick:'匹配对手',q_search:'正在寻找对手… {s} 秒',q_cancel:'停止匹配',q_none_found:'暂时没有找到对手，请稍后再试。',
+q_matched:'快速对战：已与 {name} 匹配，正在连接…',q_fail:'无法连接对手。请返回主菜单重试。',q_err:'无法开始匹配。',
+q_pending:'正在计算积分…',q_gain:'+{d} 分 · 总分 {p}',q_lose:'−{d} 分 · 总分 {p}',q_zero:'积分不变 · 总分 {p}',
+q_limit:'与该对手今日的计分对局已达上限，未加分。',q_dispute:'双方上报的结果不一致，未计分。',q_nores:'本局无法计分。',
+ac_board:'排行榜',ac_points:'{n} 分',bd_title:'排行榜',bd_rank:'#',bd_player:'玩家',bd_pts:'积分',bd_rec:'胜-负-和',
+bd_empty:'还没有计分对局。来下第一局吧！',bd_mine:'你的排名：第 {r} · {p} 分',bd_unranked:'你还没有上榜（{p} 分）。去玩一局快速对战。',
+bd_note:'积分只来自快速对战。大家都从 100 分开始，积分不会低于 0。排行榜会自动刷新。',
+pf_pts:'积分：{p} · 快速对战 {w} 胜 / {l} 负 / {d} 和'
+});
 let LANG='tr';
 try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
 function t(k,v){
@@ -1144,7 +1193,7 @@ function syncModes(){
   const m=$('mode').value,cpu=m==='cpu';
   $('sidel').classList.toggle('off',!cpu);
   $('levl').classList.toggle('off',!cpu);
-  $('menuStart').textContent=t(m==='online'?'start_online':'start');
+  $('menuStart').textContent=t(m==='online'?'start_online':m==='quick'?'start_quick':'start');
 }
 const BOARDS={green:['#d3ded6','#6c8d83'],wood:['#ecd5b0','#b07d4f'],blue:['#dfe8f1','#6f93b4'],slate:['#dcdcde','#7d8590']};
 const PIECESETS=['classic','bold','gold'];
@@ -1263,7 +1312,7 @@ function applyI18n(){
   for(const el of document.querySelectorAll('[data-i18n-ph]'))el.placeholder=t(el.dataset.i18nPh);
   for(const el of document.querySelectorAll('[data-i18n-aria]'))el.setAttribute('aria-label',t(el.dataset.i18nAria));
   syncModes();renderSettings();renderStats();
-  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();}
+  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();if(!$('boardView').hidden)accBoardRender();}
   if(typeof G!=='undefined'&&G&&!$('gameView').hidden)render();
 }
 function setLang(l){
@@ -1283,6 +1332,7 @@ function openSettings(){renderSettings();$('settingsModal').hidden=false;$('setC
 function closeSettings(){$('settingsModal').hidden=true;$('menuSettings').focus();}
 function startGame(){showView('game');newGame();}
 function backToMenu(){
+  if(typeof quickResign==='function')quickResign();
   token++;clearTimeout(timer);clearTimeout(aiTimer);
   if(G)G.rolling=false;
   lbLeave();
@@ -1550,6 +1600,7 @@ function render(){
     end.className='end '+et.kind;
     if(G.quote===undefined)G.quote=et.kind==='win'?pickQuote('w'):et.kind==='lose'?pickQuote('l'):null;
     const q=G.quote;
+    {const pe=$('endPts');pe.hidden=!G.qpts;pe.textContent=G.qpts||'';pe.className='pts'+(G.qcls?' '+G.qcls:'');}
     $('endQ').hidden=!q;
     if(q){const p=quoteParts(q);$('endQt').textContent='“'+p.text+'”';$('endQa').textContent='— '+p.by+(p.src?(LANG==='zh'?'，':', ')+p.src:'')+(p.att?' ('+p.att+')':'');}
   }
@@ -1886,7 +1937,7 @@ function lbReset(){
   try{if(c)c.close();}catch(e){}
   try{if(p)p.destroy();}catch(e){}
 }
-function lbLeave(){lbReset();}
+function lbLeave(){lbReset();if(typeof quickStop==='function')quickStop();}
 
 function lbBackToEntry(text){
   lbReset();
@@ -2015,7 +2066,8 @@ function lbReject(){
 function onMsg(conn,m){
   if(LB.conn!==conn||!m||typeof m!=='object')return;
   if(LB.role==='host'){
-    if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');}
+    if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');
+      if(typeof Q!=='undefined'&&Q.mid&&Q.host){if(LB.oppName===Q.opp)lbApprove();else lbReject();}}
     else if(m.t==='state')recvState(m.snap);
   }else{
     if(m.t==='full'){lbBackToEntry(t('lb_full'));}
@@ -2072,6 +2124,7 @@ function beginOnlineGame(){
   if(!g){lbBackToEntry(t('lb_startfail'));return;}
   LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
   G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
+  G.qmid=(typeof Q!=='undefined'&&Q.mid)||null;
   $('lobby').hidden=true;$('gamectl').hidden=false;
   if(g.seq>0)applyRemote(g);else render();
 }
@@ -2159,6 +2212,7 @@ window.addEventListener('pagehide',()=>{if(LB.role)lbLeave();});
 
 // ---- Hesaplar: giriş, profil, geçmiş, yönetici ----
 // Sayfa kendi sunucundan (http/https) açıldıysa hesap zorunlu; dosya olarak açıldıysa hesapsız (misafir) oynanır.
+let BD_T=null;
 let ACC=null,ACC_TOKEN='',ACC_ON=(location.protocol==='http:'||location.protocol==='https:');
 const PCH='pnbrqk',PRC=['','q','r','b','n'];
 function authToken(){return ACC_TOKEN;}
@@ -2181,14 +2235,16 @@ const accMsg=c=>t('ae_'+c)||t('ae_server');
 function accDrop(){
   ACC=null;ACC_TOKEN='';
   try{localStorage.removeItem('zs-token');sessionStorage.removeItem('zs-token');}catch(e){}
-  STATS=loadStats();renderStats();
+  STATS=loadStats();renderStats();quickOpt(false);$('menuBoard').hidden=true;
   try{backToMenu();}catch(e){}
   accShow('auth');
 }
 function accShow(v){
-  for(const id of ['authView','profileView','adminView'])$(id).hidden=true;
+  for(const id of ['authView','profileView','adminView','boardView'])$(id).hidden=true;
+  clearInterval(BD_T);BD_T=null;
   if(v==='auth'){$('menuView').hidden=true;$('gameView').hidden=true;$('authView').hidden=false;accAuthRender();window.scrollTo(0,0);}
   else if(v==='profile'){$('menuView').hidden=true;$('gameView').hidden=true;$('profileView').hidden=false;accProfileRender();window.scrollTo(0,0);}
+  else if(v==='board'){$('menuView').hidden=true;$('gameView').hidden=true;$('boardView').hidden=false;accBoardRender();BD_T=setInterval(accBoardRender,10000);window.scrollTo(0,0);}
   else if(v==='admin'){$('menuView').hidden=true;$('gameView').hidden=true;$('adminView').hidden=false;accAdminLoad();window.scrollTo(0,0);}
   else showView('menu');
 }
@@ -2223,12 +2279,13 @@ function accEnter(me,fromBoot){
     if(PIECESETS.includes(me.prefs.pieces))PIECES=me.prefs.pieces;
     applyTheme();
   }else if(!fromBoot)accPrefs();
-  $('lbName').value=me.name;$('lbName').disabled=true;
+  $('lbName').value=me.name;$('lbName').disabled=true;quickOpt(true);
   applyI18n();accUserbar();accShow('menu');
 }
 function accUserbar(){
   const bar=$('userbar');bar.hidden=!ACC;if(!ACC)return;
-  $('ubHello').textContent=t('ac_hello',{name:ACC.name});
+  $('ubHello').textContent=t('ac_hello',{name:ACC.name})+' · '+t('ac_points',{n:ACC.pts});
+  $('menuBoard').hidden=false;
   $('ubAdmin').hidden=ACC.role!=='admin';
 }
 function accPrefs(){
@@ -2253,6 +2310,7 @@ function accUnpack(a){
 function accRecord(kind){
   if(!ACC)return false;
   if(G.mode!=='cpu'&&G.mode!=='online')return true;
+  if(G.qmid&&!G.qreported){G.qreported=true;quickReport(G,kind);}
   const me=mySide();
   if(!me||!G.result)return true;
   if(!G.gid){const a=new Uint8Array(6);crypto.getRandomValues(a);G.gid=Array.from(a,x=>('0'+x.toString(16)).slice(-2)).join('');}
@@ -2267,9 +2325,10 @@ function accRecord(kind){
 function fmtDate(ts){try{return new Date(ts).toLocaleString(LANG==='zh'?'zh-CN':LANG==='en'?'en-GB':'tr-TR',{dateStyle:'medium',timeStyle:'short'});}catch(e){return '';}}
 async function accProfileRender(){
   $('pfName').textContent=ACC.name;
+  $('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});
   renderStatsInto($('pfStats'));
   const box=$('pfHist');box.textContent=t('ac_loading');
-  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;renderStatsInto($('pfStats'));}catch(e){}
+  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;Object.assign(ACC,{pts:r.me.pts,qw:r.me.qw,ql:r.me.ql,qd:r.me.qd});$('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accUserbar();renderStatsInto($('pfStats'));}catch(e){}
   box.textContent='';
   if(!ACC.games.length){const p=document.createElement('p');p.className='tag';p.textContent=t('ac_hist_none');box.appendChild(p);return;}
   for(const g of ACC.games){
@@ -2368,6 +2427,9 @@ $('authLang').addEventListener('click',e=>{const b=e.target.closest('button[data
 $('ubProfile').addEventListener('click',()=>accShow('profile'));
 $('ubAdmin').addEventListener('click',()=>accShow('admin'));
 $('ubOut').addEventListener('click',accLogout);
+$('menuBoard').addEventListener('click',()=>accShow('board'));
+$('bdBack').addEventListener('click',()=>accShow('menu'));
+$('quickCancel').addEventListener('click',()=>{quickStop();});
 $('pfBack').addEventListener('click',()=>accShow('menu'));
 $('adBack').addEventListener('click',()=>accShow('menu'));
 $('pfHist').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)accReplay(b.dataset.id);});
@@ -2386,6 +2448,116 @@ async function accBoot(){
     catch(e){if(e.code==='net'){ACC_TOKEN='';accShow('auth');accErr(t('ae_net'));return;}ACC_TOKEN='';}
   }
   accShow('auth');
+}
+
+// ---- Hızlı oyun (puanlı eşleşme) ve liderlik tablosu ----
+const Q={mid:null,opp:'',code:'',host:false,searching:false,timer:null,t0:0,tick:0};
+function quickOpt(on){
+  const o=$('mode').querySelector('option[value=quick]');if(!o)return;
+  o.disabled=!on;o.hidden=!on;
+  if(!on&&$('mode').value==='quick'){$('mode').value='cpu';syncModes();}
+}
+function quickUI(){
+  $('quickBox').hidden=!Q.searching;$('menuStart').disabled=Q.searching;
+  if(Q.searching)$('quickMsg').textContent=t('q_search',{s:Math.floor((Date.now()-Q.t0)/1000)});
+}
+function quickStop(){
+  clearInterval(Q.timer);Q.timer=null;Q.mid=null;
+  if(Q.searching){Q.searching=false;accApi('POST','/api/quick/leave').catch(()=>{});}
+  quickUI();
+}
+async function quickStart(){
+  if(!ACC||Q.searching)return;
+  Q.searching=true;Q.t0=Date.now();Q.tick=0;quickUI();
+  try{
+    const r=await accApi('POST','/api/quick/join');
+    if(!Q.searching)return;
+    if(r.match){quickMatched(r.match);return;}
+  }catch(e){Q.searching=false;quickUI();alert(e.code==='net'?t('ae_net'):t('q_err'));return;}
+  Q.timer=setInterval(quickPoll,1000);
+}
+async function quickPoll(){
+  if(!Q.searching)return;
+  Q.tick++;quickUI();
+  if(Date.now()-Q.t0>150000){quickStop();alert(t('q_none_found'));return;}
+  if(Q.tick%2)return;
+  try{
+    const r=await accApi('GET','/api/quick/status');
+    if(!Q.searching)return;
+    if(r.match)quickMatched(r.match);
+    else if(r.waiting===false)await accApi('POST','/api/quick/join').then(j=>{if(Q.searching&&j.match)quickMatched(j.match);});
+  }catch(e){}
+}
+async function quickMatched(m){
+  clearInterval(Q.timer);Q.timer=null;Q.searching=false;quickUI();
+  $('mode').value='online';syncModes();
+  startGame();
+  Object.assign(Q,{mid:m.mid,opp:m.opp,code:m.code,host:m.host});
+  const mid=m.mid;
+  if(m.host){
+    const res=await openPeer(PREFIX+m.code);
+    if(Q.mid!==mid){try{if(res.peer)res.peer.destroy();}catch(e){}return;}
+    if(!res.peer){lbMsg(t('q_fail'));return;}
+    lbEnter('host',m.code,res.peer,ACC.name);lbMsg(t('q_matched',{name:m.opp}));
+  }else{
+    lbMsg(t('q_matched',{name:m.opp}));
+    setTimeout(()=>quickGuest(mid,0),2000);
+  }
+}
+async function quickGuest(mid,n){
+  if(Q.mid!==mid||LB.live||LB.cd||LB.conn)return;
+  $('lbCode').value=Q.code;
+  await lbJoin();
+  setTimeout(()=>{
+    if(Q.mid!==mid||LB.live||LB.cd||LB.conn)return;
+    if(n<8)quickGuest(mid,n+1);else lbMsg(t('q_fail'));
+  },4000);
+}
+// Maç sonucu iki taraftan bildirilir; puanı sunucu hesaplar.
+function quickResign(){
+  if(typeof G==='undefined'||!G||!G.qmid||G.qreported||G.phase==='over'||!ACC_TOKEN)return;
+  G.qreported=true;
+  try{fetch('/api/match/result',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',Authorization:'Bearer '+ACC_TOKEN},body:JSON.stringify({mid:G.qmid,out:'lose'})});}catch(e){}
+}
+window.addEventListener('pagehide',quickResign);
+function quickShow(g,txt,cls){g.qpts=txt;g.qcls=cls||'';if(G===g&&!$('gameView').hidden)render();}
+async function quickReport(g,kind){
+  quickShow(g,t('q_pending'));
+  const out=kind==='win'?'win':kind==='lose'?'lose':'draw';
+  for(let i=0;i<30;i++){
+    try{
+      const r=i===0?await accApi('POST','/api/match/result',{mid:g.qmid,out}):await accApi('GET','/api/match/'+g.qmid);
+      if(r.done){
+        if(r.res==='ok'){
+          if(ACC){ACC.pts=r.pts;accUserbar();}
+          const d=r.delta;
+          quickShow(g,d>0?t('q_gain',{d,p:r.pts}):d<0?t('q_lose',{d:-d,p:r.pts}):t('q_zero',{p:r.pts}),d>0?'up':d<0?'down':'');
+        }else quickShow(g,r.res==='limit'?t('q_limit'):r.res==='dispute'?t('q_dispute'):t('q_nores'));
+        return;
+      }
+    }catch(e){if(e.code&&e.code!=='net')return;}
+    await new Promise(r=>setTimeout(r,3000));
+  }
+  quickShow(g,t('q_nores'));
+}
+async function accBoardRender(){
+  try{
+    const r=await accApi('GET','/api/leaderboard');
+    const tb=$('bdTable');tb.textContent='';
+    if(!r.rows.length){const c=tb.insertRow().insertCell();c.textContent=t('bd_empty');}
+    else{
+      const hr=tb.insertRow();
+      [['bd_rank','n'],['bd_player',''],['bd_pts','n'],['bd_rec','n']].forEach(([k,c])=>{const th=document.createElement('th');th.textContent=t(k);th.className=c;hr.appendChild(th);});
+      for(const u of r.rows){
+        const tr=tb.insertRow();if(u.me)tr.className='me';
+        const cells=[[u.rank,'n'],[u.name,''],[u.pts,'n'],[u.w+'-'+u.l+'-'+u.d,'n']];
+        for(const [v,c] of cells){const td=tr.insertCell();td.textContent=v;td.className=c;}
+      }
+    }
+    const m=r.mine;
+    $('bdMine').textContent=m.rank?t('bd_mine',{r:m.rank,p:m.pts}):t('bd_unranked',{p:m.pts});
+    if(ACC){ACC.pts=m.pts;accUserbar();}
+  }catch(e){}
 }
 $('board').addEventListener('click',e=>{
   Snd.unlock();
@@ -2419,7 +2591,7 @@ $('hintBtn').addEventListener('click',()=>{Snd.unlock();hintStart();});
 $('boardSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-b]');if(b)setBoard(b.dataset.b);});
 $('piecesSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(b)setPieces(b.dataset.p);});
 $('mode').addEventListener('change',syncModes);
-$('menuStart').addEventListener('click',()=>{Snd.unlock();startGame();});
+$('menuStart').addEventListener('click',()=>{Snd.unlock();if($('mode').value==='quick'){quickStart();return;}startGame();});
 $('menuSettings').addEventListener('click',openSettings);
 $('setClose').addEventListener('click',closeSettings);
 $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});

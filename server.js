@@ -11,6 +11,7 @@ const UP_URL = (process.env.UPSTASH_REDIS_REST_URL || '').replace(/\/+$/, '');
 const UP_TOK = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 const NAME_RE = /^[A-Za-z0-9_\u00C0-\u024F\u0400-\u04FF\u4E00-\u9FFF]{3,16}$/;
 const MAX_GAMES = 30;
+const START_PTS = 100;
 const LEVELS = ['easy', 'medium', 'hard', 'expert'];
 const STAT_KEYS = LEVELS.concat(['online']);
 
@@ -116,7 +117,7 @@ function safeEq(a, b) {
 async function makeUser(name, pass, role) {
   const salt = crypto.randomBytes(16).toString('hex');
   return { name, lname: name.toLowerCase(), salt, hash: await scrypt(pass, salt), role: role || 'user', banned: false, created: Date.now(), last: 0,
-    stats: freshStats(), games: [], prefs: null, sessions: [] };
+    stats: freshStats(), games: [], prefs: null, sessions: [], pts: START_PTS, qw: 0, ql: 0, qd: 0 };
 }
 function indexSessions(u) {
   const now = Date.now();
@@ -130,6 +131,8 @@ async function initUsers() {
     if (!u.stats || !u.stats.r) u.stats = freshStats();
     for (const k of STAT_KEYS) if (!Array.isArray(u.stats.r[k])) u.stats.r[k] = [0, 0, 0];
     if (!Array.isArray(u.games)) u.games = [];
+    if (!Number.isInteger(u.pts) || u.pts < 0) u.pts = START_PTS;
+    for (const k of ['qw', 'ql', 'qd']) if (!Number.isInteger(u[k]) || u[k] < 0) u[k] = 0;
     users.set(u.lname, u); indexSessions(u);
   }
   const ln = ADMIN_USER.toLowerCase();
@@ -169,7 +172,7 @@ function dropSession(token) {
   if (u) { u.sessions = (u.sessions || []).filter(s => s.h !== h); persist(u); }
 }
 const gameSummary = g => ({ id: g.id, t: g.t, mode: g.mode, level: g.level, opp: g.opp, color: g.color, out: g.out, res: g.res, n: (g.log || []).length });
-const publicMe = u => ({ name: u.name, role: u.role, stats: u.stats, prefs: u.prefs, games: u.games.slice().reverse().map(gameSummary) });
+const publicMe = u => ({ name: u.name, role: u.role, stats: u.stats, prefs: u.prefs, pts: u.pts, qw: u.qw, ql: u.ql, qd: u.qd, games: u.games.slice().reverse().map(gameSummary) });
 
 // ---------------------------------------------------------------- sinirlama
 const hits = new Map();
@@ -218,6 +221,86 @@ function applyOutcome(u, key, out) {
   else if (out === 'lose') { r[1]++; u.stats.streak = 0; }
   else r[2]++;
 }
+
+// ---------------------------------------------------------------- hizli oyun ve puan
+const queue = new Map();      // lname -> son sorgu zamani
+const pendingMatch = new Map(); // lname -> eslesme bilgisi (henuz teslim edilmedi)
+const matches = new Map();    // mid -> eslesme kaydi
+const pairLog = [];           // {k, t} puanli biten maclar (ayni cift sinirlamasi)
+const QUEUE_TTL = 9000, SOLO_WAIT = Number(process.env.ZS_SOLO_WAIT) || 45000, MATCH_TTL = 6 * 3600 * 1000, PAIR_MAX = Number(process.env.ZS_PAIR_MAX) || 3, MIN_AGE = Number(process.env.ZS_MIN_AGE) || 20000;
+const hex = n => crypto.randomBytes(n).toString('hex');
+function newCode() {
+  for (let i = 0; i < 20; i++) { const c = String(100000 + crypto.randomInt(900000)); if (!Array.from(matches.values()).some(m => m.code === c && !m.done)) return c; }
+  return String(100000 + crypto.randomInt(900000));
+}
+function tryPair(me) {
+  let best = null;
+  for (const [ln, t] of queue) if (ln !== me.lname && Date.now() - t < QUEUE_TTL && (!best || t < queue.get(best))) best = ln;
+  if (!best) return null;
+  queue.delete(best); queue.delete(me.lname);
+  const m = { id: hex(6), code: newCode(), host: best, guest: me.lname, t: Date.now(), rep: {}, repAt: {}, done: false, res: null };
+  matches.set(m.id, m);
+  pendingMatch.set(best, m);
+  return m;
+}
+const matchFor = (m, ln) => ({ mid: m.id, code: m.code, host: m.host === ln, opp: users.get(m.host === ln ? m.guest : m.host).name });
+function eloDelta(ra, rb, sa) { const e = 1 / (1 + Math.pow(10, (rb - ra) / 400)); return 32 * (sa - e); }
+function settle(m, force) {
+  if (m.done) return;
+  const ra = m.rep[m.host], rb = m.rep[m.guest];
+  let a = null;
+  if (ra && rb) {
+    if ((ra === 'win' && rb === 'lose') || (ra === 'lose' && rb === 'win') || (ra === 'draw' && rb === 'draw')) a = ra;
+    else { m.done = true; m.res = 'dispute'; return; }
+  } else if (force) {
+    const who = ra ? m.host : rb ? m.guest : null, r = ra || rb;
+    if (!who || r === 'draw') { m.done = true; m.res = 'none'; return; }
+    const at = m.repAt[who];
+    if (at - m.t < MIN_AGE) { m.done = true; m.res = 'short'; return; }
+    a = who === m.host ? r : (r === 'win' ? 'lose' : 'win');
+  } else return;
+  m.done = true;
+  const H = users.get(m.host), Gs = users.get(m.guest);
+  if (!H || !Gs) { m.res = 'none'; return; }
+  const key = [m.host, m.guest].sort().join('|'), now = Date.now();
+  while (pairLog.length && now - pairLog[0].t > 24 * 3600 * 1000) pairLog.shift();
+  if (pairLog.filter(x => x.k === key).length >= PAIR_MAX) { m.res = 'limit'; return; }
+  pairLog.push({ k: key, t: now });
+  const sh = a === 'win' ? 1 : a === 'lose' ? 0 : 0.5;
+  let dh = Math.round(eloDelta(H.pts, Gs.pts, sh)), dg = Math.round(eloDelta(Gs.pts, H.pts, 1 - sh));
+  if (sh === 1) { dh = Math.max(dh, 1); } else if (sh === 0) { dg = Math.max(dg, 1); }
+  const oh = H.pts, og = Gs.pts;
+  H.pts = Math.max(0, H.pts + dh); Gs.pts = Math.max(0, Gs.pts + dg);
+  if (sh === 1) { H.qw++; Gs.ql++; } else if (sh === 0) { H.ql++; Gs.qw++; } else { H.qd++; Gs.qd++; }
+  m.res = 'ok'; m.delta = {}; m.delta[m.host] = H.pts - oh; m.delta[m.guest] = Gs.pts - og;
+  m.pts = {}; m.pts[m.host] = H.pts; m.pts[m.guest] = Gs.pts;
+  persist(H); persist(Gs);
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, t] of queue) if (now - t > QUEUE_TTL * 2) queue.delete(k);
+  for (const [k, m] of pendingMatch) if (now - m.t > 60000) pendingMatch.delete(k);
+  for (const [id, m] of matches) {
+    if (!m.done) {
+      const times = Object.values(m.repAt);
+      if (times.length === 1 && now - times[0] > SOLO_WAIT) settle(m, true);
+      else if (!times.length && now - m.t > 30 * 60 * 1000) { m.done = true; m.res = 'none'; }
+    }
+    if (now - m.t > MATCH_TTL) matches.delete(id);
+  }
+}, 5000).unref();
+function matchStatus(m, ln) {
+  if (!m.done) return { done: false };
+  return { done: true, res: m.res, delta: m.delta ? m.delta[ln] : 0, pts: m.pts ? m.pts[ln] : users.get(ln).pts };
+}
+function leaderboard(me) {
+  const list = allUsers().filter(u => !u.banned && (u.qw + u.ql + u.qd) > 0)
+    .sort((a, b) => b.pts - a.pts || b.qw - a.qw || a.created - b.created);
+  const rows = list.slice(0, 50).map((u, i) => ({ rank: i + 1, name: u.name, pts: u.pts, w: u.qw, l: u.ql, d: u.qd, me: u.lname === me.lname }));
+  const idx = list.findIndex(u => u.lname === me.lname);
+  return { rows, total: list.length, mine: { rank: idx < 0 ? 0 : idx + 1, pts: me.pts, w: me.qw, l: me.ql, d: me.qd } };
+}
+
 const credErr = (res, code, status) => send(res, status || 400, { error: code });
 
 async function api(req, res, url) {
@@ -254,6 +337,42 @@ async function api(req, res, url) {
 
   if (route === 'GET /api/me') return send(res, 200, { me: publicMe(me) });
   if (route === 'POST /api/logout') { dropSession(token); return send(res, 200, { ok: true }); }
+
+  if (route === 'GET /api/leaderboard') return send(res, 200, leaderboard(me));
+  if (route === 'POST /api/quick/join') {
+    if (limited('qj:' + me.lname, 30, 60000)) return credErr(res, 'rate', 429);
+    const pend = pendingMatch.get(me.lname);
+    if (pend) { pendingMatch.delete(me.lname); return send(res, 200, { match: matchFor(pend, me.lname) }); }
+    const m = tryPair(me);
+    if (m) return send(res, 200, { match: matchFor(m, me.lname) });
+    queue.set(me.lname, Date.now());
+    return send(res, 200, { waiting: true, n: queue.size });
+  }
+  if (route === 'GET /api/quick/status') {
+    const pend = pendingMatch.get(me.lname);
+    if (pend) { pendingMatch.delete(me.lname); queue.delete(me.lname); return send(res, 200, { match: matchFor(pend, me.lname) }); }
+    if (!queue.has(me.lname)) return send(res, 200, { waiting: false });
+    queue.set(me.lname, Date.now());
+    const m = tryPair(me);
+    if (m) return send(res, 200, { match: matchFor(m, me.lname) });
+    queue.set(me.lname, Date.now());
+    return send(res, 200, { waiting: true, n: queue.size });
+  }
+  if (route === 'POST /api/quick/leave') { queue.delete(me.lname); pendingMatch.delete(me.lname); return send(res, 200, { ok: true }); }
+  if (route === 'POST /api/match/result') {
+    let b; try { b = await readBody(req, 512); } catch (e) { return credErr(res, 'bad'); }
+    const m = matches.get(String(b.mid));
+    if (!m || (m.host !== me.lname && m.guest !== me.lname) || !['win', 'lose', 'draw'].includes(b.out)) return credErr(res, 'bad');
+    if (!m.rep[me.lname]) { m.rep[me.lname] = b.out; m.repAt[me.lname] = Date.now(); }
+    settle(m, false);
+    return send(res, 200, matchStatus(m, me.lname));
+  }
+  const ms = /^GET \/api\/match\/([0-9a-f]{12})$/.exec(route);
+  if (ms) {
+    const m = matches.get(ms[1]);
+    if (!m || (m.host !== me.lname && m.guest !== me.lname)) return credErr(res, 'none', 404);
+    return send(res, 200, matchStatus(m, me.lname));
+  }
 
   if (route === 'POST /api/prefs') {
     let b; try { b = await readBody(req, 2048); } catch (e) { return credErr(res, 'bad'); }
@@ -336,7 +455,7 @@ async function api(req, res, url) {
         const cur = users.get(ln);
         if (cur && cur.role === 'admin') continue;
         const doc = { name: u.name, lname: ln, salt: u.salt, hash: u.hash, role: 'user', banned: !!u.banned, created: Number(u.created) || Date.now(), last: Number(u.last) || 0,
-          stats: freshStats(), games: [], prefs: null, sessions: [] };
+          stats: freshStats(), games: [], prefs: null, sessions: [], pts: num(u.pts, 0, 1e7) ? u.pts : START_PTS, qw: num(u.qw, 0, 1e7) ? u.qw : 0, ql: num(u.ql, 0, 1e7) ? u.ql : 0, qd: num(u.qd, 0, 1e7) ? u.qd : 0 };
         if (u.stats && u.stats.r) { for (const k of STAT_KEYS) { const a = u.stats.r[k]; if (Array.isArray(a)) for (let i = 0; i < 3; i++) doc.stats.r[k][i] = num(a[i], 0, 1e7) ? a[i] : 0; } doc.stats.streak = num(u.stats.streak, 0, 1e7) ? u.stats.streak : 0; doc.stats.best = num(u.stats.best, 0, 1e7) ? u.stats.best : 0; }
         if (Array.isArray(u.games)) for (const g of u.games.slice(-MAX_GAMES)) {
           const log = cleanLog(g && g.log);
