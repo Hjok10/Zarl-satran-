@@ -74,7 +74,7 @@ function makeUpstashStore() {
     name: 'Upstash Redis',
     persistent: true,
     async load() {
-      const keys = (await cmd(['KEYS', 'zsu:*'])) || [];
+      const keys = ((await cmd(['SMEMBERS', 'zsu-index'])) || []).map(n => 'zsu:' + n);
       const out = [];
       for (let i = 0; i < keys.length; i += 40) {
         const part = keys.slice(i, i + 40);
@@ -88,7 +88,9 @@ function makeUpstashStore() {
       if (timers[k]) return;
       timers[k] = setTimeout(() => {
         delete timers[k];
-        cmd(['SET', k, JSON.stringify(user)]).catch(e => console.error('Upstash kayit hatasi:', e.message));
+        httpJson(UP_URL + '/pipeline', hdr, [['SET', k, JSON.stringify(user)], ['SADD', 'zsu-index', user.lname]])
+          .then(r => { for (const x of r) if (x && x.error) throw new Error(x.error); })
+          .catch(e => console.error('Upstash kayit hatasi:', e.message));
       }, 1500);
     },
     async flush() {}
@@ -486,7 +488,12 @@ setInterval(() => {
 }, 60000).unref();
 
 process.on('SIGTERM', () => { store.flush(allUsers).then(() => process.exit(0), () => process.exit(0)); });
-initUsers().then(() => {
+async function checkStore() {
+  if (!(UP_URL && UP_TOK)) return;
+  try { await httpJson(UP_URL + '/pipeline', { Authorization: 'Bearer ' + UP_TOK }, [['SET', 'zsu-check', '1']]).then(r => { if (r[0] && r[0].error) throw new Error(r[0].error); }); }
+  catch (e) { throw new Error('Upstash yazma denemesi basarisiz (Read-Only jeton kullaniyor olabilirsin; UPSTASH_REDIS_REST_TOKEN kullan): ' + e.message); }
+}
+checkStore().then(initUsers).then(() => {
   server.listen(PORT, () => {
     console.log('Zarli Satranc sunucusu hazir: http://localhost:' + PORT);
     console.log('Depolama: ' + store.name + ', uye sayisi: ' + users.size);
