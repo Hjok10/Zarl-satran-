@@ -914,7 +914,7 @@ ad_title:'Yönetici paneli',ad_total:'Toplam üye',ad_online:'Şu an çevrimiçi
 ad_name:'Üye',ad_joined:'Katılma',ad_last:'Son giriş',ad_games:'Oyun',ad_ban:'Kalıcı olarak uzaklaştır',ad_ban2:'Emin misin? Tekrar bas',
 ad_is_banned:'Uzaklaştırıldı',ad_is_admin:'Yönetici',ad_none:'Henüz üye yok.',ad_backup:'Yedek indir',ad_restore:'Yedekten geri yükle',
 ad_restored:'{n} üye geri yüklendi.',ad_store_vol:'Uyarı: Kalıcı depolama kapalı. Sunucu yeniden başlarsa üyeler silinebilir. Düzenli yedek indir ya da Upstash bağla (OKU.txt).',
-ad_store_ok:'Depolama: kalıcı.',ad_never:'—',ad_refresh:'Yenile',
+ad_store_ok:'Depolama: kalıcı.',ad_never:'—',ad_refresh:'Yenile',ad_reset:'Şifre sıfırla',ad_reset2:'Emin misin? Tekrar bas',ad_newpass:'{name} için geçici şifre: {pw} — bunu oyuncuya ilet.',
 ae_name:'Kullanıcı adı 3–16 karakter olmalı (harf, rakam, _).',ae_pass:'Şifre en az 6 karakter olmalı.',ae_taken:'Bu kullanıcı adı alınmış.',
 ae_creds:'Kullanıcı adı ya da şifre yanlış.',ae_banned:'Bu hesap oyundan kalıcı olarak uzaklaştırıldı.',ae_rate:'Çok fazla deneme. Biraz bekleyip tekrar dene.',
 ae_auth:'Oturum sona erdi. Tekrar giriş yap.',ae_forbidden:'Bu işlem için yetkin yok.',ae_none:'Bulunamadı.',ae_bad:'Geçersiz istek.',ae_server:'Sunucu hatası. Biraz sonra tekrar dene.',ae_net:'Sunucuya ulaşılamıyor.'
@@ -931,7 +931,7 @@ ad_title:'Admin panel',ad_total:'Total members',ad_online:'Online now',ad_banned
 ad_name:'Member',ad_joined:'Joined',ad_last:'Last login',ad_games:'Games',ad_ban:'Remove permanently',ad_ban2:'Sure? Press again',
 ad_is_banned:'Removed',ad_is_admin:'Admin',ad_none:'No members yet.',ad_backup:'Download backup',ad_restore:'Restore from backup',
 ad_restored:'{n} members restored.',ad_store_vol:'Warning: persistent storage is off. Members may be lost when the server restarts. Download backups regularly or connect Upstash (OKU.txt).',
-ad_store_ok:'Storage: persistent.',ad_never:'—',ad_refresh:'Refresh',
+ad_store_ok:'Storage: persistent.',ad_never:'—',ad_refresh:'Refresh',ad_reset:'Reset password',ad_reset2:'Sure? Press again',ad_newpass:'Temporary password for {name}: {pw} — give it to the player.',
 ae_name:'Username must be 3–16 characters (letters, digits, _).',ae_pass:'Password must be at least 6 characters.',ae_taken:'That username is taken.',
 ae_creds:'Wrong username or password.',ae_banned:'This account has been permanently removed from the game.',ae_rate:'Too many attempts. Wait a bit and try again.',
 ae_auth:'Session expired. Log in again.',ae_forbidden:'You are not allowed to do that.',ae_none:'Not found.',ae_bad:'Invalid request.',ae_server:'Server error. Try again shortly.',ae_net:'Cannot reach the server.'
@@ -948,7 +948,7 @@ ad_title:'管理面板',ad_total:'会员总数',ad_online:'当前在线',ad_bann
 ad_name:'会员',ad_joined:'加入时间',ad_last:'最近登录',ad_games:'对局',ad_ban:'永久移除',ad_ban2:'确定吗？再点一次',
 ad_is_banned:'已移除',ad_is_admin:'管理员',ad_none:'暂无会员。',ad_backup:'下载备份',ad_restore:'从备份恢复',
 ad_restored:'已恢复 {n} 位会员。',ad_store_vol:'警告：未启用持久存储。服务器重启后会员可能丢失。请定期下载备份或连接 Upstash（OKU.txt）。',
-ad_store_ok:'存储：持久。',ad_never:'—',ad_refresh:'刷新',
+ad_store_ok:'存储：持久。',ad_never:'—',ad_refresh:'刷新',ad_reset:'重置密码',ad_reset2:'确定吗？再点一次',ad_newpass:'{name} 的临时密码：{pw} —— 请转告该玩家。',
 ae_name:'用户名需为 3–16 个字符（字母、数字、_）。',ae_pass:'密码至少 6 个字符。',ae_taken:'该用户名已被使用。',
 ae_creds:'用户名或密码错误。',ae_banned:'该账号已被永久移出游戏。',ae_rate:'尝试次数过多，请稍后再试。',
 ae_auth:'登录已过期，请重新登录。',ae_forbidden:'你没有权限执行此操作。',ae_none:'未找到。',ae_bad:'请求无效。',ae_server:'服务器错误，请稍后再试。',ae_net:'无法连接服务器。'
@@ -2320,7 +2320,7 @@ async function accAdminLoad(){
       const td=tr.insertCell();
       if(u.role==='admin')td.textContent=t('ad_is_admin');
       else if(u.banned)td.textContent=t('ad_is_banned');
-      else{const b=document.createElement('button');b.type='button';b.className='btn'+(adArm===u.name?' arm':'');b.textContent=t('ad_ban');b.dataset.n=u.name;td.appendChild(b);}
+      else{const r=document.createElement('button');r.type='button';r.className='btn';r.textContent=t('ad_reset');r.dataset.r=u.name;td.appendChild(r);td.appendChild(document.createTextNode(' '));const b=document.createElement('button');b.type='button';b.className='btn'+(adArm===u.name?' arm':'');b.textContent=t('ad_ban');b.dataset.n=u.name;td.appendChild(b);}
     }
   }catch(e){adMsg(e.code==='net'?t('ae_net'):accMsg(e.code));}
 }
@@ -2334,6 +2334,14 @@ async function adBan(btn){
   }
   adArm='';
   try{await accApi('POST','/api/admin/ban',{name:n});adMsg('');}catch(e){adMsg(accMsg(e.code));}
+  accAdminLoad();
+}
+let adRArm='';
+async function adReset(btn){
+  const n=btn.dataset.r;
+  if(adRArm!==n){adRArm=n;btn.classList.add('arm');btn.textContent=t('ad_reset2');setTimeout(()=>{if(adRArm===n){adRArm='';btn.classList.remove('arm');btn.textContent=t('ad_reset');}},5000);return;}
+  adRArm='';
+  try{const r=await accApi('POST','/api/admin/reset',{name:n});adMsg(t('ad_newpass',{name:n,pw:r.password}));}catch(e){adMsg(accMsg(e.code));}
   accAdminLoad();
 }
 async function adBackup(){
@@ -2363,7 +2371,7 @@ $('ubOut').addEventListener('click',accLogout);
 $('pfBack').addEventListener('click',()=>accShow('menu'));
 $('adBack').addEventListener('click',()=>accShow('menu'));
 $('pfHist').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)accReplay(b.dataset.id);});
-$('adTable').addEventListener('click',e=>{const b=e.target.closest('button[data-n]');if(b)adBan(b);});
+$('adTable').addEventListener('click',e=>{const r=e.target.closest('button[data-r]');if(r)return adReset(r);const b=e.target.closest('button[data-n]');if(b)adBan(b);});
 $('adRefresh').addEventListener('click',accAdminLoad);
 $('adBackup').addEventListener('click',adBackup);
 $('adRestore').addEventListener('click',()=>$('adFile').click());

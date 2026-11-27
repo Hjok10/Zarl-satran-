@@ -307,6 +307,18 @@ async function api(req, res, url) {
       kick(u.lname);
       return send(res, 200, { ok: true });
     }
+    if (route === 'POST /api/admin/reset') {
+      let b; try { b = await readBody(req, 1024); } catch (e) { return credErr(res, 'bad'); }
+      const u = users.get(String(b.name || '').toLowerCase());
+      if (!u) return credErr(res, 'none', 404);
+      if (u.role === 'admin') return credErr(res, 'forbidden', 403);
+      const al = 'abcdefghjkmnpqrstuvwxyz23456789', rb = crypto.randomBytes(8);
+      let temp = ''; for (let i = 0; i < 8; i++) temp += al[rb[i] % al.length];
+      u.salt = crypto.randomBytes(16).toString('hex'); u.hash = await scrypt(temp, u.salt);
+      for (const s2 of u.sessions || []) sessIdx.delete(s2.h);
+      u.sessions = []; persist(u); kick(u.lname);
+      return send(res, 200, { password: temp });
+    }
     if (route === 'GET /api/admin/backup') {
       const data = JSON.stringify({ v: 1, users: allUsers().map(u => Object.assign({}, u, { sessions: [] })) });
       res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Content-Disposition': 'attachment; filename="zarli-satranc-yedek.json"' });
