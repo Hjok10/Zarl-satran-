@@ -1,0 +1,36 @@
+ZARLI SATRANC - KENDI SUNUCUN
+
+Bu klasor tek basina bir oyun sunucusudur (ek kutuphane yok, Node 16+ yeterli).
+Sunucu hem oyunu acar hem de oyuncular arasindaki baglantiyi saglar.
+
+1) Bilgisayarinda denemek:   node server.js   ->  http://localhost:3000
+
+2) Internete acmak (ucretsiz, kredi karti gerektirmeyen secenekler genelde yeterli):
+   - Render.com: "New > Web Service", bu klasoru bir GitHub deposuna yukle, Build command bos,
+     Start command: node server.js
+   - Glitch, Railway, Fly.io, Koyeb gibi Node calistiran herhangi bir yer de olur.
+   Yayinlayinca sana https://...  ile baslayan bir adres verirler.
+
+3) Sen ve arkadasin ayni adresi tarayicida acin (telefon da olur).
+   Biri "Lobi olustur"u, digeri kodu girip "Katil"i kullanir. Dosya gondermeye gerek kalmaz.
+
+Notlar:
+- Ucretsiz planlar bir sure kullanilmayinca uyur, ilk acilis 30-60 sn surebilir.
+- Dosya olarak calisan zarli-satranc-online.html'i bu sunucuya baglamak icin adresin sonuna
+  ?broker=wss://SUNUCU-ADRESIN/mqtt  ekleyebilirsin (oyun bu durumda yalnizca senin sunucunu kullanir).
+
+
+=== HESAPLAR (PROFIL) ===
+- Oyuna girmek icin herkes kendi kullanici adi + sifresiyle giris yapar. "Beni hatirla" isaretliyse 30 gun, degilse tarayici kapanana kadar sifre sorulmaz.
+- Yonetici hesabi: kullanici adi Hjok. Varsayilan sifre 1234'tur. GITHUB DEPONUN HERKESE ACIK OLDUGU icin bu sifre baskalarinca gorulebilir!
+  Render > Environment bolumunde ADMIN_PASS adli degisken ekleyip kendi guclu sifreni yaz (ADMIN_USER ile ad da degisebilir).
+- Yonetici paneli (menude "Yonetici paneli"): toplam/aktif/cevrimici/uzaklastirilan uye sayisi, uyeyi KALICI uzaklastirma, yedek indirme/geri yukleme.
+- Uzaklastirilan uye giris yapamaz, ayni adla yeniden kayit olamaz, acik oyunu hemen kapanir.
+
+=== KALICI KAYIT (cok onemli) ===
+Render ucretsiz planda disk her yeniden baslamada silinir; hesaplar da silinir. Iki cozum:
+1) Upstash Redis (ucretsiz): upstash.com > Redis veritabani olustur > "REST API" bolumundeki iki degeri Render Environment'a ekle:
+   UPSTASH_REDIS_REST_URL ve UPSTASH_REDIS_REST_TOKEN. Sunucu otomatik kullanir.
+2) Yonetici panelinden duzenli "Yedek indir" yap; silinirse "Yedekten geri yukle" ile uyeleri geri getir.
+
+Not: index.html VE server.js dosyalarini GitHub'da guncelle, Render'da Manual Deploy yap.
