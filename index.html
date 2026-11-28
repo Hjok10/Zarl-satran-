@@ -239,6 +239,10 @@ details ul b{color:var(--fg);font-weight:600}
 .chatrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .chatrow .btn{padding:5px 9px;font-size:12.5px;font-weight:500}
 .chatmsg{margin:8px 0 0;padding:6px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:14px}
+.pzbox{display:grid;gap:8px;margin-top:8px;padding:10px;border:1px solid var(--accent);border-radius:10px}
+.pzbox p{margin:0}
+.pzmsg{font:700 15px var(--font-head);min-height:1.2em}
+.pzmsg.ok{color:#1d7a46}.pzmsg.bad{color:#b3261e}
 .badges{display:flex;flex-wrap:wrap;gap:6px}
 .badge{padding:5px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--accent);font-size:13px}
 .badge.sb{border-color:var(--line);font-weight:700}
@@ -254,6 +258,7 @@ details ul b{color:var(--fg);font-weight:600}
 #bdTable td.n,#bdTable th.n{text-align:right}
 </style>
 
+<script type="application/json" id="pzData">[{"b":"r.b...k.pp.pp.bp......p.q.pP....QP..........pP.Pn.....PRR...KBN.","t":"b","c":"","e":-1,"r":3,"s":[[24,33,""],[33,42,""],[42,51,""]],"n":1,"l":1994},{"b":"rnbqkb.r.Q.ppppp.......np.p.............N.P.....PP.PPPPPR.B.KBNR","t":"w","c":"KQkq","e":-1,"r":3,"s":[[9,2,""],[2,3,""],[3,2,""]],"n":1,"l":1139},{"b":"rnb..qn...pk...rpR...pp....P.p.pP......P...P..P..P.NP..R..BQKBb.","t":"b","c":"","e":-1,"r":2,"s":[[62,55,""],[55,46,""]],"n":1,"l":192},{"b":"..b...k..r.pp..p...Rn.r.p....p.......Qn.......KP....R.....B.....","t":"w","c":"","e":-1,"r":4,"s":[[19,11,""],[11,3,""],[37,30,""],[30,22,""]],"n":2,"l":13742},{"b":"....Q.nrr......pb.pk....pp.pb.P....P...P..P.B...PP..PP...N.RKR..","t":"w","c":"","e":-1,"r":2,"s":[[44,37,""],[37,28,""]],"n":1,"l":186},{"b":"r.b.k.....p...r...n...pppp....N.....nbPRPPNq......Q.....R...KB..","t":"b","c":"Qq","e":-1,"r":2,"s":[[37,46,""],[43,50,""]],"n":3,"l":350},{"b":"r.b..bn.p.p.k.p.n..q.......P.p.QP.rP.P.P..N..N........P.R.K..B.R","t":"b","c":"","e":-1,"r":4,"s":[[0,1,""],[19,26,""],[26,35,""],[34,42,""]],"n":5,"l":8673},{"b":"rnbqk.nrpppp..pp...bpp...............P.PRPP........PP.PR.NBQKBN.","t":"b","c":"kq","e":-1,"r":3,"s":[[19,28,""],[28,37,""],[37,46,""]],"n":1,"l":764},{"b":".rbq.bn..p.np.prp.........pP.kp......P..NK.P....PPP.B..PR.....NR","t":"b","c":"","e":-1,"r":4,"s":[[3,10,""],[10,17,""],[17,24,""],[24,33,""]],"n":1,"l":4780},{"b":"rnbqkbr.pp..p.....p..P.....p...p..........PQnN.PPP..P.P.RNB.KB.R","t":"w","c":"KQq","e":-1,"r":3,"s":[[21,13,""],[43,34,""],[34,27,""]],"n":2,"l":1234},{"b":"r.b.k....ppq.p....B...pRp.............p...P.....PB.....Q.K.Rr...","t":"w","c":"","e":-1,"r":3,"s":[[23,15,""],[15,7,""],[49,40,""]],"n":2,"l":1965},{"b":".n.......B..n....R...........p..R.p..kP..P.........NPP.....K..N.","t":"w","c":"","e":-1,"r":5,"s":[[32,33,""],[33,34,""],[51,45,""]],"n":7,"l":25831},{"b":".nb.kb.r..pp.p.p.p...............pPP.p..r.......P.K..PPP.R..q.NR","t":"b","c":"k","e":-1,"r":3,"s":[[33,41,""],[41,48,""],[48,57,"q"]],"n":4,"l":2194},{"b":"..b..qr....kb..p...pR....P.p....r.........P.........P.BP......K.","t":"b","c":"","e":-1,"r":3,"s":[[32,40,""],[40,48,""],[48,56,""]],"n":1,"l":1287},{"b":"r.b.kbnrpp.pq...n.....p...P..pp.......P......p.PP.PPP...RNBQKB.R","t":"b","c":"KQkq","e":-1,"r":3,"s":[[12,19,""],[19,26,""],[45,53,""]],"n":5,"l":1107},{"b":"r.k..bQNpp.........pp.....p.n...b..PK..PP...B....q..P.P.RN...B.R","t":"b","c":"","e":-1,"r":3,"s":[[19,27,""],[49,42,""],[42,35,""]],"n":1,"l":1429},{"b":".rb...nrp..pqk..n.P.................p.....bP..pB.P..K...RN....R.","t":"b","c":"","e":-1,"r":4,"s":[[12,19,""],[19,26,""],[26,35,""],[35,43,""]],"n":2,"l":15889},{"b":".....b.r...Bn......p...nr.p....Pp.PPk.P.P...Pb..NR.......N..K...","t":"w","c":"","e":-1,"r":4,"s":[[48,42,""],[60,51,""]],"n":3,"l":1259},{"b":"r....b.r.qp.pkp.p..p...p.p..Qb.P..P.....P........P.PBP..R.B.K.NR","t":"w","c":"KQ","e":-1,"r":4,"s":[[28,29,""],[29,22,""],[22,14,""],[14,22,""]],"n":1,"l":15501},{"b":"r.......P..knp.r..Q.p..b.N..................q..P........R..K..Rb","t":"b","c":"","e":-1,"r":2,"s":[[11,3,""],[44,51,""]],"n":2,"l":40},{"b":".nbk......p..pprP..pB..........n..P.Pqp.N............P..R.BQK.NR","t":"w","c":"KQ","e":-1,"r":4,"s":[[16,8,""],[8,1,"q"],[1,2,""],[2,11,""]],"n":1,"l":8485},{"b":"N.............k...bP.RPn.p.......P....p..PR....NP...P.......K...","t":"w","c":"","e":-1,"r":4,"s":[[19,11,""],[11,3,"q"],[3,12,""],[12,5,""]],"n":1,"l":2072},{"b":"r....b...p.nkp.r..p...RRp.q.P...P..NP.P...p..........P...N.K.b..","t":"w","c":"","e":-1,"r":5,"s":[[22,21,""],[21,20,""],[35,18,""]],"n":2,"l":4787},{"b":".rbqkbnrp.p..ppp.p......n...p......PP...N..Q..P.PPP..P.PR.B.K.NR","t":"w","c":"KQ","e":-1,"r":4,"s":[[35,27,""],[27,19,""],[19,10,""],[10,3,"q"]],"n":2,"l":6399},{"b":"r...q..rp......ppk.p..p.......b..P....b.....P...P.PP.P.PR.B.KR..","t":"b","c":"","e":-1,"r":3,"s":[[30,37,""],[37,44,""],[44,35,""]],"n":2,"l":1969},{"b":".nbq..n..p.ppk...R........p...p.......P...bPP.....p.KP..r.B...N.","t":"b","c":"","e":-1,"r":4,"s":[[26,34,""],[34,43,""],[43,51,""],[51,59,"q"]],"n":1,"l":3527},{"b":"rn..k..rpQqbp..p...p.n....p..p.......p..N.PP.K..PP..PbPP.RB..BNR","t":"b","c":"kq","e":-1,"r":2,"s":[[10,9,""],[53,44,""]],"n":1,"l":241},{"b":"rnb.qbnr..ppp.ppp.....k.......B.p..........P..PBRPP..K.P.N.Q..NR","t":"w","c":"","e":-1,"r":4,"s":[[47,38,""],[38,31,""],[46,38,""],[59,51,""]],"n":4,"l":10011},{"b":"..R.....p..p..p.n..k.n.......p.....p....N....N.P.B....Q.R...K...","t":"w","c":"","e":-1,"r":3,"s":[[54,46,""],[46,37,""],[37,28,""]],"n":1,"l":1050},{"b":".n.k...r...q..pN.Qp........p.......P...P.P..p......N.nPR..b.KB..","t":"b","c":"","e":-1,"r":4,"s":[[3,2,""],[44,51,""],[51,59,"q"],[59,51,""]],"n":6,"l":2519},{"b":"R....bnQ.b.npp...........kP....p.....B.P..K...PR.P....B..N..q...","t":"w","c":"","e":-1,"r":5,"s":[[42,41,""],[37,44,""],[57,40,""]],"n":1,"l":23129},{"b":"......kr.......p.........RpP...q....p...P.......P.P.p.......K..R","t":"b","c":"","e":-1,"r":4,"s":[[31,38,""],[36,44,""],[38,45,""],[45,53,""]],"n":1,"l":1028},{"b":"rn..kb.rppp...pp....bn..Pq...........p....PP...N....PP.P..BQKB.R","t":"b","c":"Kkq","e":-1,"r":4,"s":[[25,32,""],[37,45,""],[45,52,""],[52,59,"q"]],"n":1,"l":14121},{"b":"rn..kb.rppp.ppp....p.n..........P.PP.P.p.q...N....Q...B.RNB.K..R","t":"w","c":"KQkq","e":-1,"r":4,"s":[[34,26,""],[26,19,""],[19,10,""],[10,2,"q"]],"n":1,"l":9705},{"b":".nb.kb.r...ppppp.q......Pnp.....R......P..........P.PPP..NB.KBNR","t":"w","c":"Kk","e":-1,"r":3,"s":[[24,17,""],[17,9,""],[9,2,"q"]],"n":1,"l":746},{"b":"......r.......qpbpnp..k.p..P.....P.....PP.b.K..R..P...........N.","t":"b","c":"","e":-1,"r":3,"s":[[6,5,""],[5,4,""],[14,5,""]],"n":6,"l":1928},{"b":"....kb..r..n..p.b...pp..pBp......P....n.P.P.PP..R.K...Pq.NQ....r","t":"b","c":"","e":-1,"r":4,"s":[[16,25,""],[25,32,""],[26,34,""],[55,54,""]],"n":2,"l":12902},{"b":"r....bn.n.N.pkp..p...P.Bp.pp.....q...NB...........PrP...R....K..","t":"w","c":"","e":-1,"r":2,"s":[[23,14,""],[38,31,""]],"n":1,"l":132},{"b":".....kr.rbqp.p.pn.......B....nP.P..........PR.....P.PPP....QKBN.","t":"w","c":"","e":-1,"r":4,"s":[[30,22,""],[22,15,""],[15,6,"q"],[6,7,""]],"n":1,"l":3352},{"b":"rn..kb.rp..p.p.p.q..pn...Np...P.....P....P...bP.P.PP.....RBQKBNR","t":"b","c":"Kkq","e":-1,"r":4,"s":[[26,34,""],[34,41,""],[41,50,""],[50,59,"q"]],"n":1,"l":10903},{"b":"r....k...pp.p.p.pn.......P...P....P......Q.....NP..N....R.B.K...","t":"w","c":"Q","e":-1,"r":4,"s":[[29,21,""],[21,14,""],[14,6,"q"],[34,26,""]],"n":1,"l":3904},{"b":"rn..kb.rpp..p..p..pp..pn.....bN..P...PqPB..P....P.PNPP...R.QKB.R","t":"b","c":"Kkq","e":-1,"r":3,"s":[[38,45,""],[45,53,""],[53,46,""]],"n":1,"l":1534},{"b":"......r.p.p....N.p.k...b...pp...P.....q.R..K.B...P.P......B.....","t":"b","c":"","e":-1,"r":4,"s":[[17,25,""],[25,33,""],[33,41,""],[38,45,""]],"n":8,"l":11285},{"b":"r......r.R.....p.p..k.pnp...P...P........P.Pp.PbN........RBQK...","t":"w","c":"","e":-1,"r":4,"s":[[43,35,""],[35,27,""],[46,38,""],[58,49,""]],"n":1,"l":4514},{"b":"rn..q..r..p..pbpp..k..p..p.P.b..PPP..Pn.B.....QP....P...RN..KBNR","t":"w","c":"KQ","e":-1,"r":4,"s":[[34,26,""],[46,38,""],[38,29,""],[29,20,""]],"n":1,"l":7796},{"b":"r.b..knrppNp...pn...........pPN..PP....q....P...P.QK.PPPR.B..B.R","t":"w","c":"","e":-1,"r":4,"s":[[29,21,""],[21,13,""],[13,6,"q"],[6,13,""]],"n":1,"l":14861},{"b":"r...k.n...p..p...P.p..BQ................P...b.q...PP..b.RNBK...R","t":"w","c":"q","e":-1,"r":3,"s":[[17,10,""],[23,14,""],[14,13,""]],"n":1,"l":1505},{"b":"rq...k.r...b...p.....p...B..p.....QP..pPPP......N...PP..R.b.K.Rn","t":"w","c":"Q","e":-1,"r":4,"s":[[34,27,""],[25,34,""],[27,20,""],[20,13,""]],"n":1,"l":12585},{"b":".......rpb.n......P.p...q....k..B...NP....P.P.R.P....B..RN.K....","t":"w","c":"","e":-1,"r":4,"s":[[32,41,""],[41,50,""],[46,38,""],[38,30,""]],"n":3,"l":4399},{"b":"r....b..p.n.pk...P.........p......pq..NP....PNP.RPPB........K.R.","t":"b","c":"","e":-1,"r":4,"s":[[34,42,""],[35,44,""],[42,49,""],[49,57,"q"]],"n":3,"l":7410},{"b":"rn.qkbnrp....ppp..pp........pb..pPP..P..........R.QPP.PP.NBK.BNR","t":"b","c":"kq","e":-1,"r":4,"s":[[28,37,""],[37,45,""],[45,52,""],[52,61,"q"]],"n":2,"l":10046},{"b":"rn....n.q.ppk..r.......pp...P......N....b..p..PP....NP.R...K.B..","t":"b","c":"","e":-1,"r":4,"s":[[40,33,""],[43,52,""],[52,60,"q"],[60,51,""]],"n":1,"l":5633},{"b":"..kr.b..pp..p.p.......r...P......N..K.P..............P.Rq....BN.","t":"b","c":"","e":-1,"r":4,"s":[[22,21,""],[56,49,""],[49,42,""],[42,35,""]],"n":1,"l":3751},{"b":"rnb.kbnrppp..ppp...........pp..........q...P...PPPP.PPP.RNBQKBNR","t":"b","c":"KQkq","e":-1,"r":4,"s":[[28,36,""],[36,44,""],[39,46,""],[46,53,""]],"n":1,"l":9222},{"b":"r.b.....p.........p.k....p.pNp.p..BPn.P.....KP.q.........QR.....","t":"b","c":"","e":-1,"r":3,"s":[[25,34,""],[29,37,""],[47,55,""]],"n":1,"l":1566},{"b":".r..kbr.pBB.pppp.......n..n........qP.b...N...P......P.PR.KQ...R","t":"b","c":"","e":-1,"r":3,"s":[[1,9,""],[35,42,""],[42,49,""]],"n":1,"l":1675},{"b":"rn..k.nbp.pq.........p.....Pp...pP...pbP.NPP..........PRRNB.KB..","t":"b","c":"Qq","e":-1,"r":4,"s":[[28,36,""],[36,44,""],[37,45,""],[45,53,""]],"n":1,"l":11547},{"b":".n..kbn..b.pp...rp...pp.p....P.....P....P.N.P..r.P..N.R.R.BQKB..","t":"w","c":"Q","e":-1,"r":4,"s":[[29,22,""],[22,14,""],[14,5,"q"],[5,6,""]],"n":1,"l":4387},{"b":".R.q...r....pk..b.Pp.ppn.......p.......P..P......PQ.PPP.NNB.KB.R","t":"w","c":"K","e":-1,"r":4,"s":[[18,10,""],[10,3,"q"],[3,12,""],[12,11,""]],"n":1,"l":7452},{"b":"r.bqkbnrppppp..p..............p.....P.p..P.P....P...QP.PRNB.KBNR","t":"w","c":"KQkq","e":-1,"r":3,"s":[[52,45,""],[45,38,""],[38,31,""]],"n":1,"l":1017},{"b":".n..k......p...r.....p.n..b...P..p...p...PPP.P.B.q.........K....","t":"b","c":"","e":-1,"r":3,"s":[[33,42,""],[42,50,""],[50,58,"q"]],"n":2,"l":1539},{"b":"r.bqkb...ppppp.r....n..p....Q...P.P....P....P..R...P.KP.RNB..BN.","t":"w","c":"","e":-1,"r":4,"s":[[28,20,""],[20,13,""],[13,5,""],[5,6,""]],"n":1,"l":14845},{"b":".n.qk...r.p...Bppp.p...............PPn.PbP..KNr.P.....B.R..Q...b","t":"b","c":"","e":-1,"r":4,"s":[[40,49,""],[46,45,""],[49,58,""],[63,54,""]],"n":1,"l":11461},{"b":"rnbqkb.rp.pp.pp.....pn...p....BQP........P.PP.....P..PPPRN..KBNR","t":"w","c":"KQkq","e":-1,"r":4,"s":[[30,21,""],[31,22,""],[22,13,""],[13,22,""]],"n":3,"l":15238},{"b":"..r.kb....p.p...pp..P...........P.P...p...P.B........R.Q.N...RK.","t":"w","c":"","e":-1,"r":4,"s":[[32,24,""],[24,17,""],[17,9,""],[9,2,"q"]],"n":2,"l":4506},{"b":"rnb.qbr.pp..p......p..p...P....pP....Nk..P..P.....PQ...PRNB..RK.","t":"w","c":"","e":-1,"r":4,"s":[[44,36,""],[51,44,""],[44,53,""],[53,46,""]],"n":1,"l":9198},{"b":".n....r........Nr..p...pPp..p........k.........BP..K.p.P.......R","t":"w","c":"","e":-1,"r":4,"s":[[51,43,""],[63,62,""],[62,54,""],[54,53,""]],"n":1,"l":710},{"b":".nb.kbnr.pp.pp..r.......p...N.pp..P......N......PP..PPPPR.BQKB.R","t":"w","c":"KQk","e":23,"r":4,"s":[[34,26,""],[26,18,""],[18,9,""],[9,2,"q"]],"n":1,"l":3469},{"b":"r.....nrp.p.k.....p....p......p...PKb........PP.PP.RQ..PR.......","t":"w","c":"","e":-1,"r":4,"s":[[35,36,""],[36,29,""],[29,22,""],[22,14,""]],"n":1,"l":11275},{"b":"rnb..bnr..p.pkpp.p...p..p......P..pq..P..P.QP..RP....P.NRNB.KB..","t":"b","c":"Q","e":-1,"r":3,"s":[[34,43,""],[43,51,""],[51,59,"q"]],"n":1,"l":2378},{"b":".n..k..rpQ.p.p.p...b...n.P....p....p....N....K..P.PP.PP.R.B..q..","t":"b","c":"k","e":-1,"r":2,"s":[[30,38,""],[61,60,""]],"n":2,"l":170},{"b":"Rnb....r.p...kp........p...P..q..b..p.....P.PB...r...PPP.NB.K.NR","t":"b","c":"K","e":-1,"r":4,"s":[[30,37,""],[33,42,""],[37,44,""],[44,52,""]],"n":7,"l":22087},{"b":"r.b..kn.ppp..p..n..pp..............P..PqNQP.....PP.BPPr..R..KB.R","t":"b","c":"K","e":-1,"r":3,"s":[[54,53,""],[53,61,""],[61,62,""]],"n":1,"l":1518},{"b":"..k...nrpp....p....bp.......P.pp..P..B..N..B....PP...K.PR......R","t":"w","c":"","e":-1,"r":4,"s":[[28,19,""],[19,11,""],[11,3,"q"],[3,10,""]],"n":3,"l":6901},{"b":"rnb.k.n....pp.....r.....q..PbPB..P....P..........R..P......NK.R.","t":"w","c":"","e":-1,"r":3,"s":[[29,21,""],[21,13,""],[13,6,"q"]],"n":1,"l":1261},{"b":"r..qk.n.....pp.........b..pp...b.p..P.P.....R..N..N.KP.....Q.B..","t":"w","c":"","e":18,"r":4,"s":[[36,27,""],[27,19,""],[19,12,""],[12,3,"q"]],"n":1,"l":3680},{"b":"rnb.kbnrp.p..ppp...p.....p..p.q.........N.P..N..PP.PPP.PR.BQKB.R","t":"b","c":"KQkq","e":-1,"r":4,"s":[[28,36,""],[30,39,""],[36,44,""],[44,53,""]],"n":1,"l":11268},{"b":".n.k......p.n............B..Q.pr...B...p.......PP.......R...K.R.","t":"w","c":"Q","e":-1,"r":3,"s":[[28,19,""],[19,10,""],[35,28,""]],"n":5,"l":2491}]</script>
 <div class="app">
   <div id="menuView" class="menuview">
     <div class="menucard">
@@ -274,6 +279,9 @@ details ul b{color:var(--fg);font-weight:600}
       </div>
       <button class="btn primary menubtn" id="menuStart"></button>
       <div class="quickbox" id="quickBox" hidden><p id="quickMsg"></p><button class="btn" id="quickCancel" data-i18n="q_cancel"></button></div>
+      <button class="btn menubtn" id="menuPz"></button>
+      <p class="dailyline" id="pzLine" hidden></p>
+      <button class="btn menubtn" id="menuPzPrac" data-i18n="pz_prac"></button>
       <button class="btn menubtn" id="menuBoard" data-i18n="ac_board" hidden></button>
       <button class="btn menubtn" id="menuSettings" data-i18n="settings"></button>
       <details class="statsbox" id="statsBox"><summary data-i18n="stats"></summary><div id="statsBody"></div></details>
@@ -414,6 +422,13 @@ details ul b{color:var(--fg);font-weight:600}
         </div>
         <p id="status" aria-live="polite"></p>
         <p id="hint"></p>
+        <div class="pzbox" id="pzBox" hidden>
+          <p class="big" id="pzTitle"></p>
+          <p class="lbnote" id="pzTask"></p>
+          <p class="pzmsg" id="pzMsg" role="status"></p>
+          <div class="btnrow"><button class="btn" id="pzRetry" data-i18n="pz_retry"></button><button class="btn" id="pzSol" data-i18n="pz_sol"></button></div>
+          <button class="btn" id="pzNext" data-i18n="pz_next"></button>
+        </div>
         <div class="clocks" id="clocks" hidden><span id="clkW"></span><span id="clkB"></span></div>
         <div class="actrow" id="actRow" hidden><button class="btn" id="resignBtn"></button><button class="btn" id="drawBtn" hidden></button></div>
         <div class="drawbox" id="drawBox" hidden><span id="drawTxt"></span><span class="btnrow"><button class="btn primary" id="drawYes" data-i18n="draw_yes"></button><button class="btn" id="drawNo" data-i18n="draw_decline"></button></span></div>
@@ -1084,6 +1099,27 @@ sb_badge:'{k} 赛季第 {r} 名',daily_t:'每日任务：今天赢一局快速�
 bd_tab_all:'总榜',bd_tab_season:'本月',bd_season_note:'按本月获得的积分计算。月底前三名获得徽章。',
 acct_title:'账号',pw_old:'旧密码',pw_new:'新密码',pw_btn:'修改密码',pw_ok:'密码已修改。',del_pass:'你的密码',del_btn:'删除账号',del_sure:'确定吗？再点一次（无法撤销）',del_info:'删除账号会永久清除你的积分、历史和统计。',pwa_hint:'提示：在浏览器菜单中选择“添加到主屏幕”，即可像应用一样打开。'
 });
+Object.assign(I18N.tr,{
+pz_daily:'Günlük bulmaca',pz_prac:'Antrenman bulmacası',pz_title:'Günlük bulmaca #{n}',pz_title_prac:'Antrenman bulmacası #{n}',
+pz_task:'{side} oynar. Zar: {r}. Puanın bitene kadar hamle yaparsın; tur bitince rakip şah mat olmalı.',pz_status:'Kalan puan: {left}',
+pz_ok:'Doğru! Rakip mat oldu.',pz_ok_streak:'Doğru! Rakip mat oldu. Seri: {n} gün.',pz_ok_seen:'Doğru! (Çözümü gördüğün için seriye sayılmadı.)',pz_ok_prac:'Doğru! Rakip mat oldu.',pz_fail:'Rakip mat olmadı. Tekrar dene ya da çözümü gör.',
+pz_retry:'Tekrar dene',pz_sol:'Çözümü göster',pz_next:'Antrenman bulmacası',pz_line_done:'Günlük bulmaca çözüldü ✓',pz_line_todo:'Günlük bulmaca seni bekliyor',pz_streak:'seri {n} gün',pz_none:'Bulmaca bulunamadı.',
+ach_pz_first:'İlk bulmaca',ach_pz_week:'7 gün bulmaca serisi',ach_pz_30:'30 bulmaca'
+});
+Object.assign(I18N.en,{
+pz_daily:'Daily puzzle',pz_prac:'Practice puzzle',pz_title:'Daily puzzle #{n}',pz_title_prac:'Practice puzzle #{n}',
+pz_task:'{side} to play. Die: {r}. You keep moving until your points run out; when the turn ends, the opponent must be checkmated.',pz_status:'Points left: {left}',
+pz_ok:'Correct! Checkmate.',pz_ok_streak:'Correct! Checkmate. Streak: {n} days.',pz_ok_seen:'Correct! (Not counted for your streak because you saw the solution.)',pz_ok_prac:'Correct! Checkmate.',pz_fail:'That was not checkmate. Try again or see the solution.',
+pz_retry:'Try again',pz_sol:'Show solution',pz_next:'Practice puzzle',pz_line_done:'Daily puzzle solved ✓',pz_line_todo:'Your daily puzzle is waiting',pz_streak:'streak {n} days',pz_none:'No puzzle found.',
+ach_pz_first:'First puzzle',ach_pz_week:'7-day puzzle streak',ach_pz_30:'30 puzzles'
+});
+Object.assign(I18N.zh,{
+pz_daily:'每日谜题',pz_prac:'练习谜题',pz_title:'每日谜题 #{n}',pz_title_prac:'练习谜题 #{n}',
+pz_task:'{side}走棋。骰子：{r}。你要一直走到点数用完；回合结束时对手必须被将死。',pz_status:'剩余点数：{left}',
+pz_ok:'正确！将死。',pz_ok_streak:'正确！将死。连续 {n} 天。',pz_ok_seen:'正确！（因看过答案，不计入连续天数。）',pz_ok_prac:'正确！将死。',pz_fail:'没有将死。再试一次或查看答案。',
+pz_retry:'再试一次',pz_sol:'查看答案',pz_next:'练习谜题',pz_line_done:'今日谜题已完成 ✓',pz_line_todo:'今日谜题等你来解',pz_streak:'连续 {n} 天',pz_none:'没有找到谜题。',
+ach_pz_first:'首个谜题',ach_pz_week:'谜题连续 7 天',ach_pz_30:'30 个谜题'
+});
 let LANG='tr';
 try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
 function t(k,v){
@@ -1241,6 +1277,7 @@ function mySide(){return G.mode==='cpu'?G.human:G.mode==='online'?G.myColor:null
 function oppLabel(){return G.mode==='cpu'?t('Computer'):G.oppName;}
 function locked(){
   if(isAI())return true;
+  if(G.mode==='puzzle'&&G.pzAuto)return true;
   if(G.mode==='online')return !LB.live||G.s.turn!==G.myColor;
   return false;
 }
@@ -1395,7 +1432,7 @@ function applyI18n(){
   for(const el of document.querySelectorAll('[data-i18n-aria]'))el.setAttribute('aria-label',t(el.dataset.i18nAria));
   syncModes();renderSettings();renderStats();
   if(typeof chatLabels==='function')chatLabels();
-  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();if(!$('boardView').hidden)accBoardRender();if(typeof accDaily==='function')accDaily();}
+  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();if(!$('boardView').hidden)accBoardRender();if(typeof accDaily==='function')accDaily();if(typeof pzMenu==='function')pzMenu();}
   if(typeof G!=='undefined'&&G&&!$('gameView').hidden)render();
 }
 function setLang(l){
@@ -1498,6 +1535,7 @@ function passTurn(){
 }
 
 function endTurn(){
+  if(G.mode==='puzzle'){puzzleDone();return;}
   const s=G.s;
   s.turn=opp(s.turn);
   const col=s.turn;
@@ -1525,6 +1563,7 @@ function logText(e){
 function doMove(m,pt){
   const s=G.s,color=s.turn,before=G.left;
   const ns=applyMove(s,m,pt);ns.turn=color;
+  if(G.mode==='puzzle')G.pzMoves.push([m.from,m.to,m.promo?(pt||'q'):'']);
   if(m.cap)G.cap[color].push(m.cap);
   if(m.cap)Snd.capture();else Snd.move();
   G.log.push({color,ty:'mv',lk:before<G.roll?'rest':'roll',ln:before<G.roll?before:G.roll,ck:m.castle||'',p:m.piece[1],f:m.from,to:m.to,x:m.cap?1:0,ep:m.ep?1:0,pr:m.promo?(pt||'q'):''});
@@ -1561,6 +1600,7 @@ function hintFor(r,left){
 
 function statusText(){
   if(G.phase==='wait')return '';
+  if(G.mode==='puzzle')return G.pzDone?G.pzMsg:t('pz_status',{left:G.left});
   const s=G.s,tn=s.turn,me=mySide(),vs=!!me,cpu=G.mode==='cpu',opn=oppLabel(),mine=vs&&tn===me;
   const chk=attacked(s.board,s.board.indexOf(tn+'k'),opp(tn));
   if(G.phase==='over'){
@@ -1617,7 +1657,7 @@ function render0(){
   const movers=new Set(active?G.moves.map(m=>m.from):[]);
   const tg=new Map();
   if(active&&G.sel>=0)G.moves.filter(m=>m.from===G.sel).forEach(m=>tg.set(m.to,m));
-  const flip=mySide()==='b';
+  const flip=(G.mode==='puzzle'?G.human:mySide())==='b';
   let h='';
   for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
     const r=flip?7-rr:rr,c=flip?7-cc:cc;
@@ -2425,7 +2465,7 @@ async function accProfileRender(){
   $('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accBadges();
   accBadges();renderStatsInto($('pfStats'));
   const box=$('pfHist');box.textContent=t('ac_loading');
-  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;Object.assign(ACC,{pts:r.me.pts,qw:r.me.qw,ql:r.me.ql,qd:r.me.qd,ach:r.me.ach,sb:r.me.sb,daily:r.me.daily});accBadges();accDaily();$('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accUserbar();renderStatsInto($('pfStats'));}catch(e){}
+  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;Object.assign(ACC,{pts:r.me.pts,qw:r.me.qw,ql:r.me.ql,qd:r.me.qd,ach:r.me.ach,sb:r.me.sb,daily:r.me.daily,pz:r.me.pz});accBadges();accDaily();$('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accUserbar();renderStatsInto($('pfStats'));}catch(e){}
   box.textContent='';
   if(!ACC.games.length){const p=document.createElement('p');p.className='tag';p.textContent=t('ac_hist_none');box.appendChild(p);return;}
   for(const g of ACC.games){
@@ -2668,6 +2708,7 @@ function accBadges(){
   $('pfDaily').textContent=d.done?t('daily_done')+(d.streak>1?' · '+t('daily_streak',{n:d.streak}):''):t('daily_t');
 }
 function accDaily(){
+  if(typeof pzMenu==='function')pzMenu();
   const el=$('dailyLine');if(!el)return;
   if(!ACC){el.hidden=true;return;}
   const d=ACC.daily||{done:false,streak:0};
@@ -2752,6 +2793,7 @@ function rematchGo(){
   startCountdown();
 }
 function uiExtra(){
+  if(typeof pzUI==='function')pzUI();
   const on=!!G&&G.mode==='online'&&LB.live;
   $('clocks').hidden=!(on&&G.clock);if(on&&G.clock)updateClocks();
   const playing=!!G&&G.phase!=='over'&&!G.review&&(G.mode==='cpu'||G.mode==='pvp'||on);
@@ -2812,6 +2854,96 @@ $('lbLink').addEventListener('click',async()=>{
   try{await navigator.clipboard.writeText(url);lbMsg(t('link_copied'));}
   catch(e){lbMsg(url);}
 });
+// ---- Zar bulmacası: bu turda rakibi mat et ----
+const PZ_DATA=(()=>{try{return JSON.parse($('pzData').textContent);}catch(e){return [];}})();
+const PZ_LET={P:'wp',N:'wn',B:'wb',R:'wr',Q:'wq',K:'wk',p:'bp',n:'bn',b:'bb',r:'br',q:'bq',k:'bk'};
+const PZ_SEEN=new Set();
+try{for(const k of JSON.parse(sessionStorage.getItem('zs-pzseen')||'[]'))PZ_SEEN.add(k);}catch(e){}
+function pzSeenSave(){try{sessionStorage.setItem('zs-pzseen',JSON.stringify([...PZ_SEEN]));}catch(e){}}
+const pzDayKey=()=>new Date(Date.now()+3*3600000).toISOString().slice(0,10);
+function pzState(p){
+  return {board:Array.from(p.b).map(ch=>ch==='.'?null:PZ_LET[ch]),turn:p.t,
+    castle:{wk:p.c.includes('K'),wq:p.c.includes('Q'),bk:p.c.includes('k'),bq:p.c.includes('q')},ep:p.e,half:0};
+}
+function pzTodayIdx(){
+  if(typeof ACC!=='undefined'&&ACC&&ACC.pz&&PZ_DATA.length)return ACC.pz.idx%PZ_DATA.length;
+  return PZ_DATA.length?Math.floor((Date.now()+3*3600000)/86400000)%PZ_DATA.length:0;
+}
+function pzStart(idx,daily,shown){
+  if(!PZ_DATA.length){alert(t('pz_none'));return;}
+  const p=PZ_DATA[idx];
+  token++;clearTimeout(timer);clearTimeout(aiTimer);lbLeave();
+  const s=pzState(p);
+  G={s,phase:'move',roll:p.r,shown:p.r,left:p.r,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,
+    level:'',mode:'puzzle',human:p.t,myColor:null,oppName:'',ai:null,counted:true,quote:null,
+    pz:{idx,daily,key:pzDayKey()+':'+idx},pzMoves:[],pzDone:false,pzOk:false,pzMsg:'',pzAuto:false,pzShown:!!shown};
+  G.moves=playable(s,p.t,p.r,{});
+  $('lobby').hidden=true;$('gamectl').hidden=false;
+  showView('game');render();
+}
+function puzzleDone(){
+  const color=G.s.turn,o=opp(color),s2=cloneS(G.s);s2.turn=o;
+  const ok=legalMoves(s2,o).length===0&&attacked(s2.board,s2.board.indexOf(o+'k'),color);
+  G.moves=[];G.sel=-1;G.left=0;G.pzDone=true;G.pzOk=ok;G.pzAuto=false;
+  if(ok){
+    Snd.win();
+    const seen=G.pzShown||PZ_SEEN.has(G.pz.key);
+    if(!G.pz.daily)G.pzMsg=t('pz_ok_prac');
+    else if(seen)G.pzMsg=t('pz_ok_seen');
+    else{G.pzMsg=t('pz_ok');pzSubmit(G);}
+  }else{Snd.lose();G.pzMsg=t('pz_fail');}
+  render();
+}
+async function pzSubmit(g){
+  if(typeof ACC==='undefined'||!ACC)return;
+  try{
+    const r=await accApi('POST','/api/puzzle/solve',{moves:g.pzMoves});
+    if(r.ok){ACC.pz=r.pz;accDaily();accUserbar();g.pzMsg=t('pz_ok_streak',{n:r.pz.streak});if(G===g)render();}
+  }catch(e){}
+}
+function pzShowSolution(){
+  if(!G||G.mode!=='puzzle')return;
+  const idx=G.pz.idx,daily=G.pz.daily,key=G.pz.key;
+  PZ_SEEN.add(key);pzSeenSave();
+  pzStart(idx,daily,true);
+  const sol=PZ_DATA[idx].s;G.pzAuto=true;
+  const g=G;
+  sol.forEach((mv,i)=>setTimeout(()=>{
+    if(G!==g||g.pzDone)return;
+    const m=g.moves.find(x=>x.from===mv[0]&&x.to===mv[1]);
+    if(m)doMove(m,mv[2]||undefined);
+  },900*(i+1)));
+}
+function pzUI(){
+  const on=!!G&&G.mode==='puzzle';
+  $('pzBox').hidden=!on;if(!on)return;
+  const p=PZ_DATA[G.pz.idx];
+  $('pzTitle').textContent=t(G.pz.daily?'pz_title':'pz_title_prac',{n:G.pz.idx+1});
+  $('pzTask').textContent=t('pz_task',{side:SIDE[p.t],r:p.r});
+  $('pzMsg').textContent=G.pzDone?G.pzMsg:'';
+  $('pzMsg').className='pzmsg'+(G.pzDone?(G.pzOk?' ok':' bad'):'');
+  $('pzRetry').disabled=G.pzAuto;$('pzSol').disabled=G.pzAuto;
+}
+$('pzRetry').addEventListener('click',()=>{if(G&&G.mode==='puzzle')pzStart(G.pz.idx,G.pz.daily,G.pzShown);});
+$('pzSol').addEventListener('click',pzShowSolution);
+$('pzNext').addEventListener('click',()=>{
+  if(!PZ_DATA.length)return;
+  const today=pzTodayIdx();let i;do{i=Math.floor(Math.random()*PZ_DATA.length);}while(PZ_DATA.length>1&&i===today);
+  pzStart(i,false);
+});
+$('menuPz').addEventListener('click',()=>{Snd.unlock();pzStart(pzTodayIdx(),true,false);});
+$('menuPzPrac').addEventListener('click',()=>{
+  Snd.unlock();
+  const today=pzTodayIdx();let i;do{i=Math.floor(Math.random()*PZ_DATA.length);}while(PZ_DATA.length>1&&i===today);
+  pzStart(i,false);
+});
+function pzMenu(){
+  const z=(typeof ACC!=='undefined'&&ACC&&ACC.pz)||null;
+  $('menuPz').textContent=t('pz_daily')+(z&&z.done?' ✓':'');
+  const el=$('pzLine');
+  if(z){el.hidden=false;el.textContent=(z.done?t('pz_line_done'):t('pz_line_todo'))+(z.streak>1?' · '+t('pz_streak',{n:z.streak}):'');}
+  else el.hidden=true;
+}
 $('board').addEventListener('click',e=>{
   Snd.unlock();
   const b=e.target.closest('.sq');if(b)onSquare(+b.dataset.i);

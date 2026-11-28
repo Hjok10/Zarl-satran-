@@ -51,3 +51,10 @@ Not: index.html VE server.js dosyalarini GitHub'da guncelle, Render'da Manual De
 - Profil: rozetler, gunluk gorev, sifre degistirme, hesap silme. Liderlik: Genel ve Bu ay (ay sonunda ilk 3 rozet alir).
 - Ana ekrana eklenebilir (PWA): tarayici menusunden "Ana ekrana ekle".
 - Ortam degiskenleri (istege bagli): ZS_MIN_LOG (varsayilan 8).
+
+
+=== GUNLUK BULMACA ===
+- Menude "Gunluk bulmaca": herkese ayni konum ve zar. Amac: puanin bitene kadar hamle yapip turun sonunda rakibi mat etmek.
+- Cozumu sunucu dogrular; seri, rozet ve toplam profilde tutulur. Gece yarisi (Turkiye saati) yeni bulmaca gelir.
+- "Antrenman bulmacasi" rastgele bulmaca verir (seriye sayilmaz). Cozumu gorursen o gun seriye sayilmaz.
+- Bulmaca verisi index.html icindeki pzData blogundadir; server.js ayni dosyadan okur, ayri dosya gerekmez.

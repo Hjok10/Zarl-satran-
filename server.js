@@ -125,7 +125,7 @@ function safeEq(a, b) {
 async function makeUser(name, pass, role) {
   const salt = crypto.randomBytes(16).toString('hex');
   return { name, lname: name.toLowerCase(), salt, hash: await scrypt(pass, salt), role: role || 'user', banned: false, created: Date.now(), last: 0,
-    stats: freshStats(), games: [], prefs: null, sessions: [], pts: START_PTS, qw: 0, ql: 0, qd: 0, peak: START_PTS, sk: seasonKey(), sbase: START_PTS, sg: 0, sb: [], dq: { d: '', streak: 0 } };
+    stats: freshStats(), games: [], prefs: null, sessions: [], pts: START_PTS, qw: 0, ql: 0, qd: 0, peak: START_PTS, sk: seasonKey(), sbase: START_PTS, sg: 0, sb: [], dq: { d: '', streak: 0 }, pz: { last: '', streak: 0, best: 0, total: 0 } };
 }
 function indexSessions(u) {
   const now = Date.now();
@@ -146,6 +146,7 @@ async function initUsers() {
     if (!Number.isInteger(u.sbase)) u.sbase = u.pts;
     if (!Array.isArray(u.sb)) u.sb = [];
     if (!u.dq || typeof u.dq !== 'object') u.dq = { d: '', streak: 0 };
+    if (!u.pz || typeof u.pz !== 'object') u.pz = { last: '', streak: 0, best: 0, total: 0 };
     users.set(u.lname, u); indexSessions(u);
   }
   const ln = ADMIN_USER.toLowerCase();
@@ -197,13 +198,17 @@ function achievements(u) {
   if (u.qw >= 10) a.push('quick10');
   if (u.peak >= 200) a.push('pts200');
   if (u.peak >= 400) a.push('pts400');
+  const z = u.pz || {};
+  if (z.total >= 1) a.push('pz_first');
+  if (z.best >= 7) a.push('pz_week');
+  if (z.total >= 30) a.push('pz_30');
   return a;
 }
 function dailyInfo(u) {
   const d = u.dq || {};
   return { done: d.d === dayKey(0), streak: (d.d === dayKey(0) || d.d === dayKey(1)) ? d.streak || 0 : 0 };
 }
-const publicMe = u => ({ name: u.name, role: u.role, stats: u.stats, prefs: u.prefs, pts: u.pts, qw: u.qw, ql: u.ql, qd: u.qd, ach: achievements(u), sb: u.sb || [], daily: dailyInfo(u), season: { key: seasonKey(), gain: u.pts - (u.sk === seasonKey() ? u.sbase : u.pts) }, games: u.games.slice().reverse().map(gameSummary) });
+const publicMe = u => ({ name: u.name, role: u.role, stats: u.stats, prefs: u.prefs, pts: u.pts, qw: u.qw, ql: u.ql, qd: u.qd, ach: achievements(u), sb: u.sb || [], daily: dailyInfo(u), pz: pzInfo(u), season: { key: seasonKey(), gain: u.pts - (u.sk === seasonKey() ? u.sbase : u.pts) }, games: u.games.slice().reverse().map(gameSummary) });
 
 // ---------------------------------------------------------------- sinirlama
 const hits = new Map();
@@ -259,7 +264,7 @@ let E = null;
 try {
   const html = fs.readFileSync(GAME, 'utf8');
   const a = html.indexOf('// ENGINE START'), b = html.indexOf('// ENGINE END');
-  if (a > 0 && b > a) E = new Function(html.slice(a, b) + '\nreturn { newState, legalMoves, applyMove, cloneS, attacked, insufficient };')();
+  if (a > 0 && b > a) E = new Function(html.slice(a, b) + '\nreturn { newState, legalMoves, applyMove, cloneS, attacked, insufficient, playable, spendAfter };')();
 } catch (e) { console.error('Motor yuklenemedi, maclar sadece kayit uzunluguna gore denetlenecek:', e.message); }
 const PRC = ['', 'q', 'r', 'b', 'n'];
 function replayLog(log) {
@@ -295,6 +300,39 @@ function verifyReport(color, out, type, winner, log) {
   if (type === 'material') return out === 'draw' && E.insufficient(s.board);
   if (type === 'fifty') return out === 'draw' && s.half >= 100;
   return true; // left, resign, time, agreed: kayit yalnizca gecerli hamlelerden olusmali
+}
+
+// ---------------------------------------------------------------- gunluk bulmaca
+let PUZ = [];
+try {
+  const html = fs.readFileSync(GAME, 'utf8');
+  const m = /<script type="application\/json" id="pzData">([\s\S]*?)<\/script>/.exec(html);
+  if (m) PUZ = JSON.parse(m[1]);
+} catch (e) { console.error('Bulmaca verisi okunamadi:', e.message); }
+const PZ_LET = { P: 'wp', N: 'wn', B: 'wb', R: 'wr', Q: 'wq', K: 'wk', p: 'bp', n: 'bn', b: 'bb', r: 'br', q: 'bq', k: 'bk' };
+const dayTR = off => new Date(Date.now() + 3 * 3600000 - (off || 0) * 86400000).toISOString().slice(0, 10);
+const pzIdx = () => PUZ.length ? Math.floor((Date.now() + 3 * 3600000) / 86400000) % PUZ.length : 0;
+function pzInfo(u) {
+  const z = u.pz || {};
+  return { idx: pzIdx(), n: PUZ.length, done: z.last === dayTR(0), streak: (z.last === dayTR(0) || z.last === dayTR(1)) ? z.streak || 0 : 0, total: z.total || 0, best: z.best || 0 };
+}
+function verifyPuzzle(p, moves) {
+  if (!E || !p || !Array.isArray(moves) || moves.length < 1 || moves.length > 40) return false;
+  const color = p.t, o = color === 'w' ? 'b' : 'w';
+  let s = { board: Array.from(p.b).map(ch => ch === '.' ? null : PZ_LET[ch]), turn: color,
+    castle: { wk: p.c.indexOf('K') >= 0, wq: p.c.indexOf('Q') >= 0, bk: p.c.indexOf('k') >= 0, bq: p.c.indexOf('q') >= 0 }, ep: p.e, half: 0 };
+  let left = p.r, sp = {};
+  for (const mv of moves) {
+    if (!Array.isArray(mv) || !num(mv[0], 0, 63) || !num(mv[1], 0, 63)) return false;
+    const m = E.playable(s, color, left, sp).find(x => x.from === mv[0] && x.to === mv[1]);
+    if (!m) return false;
+    const pr = ['q', 'r', 'b', 'n'].indexOf(mv[2]) >= 0 ? mv[2] : undefined;
+    const ns = E.applyMove(s, m, pr);
+    ns.turn = color; left -= m.cost; sp = E.spendAfter(sp, m); s = ns;
+  }
+  if (left > 0 && E.playable(s, color, left, sp).length) return false;
+  const s2 = E.cloneS(s); s2.turn = o;
+  return E.legalMoves(s2, o).length === 0 && E.attacked(s2.board, s2.board.indexOf(o + 'k'), color);
 }
 function rollSeason() {
   const cur = seasonKey();
@@ -489,6 +527,17 @@ async function api(req, res, url) {
     persist(me);
     return send(res, 200, { ok: true });
   }
+  if (route === 'POST /api/puzzle/solve') {
+    if (limited('pz:' + me.lname, 60, 60000)) return credErr(res, 'rate', 429);
+    let b; try { b = await readBody(req, 4096); } catch (e) { return credErr(res, 'bad'); }
+    if (!PUZ.length || !E) return credErr(res, 'none', 404);
+    const ok = verifyPuzzle(PUZ[pzIdx()], b.moves);
+    if (ok) {
+      const z = me.pz || (me.pz = { last: '', streak: 0, best: 0, total: 0 }), today = dayTR(0);
+      if (z.last !== today) { z.streak = z.last === dayTR(1) ? (z.streak || 0) + 1 : 1; z.last = today; z.total = (z.total || 0) + 1; if (z.streak > (z.best || 0)) z.best = z.streak; persist(me); }
+    }
+    return send(res, 200, { ok, pz: pzInfo(me) });
+  }
   if (route === 'POST /api/password') {
     if (limited('pw:' + me.lname, 10, 600000)) return credErr(res, 'rate', 429);
     let b; try { b = await readBody(req, 1024); } catch (e) { return credErr(res, 'bad'); }
@@ -586,7 +635,7 @@ async function api(req, res, url) {
         const cur = users.get(ln);
         if (cur && cur.role === 'admin') continue;
         const doc = { name: u.name, lname: ln, salt: u.salt, hash: u.hash, role: 'user', banned: !!u.banned, created: Number(u.created) || Date.now(), last: Number(u.last) || 0,
-          stats: freshStats(), games: [], prefs: null, sessions: [], pts: num(u.pts, 0, 1e7) ? u.pts : START_PTS, qw: num(u.qw, 0, 1e7) ? u.qw : 0, ql: num(u.ql, 0, 1e7) ? u.ql : 0, qd: num(u.qd, 0, 1e7) ? u.qd : 0, peak: num(u.peak, 0, 1e7) ? u.peak : (num(u.pts, 0, 1e7) ? u.pts : START_PTS), sk: seasonKey(), sbase: num(u.pts, 0, 1e7) ? u.pts : START_PTS, sg: 0, sb: Array.isArray(u.sb) ? u.sb.filter(b => b && typeof b.k === 'string' && num(b.r, 1, 3)).slice(0, 60).map(b => ({ k: b.k.slice(0, 7), r: b.r })) : [], dq: { d: '', streak: 0 } };
+          stats: freshStats(), games: [], prefs: null, sessions: [], pts: num(u.pts, 0, 1e7) ? u.pts : START_PTS, qw: num(u.qw, 0, 1e7) ? u.qw : 0, ql: num(u.ql, 0, 1e7) ? u.ql : 0, qd: num(u.qd, 0, 1e7) ? u.qd : 0, peak: num(u.peak, 0, 1e7) ? u.peak : (num(u.pts, 0, 1e7) ? u.pts : START_PTS), sk: seasonKey(), sbase: num(u.pts, 0, 1e7) ? u.pts : START_PTS, pz: (u.pz && typeof u.pz === 'object') ? { last: typeof u.pz.last === 'string' ? u.pz.last.slice(0, 10) : '', streak: num(u.pz.streak, 0, 1e5) ? u.pz.streak : 0, best: num(u.pz.best, 0, 1e5) ? u.pz.best : 0, total: num(u.pz.total, 0, 1e6) ? u.pz.total : 0 } : { last: '', streak: 0, best: 0, total: 0 }, sg: 0, sb: Array.isArray(u.sb) ? u.sb.filter(b => b && typeof b.k === 'string' && num(b.r, 1, 3)).slice(0, 60).map(b => ({ k: b.k.slice(0, 7), r: b.r })) : [], dq: { d: '', streak: 0 } };
         if (u.stats && u.stats.r) { for (const k of STAT_KEYS) { const a = u.stats.r[k]; if (Array.isArray(a)) for (let i = 0; i < 3; i++) doc.stats.r[k][i] = num(a[i], 0, 1e7) ? a[i] : 0; } doc.stats.streak = num(u.stats.streak, 0, 1e7) ? u.stats.streak : 0; doc.stats.best = num(u.stats.best, 0, 1e7) ? u.stats.best : 0; }
         if (Array.isArray(u.games)) for (const g of u.games.slice(-MAX_GAMES)) {
           const log = cleanLog(g && g.log);
