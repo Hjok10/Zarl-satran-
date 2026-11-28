@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#18211f"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-192.png">
 <style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <title>Zarlı Satranç</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -228,6 +229,23 @@ details ul b{color:var(--fg);font-weight:600}
 .adtbl th,.adtbl td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);white-space:nowrap}
 .adtbl .btn{padding:5px 9px;font-size:12px}
 .adtbl .btn.arm{background:#b3261e;color:#fff;border-color:transparent}
+.clocks{display:flex;gap:8px;margin:8px 0}
+.clocks span{flex:1;text-align:center;padding:7px 8px;border:1px solid var(--line);border-radius:10px;font:700 15px var(--font-head);background:var(--bg);font-variant-numeric:tabular-nums}
+.clocks span.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.clocks span.low{color:#b3261e}
+.actrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.actrow .btn{flex:1;padding:8px 10px;font-size:14px}
+.drawbox{margin-top:8px;padding:10px;border:1px solid var(--accent);border-radius:10px;display:grid;gap:8px;font-size:14px}
+.chatrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chatrow .btn{padding:5px 9px;font-size:12.5px;font-weight:500}
+.chatmsg{margin:8px 0 0;padding:6px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line);font-size:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{padding:5px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--accent);font-size:13px}
+.badge.sb{border-color:var(--line);font-weight:700}
+.acctform{display:grid;gap:8px}
+.acctform input{font:15px var(--font-body,inherit);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);min-width:0}
+.btn.danger.arm{background:#b3261e;color:#fff;border-color:transparent}
+.dailyline{margin:0;font-size:13px;color:var(--muted)}
 .quickbox{display:grid;gap:8px;text-align:center;font-size:14px}
 .quickbox p{margin:0}
 .pts{margin:0 0 8px;font:700 18px var(--font-head)}
@@ -242,6 +260,7 @@ details ul b{color:var(--fg);font-weight:600}
       <div class="userbar" id="userbar" hidden><span id="ubHello"></span><span class="btns"><button class="btn" id="ubProfile" data-i18n="ac_profile"></button><button class="btn" id="ubAdmin" data-i18n="ac_admin" hidden></button><button class="btn" id="ubOut" data-i18n="ac_logout"></button></span></div>
       <h1 data-i18n="title">Zarlı Satranç</h1>
       <p class="tag" data-i18n="tagline"></p>
+      <p class="dailyline" id="dailyLine" hidden></p>
       <div class="menusel">
         <label><span data-i18n="mode"></span>
           <select id="mode"><option value="cpu" data-i18n="mode_cpu" selected></option><option value="pvp" data-i18n="mode_pvp"></option><option value="online" data-i18n="mode_online"></option><option value="quick" data-i18n="mode_quick" disabled hidden></option></select>
@@ -279,10 +298,26 @@ details ul b{color:var(--fg);font-weight:600}
     <div class="menucard wide">
       <div class="rowbar"><h1 id="pfName"></h1><button class="btn" id="pfBack" data-i18n="ac_back"></button></div>
       <p class="tag" id="pfPts"></p>
+      <p class="tag" id="pfDaily"></p>
+      <h3 data-i18n="ach_title"></h3>
+      <div class="badges" id="pfAch"></div>
       <h3 data-i18n="ac_stats"></h3>
       <div id="pfStats" class="statsbox"></div>
       <h3 data-i18n="ac_hist"></h3>
       <div id="pfHist"></div>
+      <h3 data-i18n="acct_title"></h3>
+      <form class="acctform" id="pwForm" autocomplete="off">
+        <input type="password" id="pwOld" maxlength="64" autocomplete="current-password" data-i18n-ph="pw_old">
+        <input type="password" id="pwNew" maxlength="64" autocomplete="new-password" data-i18n-ph="pw_new">
+        <button class="btn" type="submit" data-i18n="pw_btn"></button>
+      </form>
+      <p class="tag" data-i18n="del_info"></p>
+      <form class="acctform" id="delForm" autocomplete="off">
+        <input type="password" id="delPass" maxlength="64" autocomplete="current-password" data-i18n-ph="del_pass">
+        <button class="btn danger" type="submit" id="delBtn" data-i18n="del_btn"></button>
+      </form>
+      <p class="tag" id="pfMsg" role="status" hidden></p>
+      <p class="tag" data-i18n="pwa_hint"></p>
     </div>
   </div>
 
@@ -301,9 +336,11 @@ details ul b{color:var(--fg);font-weight:600}
   <div id="boardView" class="menuview top" hidden>
     <div class="menucard wide">
       <div class="rowbar"><h1 data-i18n="bd_title"></h1><button class="btn" id="bdBack" data-i18n="ac_back"></button></div>
+      <div class="langrow"><button class="btn" id="bdAll" data-i18n="bd_tab_all"></button><button class="btn" id="bdSeason" data-i18n="bd_tab_season"></button></div>
       <p class="tag" id="bdMine"></p>
       <div class="tblwrap"><table class="adtbl" id="bdTable"></table></div>
       <p class="tag" data-i18n="bd_note"></p>
+      <p class="tag" id="bdSeasonNote" data-i18n="bd_season_note" hidden></p>
     </div>
   </div>
 
@@ -325,6 +362,7 @@ details ul b{color:var(--fg);font-weight:600}
             <div class="btnrow">
               <button class="btn primary" id="endNew"></button>
               <button class="btn" id="endView" data-i18n="view"></button>
+              <button class="btn" id="endRe" hidden></button>
             </div>
           </div>
         </div>
@@ -345,7 +383,7 @@ details ul b{color:var(--fg);font-weight:600}
           <div id="lbHost" hidden>
             <p class="big" data-i18n="lb_yourcode"></p>
             <div class="lbcode" id="lbCodeBig"></div>
-            <div class="btnrow"><button class="btn" id="lbCopy" data-i18n="lb_copy"></button><button class="btn" id="lbRegen" data-i18n="lb_regen"></button></div>
+            <div class="btnrow"><button class="btn" id="lbCopy" data-i18n="lb_copy"></button><button class="btn" id="lbRegen" data-i18n="lb_regen"></button><button class="btn" id="lbLink" data-i18n="link_copy"></button></div>
             <p id="lbHostWait" class="lbnote" data-i18n="lb_wait"></p>
             <div id="lbHostReq" class="lbreq" hidden>
               <p class="lbnote"><b id="lbReqName"></b><span data-i18n="lb_wants"></span></p>
@@ -376,6 +414,11 @@ details ul b{color:var(--fg);font-weight:600}
         </div>
         <p id="status" aria-live="polite"></p>
         <p id="hint"></p>
+        <div class="clocks" id="clocks" hidden><span id="clkW"></span><span id="clkB"></span></div>
+        <div class="actrow" id="actRow" hidden><button class="btn" id="resignBtn"></button><button class="btn" id="drawBtn" hidden></button></div>
+        <div class="drawbox" id="drawBox" hidden><span id="drawTxt"></span><span class="btnrow"><button class="btn primary" id="drawYes" data-i18n="draw_yes"></button><button class="btn" id="drawNo" data-i18n="draw_decline"></button></span></div>
+        <div class="chatrow" id="chatRow" hidden></div>
+        <p class="chatmsg" id="chatMsg" aria-live="polite" hidden></p>
         </div>
         <div id="review" hidden>
           <p class="big" data-i18n="rv_title"></p>
@@ -1002,6 +1045,45 @@ bd_empty:'还没有计分对局。来下第一局吧！',bd_mine:'你的排名�
 bd_note:'积分只来自快速对战。大家都从 100 分开始，积分不会低于 0。排行榜会自动刷新。',
 pf_pts:'积分：{p} · 快速对战 {w} 胜 / {l} 负 / {d} 和'
 });
+Object.assign(I18N.tr,{
+resign:'Pes et',resign_sure:'Emin misin? Tekrar bas',draw_offer:'Beraberlik teklif et',draw_sent:'Beraberlik teklifi gönderildi.',draw_in:'{name} beraberlik teklif ediyor',draw_yes:'Kabul et',draw_decline:'Reddet',draw_no:'Rakip beraberliği reddetti.',
+chat0:'İyi oyun!',chat1:'Güzel hamle',chat2:'Tebrikler',chat3:'Acele et',chat_you:'Sen',
+re_btn:'Rövanş',re_wait:'Rakip bekleniyor…',re_asked:'Rakip rövanş istiyor.',re_new:'Yeni rakip bul',link_copy:'Davet bağlantısı',link_copied:'Davet bağlantısı kopyalandı.',
+why_resign:'Pes ile bitti.',why_time:'Süre bitti.',why_agreed:'Beraberlik anlaşması.',
+st_by_side:'{why} {side} kazandı.',st_by_win:'{why} Kazandın!',st_by_lose:'{why} Kaybettin.',st_agreed:'Beraberlik kabul edildi. Oyun berabere bitti.',clock_lbl:'Süre'
+});
+Object.assign(I18N.en,{
+resign:'Resign',resign_sure:'Sure? Press again',draw_offer:'Offer draw',draw_sent:'Draw offer sent.',draw_in:'{name} offers a draw',draw_yes:'Accept',draw_decline:'Decline',draw_no:'Your opponent declined the draw.',
+chat0:'Good game!',chat1:'Nice move',chat2:'Congratulations',chat3:'Hurry up',chat_you:'You',
+re_btn:'Rematch',re_wait:'Waiting for opponent…',re_asked:'Your opponent wants a rematch.',re_new:'Find new opponent',link_copy:'Invite link',link_copied:'Invite link copied.',
+why_resign:'Resignation.',why_time:'Time ran out.',why_agreed:'Draw by agreement.',
+st_by_side:'{why} {side} wins.',st_by_win:'{why} You win!',st_by_lose:'{why} You lose.',st_agreed:'Draw accepted. The game ended in a draw.',clock_lbl:'Time'
+});
+Object.assign(I18N.zh,{
+resign:'认输',resign_sure:'确定吗？再点一次',draw_offer:'提议和棋',draw_sent:'已发送和棋提议。',draw_in:'{name} 提议和棋',draw_yes:'接受',draw_decline:'拒绝',draw_no:'对手拒绝了和棋。',
+chat0:'好棋！',chat1:'漂亮的一步',chat2:'恭喜',chat3:'快点',chat_you:'你',
+re_btn:'再来一局',re_wait:'等待对手…',re_asked:'对手想再来一局。',re_new:'寻找新对手',link_copy:'邀请链接',link_copied:'邀请链接已复制。',
+why_resign:'认输结束。',why_time:'超时。',why_agreed:'协议和棋。',
+st_by_side:'{why} {side}获胜。',st_by_win:'{why} 你赢了！',st_by_lose:'{why} 你输了。',st_agreed:'和棋已接受。对局以和棋结束。',clock_lbl:'用时'
+});
+Object.assign(I18N.tr,{
+ach_title:'Rozetler',ach_first_win:'İlk galibiyet',ach_games10:'10 oyun oynadın',ach_streak5:'5 galibiyet serisi',ach_beat_hard:'Zor\'u yendin',ach_beat_expert:'Çok zor\'u yendin',ach_quick_win:'İlk puanlı galibiyet',ach_quick10:'10 puanlı galibiyet',ach_pts200:'200 puana ulaştın',ach_pts400:'400 puana ulaştın',ach_none:'Henüz rozet yok. Oynadıkça açılır.',
+sb_badge:'{k} sezonu {r}.',daily_t:'Günlük görev: bugün bir hızlı oyun kazan',daily_done:'Günlük görev tamam ✓',daily_streak:'{n} gün üst üste',
+bd_tab_all:'Genel',bd_tab_season:'Bu ay',bd_season_note:'Bu ay kazandığın puan farkına göre. Ay sonunda ilk 3 rozet alır.',
+acct_title:'Hesap',pw_old:'Eski şifre',pw_new:'Yeni şifre',pw_btn:'Şifreyi değiştir',pw_ok:'Şifre değiştirildi.',del_pass:'Şifren',del_btn:'Hesabı sil',del_sure:'Emin misin? Tekrar bas (geri alınamaz)',del_info:'Hesabı silersen puanların, geçmişin ve istatistiklerin kalıcı olarak silinir.',pwa_hint:'İpucu: tarayıcı menüsünden "Ana ekrana ekle" ile uygulama gibi açabilirsin.'
+});
+Object.assign(I18N.en,{
+ach_title:'Badges',ach_first_win:'First win',ach_games10:'Played 10 games',ach_streak5:'5-win streak',ach_beat_hard:'Beat Hard',ach_beat_expert:'Beat Expert',ach_quick_win:'First ranked win',ach_quick10:'10 ranked wins',ach_pts200:'Reached 200 points',ach_pts400:'Reached 400 points',ach_none:'No badges yet. They unlock as you play.',
+sb_badge:'{k} season: #{r}',daily_t:'Daily task: win one Quick play game today',daily_done:'Daily task done ✓',daily_streak:'{n} days in a row',
+bd_tab_all:'All-time',bd_tab_season:'This month',bd_season_note:'Based on points gained this month. Top 3 get a badge at month end.',
+acct_title:'Account',pw_old:'Old password',pw_new:'New password',pw_btn:'Change password',pw_ok:'Password changed.',del_pass:'Your password',del_btn:'Delete account',del_sure:'Sure? Press again (cannot be undone)',del_info:'Deleting your account permanently removes your points, history and stats.',pwa_hint:'Tip: use "Add to Home screen" in your browser menu to open it like an app.'
+});
+Object.assign(I18N.zh,{
+ach_title:'徽章',ach_first_win:'首胜',ach_games10:'完成 10 局',ach_streak5:'五连胜',ach_beat_hard:'击败困难',ach_beat_expert:'击败专家',ach_quick_win:'首个计分胜利',ach_quick10:'10 场计分胜利',ach_pts200:'达到 200 分',ach_pts400:'达到 400 分',ach_none:'还没有徽章，多玩就会解锁。',
+sb_badge:'{k} 赛季第 {r} 名',daily_t:'每日任务：今天赢一局快速对战',daily_done:'每日任务完成 ✓',daily_streak:'连续 {n} 天',
+bd_tab_all:'总榜',bd_tab_season:'本月',bd_season_note:'按本月获得的积分计算。月底前三名获得徽章。',
+acct_title:'账号',pw_old:'旧密码',pw_new:'新密码',pw_btn:'修改密码',pw_ok:'密码已修改。',del_pass:'你的密码',del_btn:'删除账号',del_sure:'确定吗？再点一次（无法撤销）',del_info:'删除账号会永久清除你的积分、历史和统计。',pwa_hint:'提示：在浏览器菜单中选择“添加到主屏幕”，即可像应用一样打开。'
+});
 let LANG='tr';
 try{const s=localStorage.getItem('zs-lang');if(s&&I18N[s])LANG=s;}catch(e){}
 function t(k,v){
@@ -1166,7 +1248,7 @@ function locked(){
 function outcomeSound(){
   const r=G.result,me=mySide();
   if(r.type==='left'){setTimeout(()=>Snd.win(),350);return;}
-  if(r.type==='mate'){
+  if(r.type==='mate'||r.type==='resign'||r.type==='time'){
     if(me&&r.winner!==me)setTimeout(()=>Snd.lose(),350);
     else setTimeout(()=>Snd.win(),350);
   }else setTimeout(()=>Snd.draw(),350);
@@ -1175,8 +1257,8 @@ function outcomeSound(){
 function endTexts(){
   const r=G.result,me=mySide(),cpu=G.mode==='cpu';
   if(r.type==='left')return {kind:'win',title:t('end_left'),sub:t('end_left_sub',{name:G.oppName})};
-  const why=t('why_'+(r.type==='mate'?'mate':r.type==='stalemate'?'stalemate':r.type==='material'?'material':'fifty'));
-  if(r.type==='mate'){
+  const why=t('why_'+r.type);
+  if(r.type==='mate'||r.type==='resign'||r.type==='time'){
     if(!me)return {kind:'win',title:t('end_side_wins',{side:SIDE[r.winner]}),sub:why};
     const win=r.winner===me;
     if(cpu)return win
@@ -1312,7 +1394,8 @@ function applyI18n(){
   for(const el of document.querySelectorAll('[data-i18n-ph]'))el.placeholder=t(el.dataset.i18nPh);
   for(const el of document.querySelectorAll('[data-i18n-aria]'))el.setAttribute('aria-label',t(el.dataset.i18nAria));
   syncModes();renderSettings();renderStats();
-  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();if(!$('boardView').hidden)accBoardRender();}
+  if(typeof chatLabels==='function')chatLabels();
+  if(typeof accUserbar==='function'){accUserbar();if(!$('authView').hidden)accAuthRender();if(!$('profileView').hidden)accProfileRender();if(!$('adminView').hidden)accAdminLoad();if(!$('boardView').hidden)accBoardRender();if(typeof accDaily==='function')accDaily();}
   if(typeof G!=='undefined'&&G&&!$('gameView').hidden)render();
 }
 function setLang(l){
@@ -1487,6 +1570,8 @@ function statusText(){
       if(!vs)return t('st_mate_side',{side:SIDE[r.winner]});
       return r.winner===me?t('st_mate_win'):t('st_mate_lose',{opn});
     }
+    if(r.type==='resign'||r.type==='time'){const why=t('why_'+r.type);return !vs?t('st_by_side',{why,side:SIDE[r.winner]}):r.winner===me?t('st_by_win',{why}):t('st_by_lose',{why});}
+    if(r.type==='agreed')return t('st_agreed');
     if(r.type==='stalemate')return t('st_stalemate');
     if(r.type==='material')return t('st_material');
     return t('st_fifty');
@@ -1519,7 +1604,8 @@ function renderControls(){
   $('hintBtn').disabled=!(G.phase==='move'&&!locked()&&!G.promo&&!G.review);
 }
 
-function render(){
+function render(){render0();if(typeof uiExtra==='function')uiExtra();}
+function render0(){
   const s=G.s,turn=s.turn;
   const rv=G.review&&G.phase==='over'?G.review:null;
   if(!rv)G.review=null;
@@ -2065,6 +2151,7 @@ function lbReject(){
 
 function onMsg(conn,m){
   if(LB.conn!==conn||!m||typeof m!=='object')return;
+  if(typeof playMsg==='function'&&playMsg(m))return;
   if(LB.role==='host'){
     if(m.t==='join'&&LB.status==='joining'){LB.oppName=cleanName(m.name);LB.status='pending';lbHostView('pending');lbMsg('');
       if(typeof Q!=='undefined'&&Q.mid&&Q.host){if(LB.oppName===Q.opp)lbApprove();else lbReject();}}
@@ -2072,10 +2159,11 @@ function onMsg(conn,m){
   }else{
     if(m.t==='full'){lbBackToEntry(t('lb_full'));}
     else if(m.t==='rejected'){lbBackToEntry(t('lb_rejected_guest'));}
-    else if(m.t==='start'&&!LB.cd&&!LB.live){
+    else if(m.t==='start'&&!LB.cd&&(!LB.live||(G&&G.phase==='over'&&LB.reOffer))){
       const init=validSnap(m.init);
       if(!init||(m.hostColor!=='w'&&m.hostColor!=='b')){lbBackToEntry(t('lb_baddata'));return;}
       LB.oppName=cleanName(m.hostName);LB.myColor=m.hostColor==='w'?'b':'w';LB.init=init;
+      if(LB.live){LB.live=false;LB.buf=null;LB.reOffer=false;LB.reRecv=false;G.endHidden=true;$('lobby').hidden=false;$('gamectl').hidden=true;$('end').hidden=true;}
       startCountdown();
     }
     else if(m.t==='state')recvState(m.snap);
@@ -2124,7 +2212,7 @@ function beginOnlineGame(){
   if(!g){lbBackToEntry(t('lb_startfail'));return;}
   LB.cd=false;LB.live=true;LB.seq=g.seq||0;LB.status='playing';
   G={s:{board:g.board,turn:g.turn,castle:g.castle,ep:g.ep,half:g.half},phase:'roll',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log:[],cap:{w:[],b:[]},msg:'',result:null,promo:null,rolling:false,endHidden:false,level:'',mode:'online',human:null,myColor:LB.myColor,oppName:LB.oppName,ai:null};
-  G.qmid=(typeof Q!=='undefined'&&Q.mid)||null;
+  G.qmid=(typeof Q!=='undefined'&&Q.mid)||null;if(typeof clockInit==='function')clockInit();
   $('lobby').hidden=true;$('gamectl').hidden=false;
   if(g.seq>0)applyRemote(g);else render();
 }
@@ -2153,8 +2241,8 @@ function validSnap(g){
     let result=null;
     if(g.result){
       const t=g.result.type;
-      if(!['mate','stalemate','material','fifty'].includes(t))return null;
-      result={type:t};if(t==='mate')result.winner=g.result.winner==='w'?'w':'b';
+      if(!['mate','stalemate','material','fifty','resign','time','agreed'].includes(t))return null;
+      result={type:t};if(t==='mate'||t==='resign'||t==='time')result.winner=g.result.winner==='w'?'w':'b';
     }
     return {board:g.board.slice(),turn:g.turn,castle,ep:g.ep,half:g.half,phase:g.phase,roll,left:g.left,sp,last,log,cap,result,seq:g.seq};
   }catch(e){return null;}
@@ -2212,7 +2300,9 @@ window.addEventListener('pagehide',()=>{if(LB.role)lbLeave();});
 
 // ---- Hesaplar: giriş, profil, geçmiş, yönetici ----
 // Sayfa kendi sunucundan (http/https) açıldıysa hesap zorunlu; dosya olarak açıldıysa hesapsız (misafir) oynanır.
-let BD_T=null;
+let BD_T=null,BD_SEASON=false;
+let KOD=null;
+try{const k=new URLSearchParams(location.search).get('kod');if(/^\d{6}$/.test(k||''))KOD=k;}catch(e){}
 let ACC=null,ACC_TOKEN='',ACC_ON=(location.protocol==='http:'||location.protocol==='https:');
 const PCH='pnbrqk',PRC=['','q','r','b','n'];
 function authToken(){return ACC_TOKEN;}
@@ -2280,12 +2370,18 @@ function accEnter(me,fromBoot){
     applyTheme();
   }else if(!fromBoot)accPrefs();
   $('lbName').value=me.name;$('lbName').disabled=true;quickOpt(true);
-  applyI18n();accUserbar();accShow('menu');
+  applyI18n();accUserbar();accShow('menu');accInvite();
+}
+function accInvite(){
+  if(!KOD)return;
+  const c=KOD;KOD=null;
+  try{history.replaceState(null,'',location.pathname);}catch(e){}
+  $('mode').value='online';syncModes();startGame();$('lbCode').value=c;lbJoin();
 }
 function accUserbar(){
   const bar=$('userbar');bar.hidden=!ACC;if(!ACC)return;
   $('ubHello').textContent=t('ac_hello',{name:ACC.name})+' · '+t('ac_points',{n:ACC.pts});
-  $('menuBoard').hidden=false;
+  $('menuBoard').hidden=false;accDaily();
   $('ubAdmin').hidden=ACC.role!=='admin';
 }
 function accPrefs(){
@@ -2298,8 +2394,9 @@ async function accLogout(){
   accDrop();$('lbName').disabled=false;
 }
 // ---- oyun kaydı ----
-function accPack(){
-  return G.log.map(e=>e.ty==='pass'?[e.color==='w'?0:1,1,e.lk==='rest'?1:0,e.ln|0,0,0,0,0,0,0,0]
+function accPack(g){
+  g=g||G;
+  return g.log.map(e=>e.ty==='pass'?[e.color==='w'?0:1,1,e.lk==='rest'?1:0,e.ln|0,0,0,0,0,0,0,0]
     :[e.color==='w'?0:1,0,e.lk==='rest'?1:0,e.ln|0,e.ck==='k'?1:e.ck==='q'?2:0,Math.max(0,PCH.indexOf(e.p)),e.f,e.to,e.x?1:0,e.ep?1:0,Math.max(0,PRC.indexOf(e.pr||''))]);
 }
 function accUnpack(a){
@@ -2325,10 +2422,10 @@ function accRecord(kind){
 function fmtDate(ts){try{return new Date(ts).toLocaleString(LANG==='zh'?'zh-CN':LANG==='en'?'en-GB':'tr-TR',{dateStyle:'medium',timeStyle:'short'});}catch(e){return '';}}
 async function accProfileRender(){
   $('pfName').textContent=ACC.name;
-  $('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});
-  renderStatsInto($('pfStats'));
+  $('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accBadges();
+  accBadges();renderStatsInto($('pfStats'));
   const box=$('pfHist');box.textContent=t('ac_loading');
-  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;Object.assign(ACC,{pts:r.me.pts,qw:r.me.qw,ql:r.me.ql,qd:r.me.qd});$('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accUserbar();renderStatsInto($('pfStats'));}catch(e){}
+  try{const r=await accApi('GET','/api/me');ACC.games=r.me.games;ACC.stats=r.me.stats;STATS=r.me.stats;Object.assign(ACC,{pts:r.me.pts,qw:r.me.qw,ql:r.me.ql,qd:r.me.qd,ach:r.me.ach,sb:r.me.sb,daily:r.me.daily});accBadges();accDaily();$('pfPts').textContent=t('pf_pts',{p:ACC.pts,w:ACC.qw,l:ACC.ql,d:ACC.qd});accUserbar();renderStatsInto($('pfStats'));}catch(e){}
   box.textContent='';
   if(!ACC.games.length){const p=document.createElement('p');p.className='tag';p.textContent=t('ac_hist_none');box.appendChild(p);return;}
   for(const g of ACC.games){
@@ -2349,7 +2446,7 @@ async function accReplay(id){
     const r=await accApi('GET','/api/game/'+id);const g=r.game;
     token++;clearTimeout(timer);clearTimeout(aiTimer);lbLeave();
     const log=accUnpack(g.log);
-    G={s:newState(),phase:'over',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log,cap:{w:[],b:[]},msg:'',result:g.res.type==='mate'?{type:'mate',winner:g.res.winner}:{type:g.res.type},promo:null,rolling:false,endHidden:true,level:g.level,mode:'history',human:g.color,myColor:null,oppName:g.opp,ai:null,counted:true,quote:null};
+    G={s:newState(),phase:'over',roll:null,shown:null,left:0,sp:{},moves:[],sel:-1,last:null,log,cap:{w:[],b:[]},msg:'',result:{type:g.res.type,winner:g.res.winner||undefined},promo:null,rolling:false,endHidden:true,level:g.level,mode:'history',human:g.color,myColor:null,oppName:g.opp,ai:null,counted:true,quote:null};
     $('profileView').hidden=true;showView('game');
     G.review=buildReview();render();
   }catch(e){alert(accMsg(e.code));}
@@ -2526,7 +2623,7 @@ async function quickReport(g,kind){
   const out=kind==='win'?'win':kind==='lose'?'lose':'draw';
   for(let i=0;i<30;i++){
     try{
-      const r=i===0?await accApi('POST','/api/match/result',{mid:g.qmid,out}):await accApi('GET','/api/match/'+g.qmid);
+      const r=i===0?await accApi('POST','/api/match/result',{mid:g.qmid,out,color:g.myColor,res:{type:g.result.type,winner:g.result.winner||(g.result.type==='left'?g.myColor:'')},log:accPack(g)}):await accApi('GET','/api/match/'+g.qmid);
       if(r.done){
         if(r.res==='ok'){
           if(ACC){ACC.pts=r.pts;accUserbar();}
@@ -2542,7 +2639,8 @@ async function quickReport(g,kind){
 }
 async function accBoardRender(){
   try{
-    const r=await accApi('GET','/api/leaderboard');
+    $('bdAll').classList.toggle('on',!BD_SEASON);$('bdSeason').classList.toggle('on',BD_SEASON);$('bdSeasonNote').hidden=!BD_SEASON;
+    const r=await accApi('GET','/api/leaderboard'+(BD_SEASON?'?season=1':''));
     const tb=$('bdTable');tb.textContent='';
     if(!r.rows.length){const c=tb.insertRow().insertCell();c.textContent=t('bd_empty');}
     else{
@@ -2556,9 +2654,164 @@ async function accBoardRender(){
     }
     const m=r.mine;
     $('bdMine').textContent=m.rank?t('bd_mine',{r:m.rank,p:m.pts}):t('bd_unranked',{p:m.pts});
-    if(ACC){ACC.pts=m.pts;accUserbar();}
+    if(ACC&&!BD_SEASON){ACC.pts=m.pts;accUserbar();}
   }catch(e){}
 }
+
+// ---- rozetler, günlük görev, sezon sekmesi, hesap işlemleri, PWA ----
+function accBadges(){
+  const box=$('pfAch');if(!box||!ACC)return;box.textContent='';
+  for(const s of ACC.sb||[]){const e=document.createElement('span');e.className='badge sb';e.textContent='🏆 '+t('sb_badge',{k:s.k,r:s.r});box.appendChild(e);}
+  for(const id of ACC.ach||[]){const e=document.createElement('span');e.className='badge';e.textContent=t('ach_'+id);box.appendChild(e);}
+  if(!box.children.length){const e=document.createElement('span');e.className='tag';e.textContent=t('ach_none');box.appendChild(e);}
+  const d=ACC.daily||{done:false,streak:0};
+  $('pfDaily').textContent=d.done?t('daily_done')+(d.streak>1?' · '+t('daily_streak',{n:d.streak}):''):t('daily_t');
+}
+function accDaily(){
+  const el=$('dailyLine');if(!el)return;
+  if(!ACC){el.hidden=true;return;}
+  const d=ACC.daily||{done:false,streak:0};
+  el.hidden=false;el.textContent=d.done?t('daily_done')+(d.streak>1?' · '+t('daily_streak',{n:d.streak}):''):t('daily_t');
+}
+$('bdAll').addEventListener('click',()=>{BD_SEASON=false;accBoardRender();});
+$('bdSeason').addEventListener('click',()=>{BD_SEASON=true;accBoardRender();});
+function pfMsg(s){const m=$('pfMsg');m.hidden=!s;m.textContent=s||'';}
+$('pwForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();pfMsg('');
+  try{await accApi('POST','/api/password',{old:$('pwOld').value,next:$('pwNew').value});$('pwOld').value=$('pwNew').value='';pfMsg(t('pw_ok'));}
+  catch(e){pfMsg(e.code==='net'?t('ae_net'):e.code==='pass'?t('ae_pass'):accMsg(e.code));}
+});
+let delArm=false;
+$('delForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();pfMsg('');
+  if(!$('delPass').value)return;
+  if(!delArm){delArm=true;$('delBtn').classList.add('arm');$('delBtn').textContent=t('del_sure');setTimeout(()=>{delArm=false;$('delBtn').classList.remove('arm');$('delBtn').textContent=t('del_btn');},5000);return;}
+  delArm=false;
+  try{await accApi('POST','/api/account/delete',{password:$('delPass').value});$('delPass').value='';accDrop();$('lbName').disabled=false;}
+  catch(e){$('delBtn').classList.remove('arm');$('delBtn').textContent=t('del_btn');pfMsg(e.code==='net'?t('ae_net'):accMsg(e.code));}
+});
+try{if(ACC_ON&&'serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}catch(e){}
+// ---- Oyun içi ek özellikler: pes, beraberlik teklifi, hızlı mesaj, saat, rövanş, davet bağlantısı ----
+const CLOCK_START=300,CLOCK_INC=4;
+const DR={incoming:false,next:0,chatAt:0};
+let chatTimer=null;
+function endGame(result){
+  if(!G||G.phase==='over')return;
+  token++;clearTimeout(timer);clearTimeout(aiTimer);
+  G.result=result;G.phase='over';G.endHidden=false;G.moves=[];G.sel=-1;G.promo=null;G.rolling=false;G.msg='';DR.incoming=false;
+  outcomeSound();render();outSync();
+}
+function clockInit(){
+  G.clock={w:CLOCK_START,b:CLOCK_START,t:Date.now(),turn:G.s.turn};
+  DR.incoming=false;DR.next=0;LB.reOffer=false;LB.reRecv=false;
+}
+const fmtClock=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);};
+function updateClocks(){
+  const c=G&&G.clock;if(!c)return;
+  for(const k of ['w','b']){
+    const el=$(k==='w'?'clkW':'clkB');
+    el.textContent=SIDE[k]+' '+fmtClock(c[k]);
+    el.classList.toggle('on',G.phase!=='over'&&c.turn===k);
+    el.classList.toggle('low',c[k]<30);
+  }
+}
+function clockTick(){
+  if(!G||!G.clock||G.mode!=='online'||!LB.live||G.phase==='over')return;
+  const c=G.clock,now=Date.now(),dt=Math.min(5,(now-c.t)/1000);c.t=now;
+  if(G.s.turn!==c.turn){c[c.turn]+=CLOCK_INC;c.turn=G.s.turn;}
+  c[c.turn]-=dt;
+  updateClocks();
+  const me=G.myColor;
+  if(c[me]<=0)endGame({type:'time',winner:opp(me)});
+  else if(c[opp(me)]<=-3)endGame({type:'time',winner:me});
+}
+setInterval(clockTick,250);
+function showChat(text){
+  const el=$('chatMsg');el.textContent=text;el.hidden=false;
+  clearTimeout(chatTimer);chatTimer=setTimeout(()=>{el.hidden=true;},4000);
+}
+// Rakipten gelen kontrol iletileri. true = işlendi.
+function playMsg(m){
+  if(!G||G.mode!=='online'||!LB.live)return false;
+  if(m.t==='chat'){if(Number.isInteger(m.i)&&m.i>=0&&m.i<4)showChat(LB.oppName+': '+t('chat'+m.i));return true;}
+  if(m.t==='draw'){if(G.phase!=='over'){DR.incoming=true;render();}return true;}
+  if(m.t==='drawno'){showChat(t('draw_no'));return true;}
+  if(m.t==='drawok'){endGame({type:'agreed'});return true;}
+  if(m.t==='rematch'){LB.reRecv=true;showChat(t('re_asked'));rematchCheck();render();return true;}
+  return false;
+}
+function rematchCheck(){
+  if(LB.role==='host'&&LB.reOffer&&LB.reRecv&&LB.conn&&!LB.closed)rematchGo();
+}
+function rematchGo(){
+  const color=opp(LB.myColor),st=newState();
+  const init={board:st.board,turn:'w',castle:st.castle,ep:-1,half:0,phase:'roll',roll:null,left:0,last:null,log:[],cap:{w:[],b:[]},result:null,seq:0};
+  LB.myColor=color;LB.init=init;LB.buf=null;LB.live=false;LB.status='countdown';LB.reOffer=false;LB.reRecv=false;
+  try{LB.conn.send({t:'start',hostName:LB.name,hostColor:color,init});}catch(e){return;}
+  G.endHidden=true;$('lobby').hidden=false;$('gamectl').hidden=true;$('end').hidden=true;
+  startCountdown();
+}
+function uiExtra(){
+  const on=!!G&&G.mode==='online'&&LB.live;
+  $('clocks').hidden=!(on&&G.clock);if(on&&G.clock)updateClocks();
+  const playing=!!G&&G.phase!=='over'&&!G.review&&(G.mode==='cpu'||G.mode==='pvp'||on);
+  $('actRow').hidden=!playing;$('drawBtn').hidden=!on;
+  $('chatRow').hidden=!(on&&!LB.closed&&!!LB.conn);
+  $('drawBox').hidden=!(DR.incoming&&on&&G.phase!=='over');
+  $('drawTxt').textContent=t('draw_in',{name:LB.oppName||''});
+  const re=$('endRe'),over=!!G&&G.phase==='over'&&G.mode==='online';
+  re.hidden=!(over&&(G.qmid||(LB.conn&&!LB.closed&&G.result&&G.result.type!=='left')));
+  if(!re.hidden){re.textContent=G.qmid?t('re_new'):(LB.reOffer?t('re_wait'):t('re_btn'));re.disabled=!G.qmid&&!!LB.reOffer;}
+  const rs=$('resignBtn');if(!rsArm)rs.textContent=t('resign');
+  $('drawBtn').textContent=t('draw_offer');
+}
+let rsArm=false;
+$('resignBtn').addEventListener('click',()=>{
+  if(!G||G.phase==='over')return;
+  if(G.mode==='online'&&!LB.live)return;
+  if(!rsArm){rsArm=true;$('resignBtn').textContent=t('resign_sure');setTimeout(()=>{rsArm=false;uiExtra();},4000);return;}
+  rsArm=false;
+  const me=mySide()||G.s.turn;
+  endGame({type:'resign',winner:opp(me)});
+});
+$('drawBtn').addEventListener('click',()=>{
+  if(!G||G.mode!=='online'||!LB.live||!LB.conn||G.phase==='over'||Date.now()<DR.next)return;
+  try{LB.conn.send({t:'draw'});DR.next=Date.now()+30000;showChat(t('draw_sent'));}catch(e){}
+});
+$('drawYes').addEventListener('click',()=>{
+  if(!LB.conn||!DR.incoming)return;
+  try{LB.conn.send({t:'drawok'});}catch(e){}
+  endGame({type:'agreed'});
+});
+$('drawNo').addEventListener('click',()=>{
+  DR.incoming=false;try{LB.conn.send({t:'drawno'});}catch(e){}
+  render();
+});
+(function(){
+  const row=$('chatRow');
+  for(let i=0;i<4;i++){
+    const b=document.createElement('button');b.type='button';b.className='btn';b.dataset.i=i;row.appendChild(b);
+  }
+  row.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-i]');if(!b||!LB.conn||Date.now()-DR.chatAt<1000)return;
+    DR.chatAt=Date.now();const i=Number(b.dataset.i);
+    try{LB.conn.send({t:'chat',i});showChat(t('chat_you')+': '+t('chat'+i));}catch(x){}
+  });
+})();
+function chatLabels(){for(const b of $('chatRow').children)b.textContent=t('chat'+b.dataset.i);}
+$('endRe').addEventListener('click',()=>{
+  if(!G)return;
+  if(G.qmid){backToMenu();$('mode').value='quick';syncModes();quickStart();return;}
+  if(!LB.conn||LB.closed||LB.reOffer)return;
+  LB.reOffer=true;
+  try{LB.conn.send({t:'rematch'});}catch(e){return;}
+  rematchCheck();render();
+});
+$('lbLink').addEventListener('click',async()=>{
+  const url=location.origin+'/?kod='+(LB.code||'');
+  try{await navigator.clipboard.writeText(url);lbMsg(t('link_copied'));}
+  catch(e){lbMsg(url);}
+});
 $('board').addEventListener('click',e=>{
   Snd.unlock();
   const b=e.target.closest('.sq');if(b)onSquare(+b.dataset.i);

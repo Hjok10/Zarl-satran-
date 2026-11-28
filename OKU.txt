@@ -34,3 +34,20 @@ Render ucretsiz planda disk her yeniden baslamada silinir; hesaplar da silinir. 
 2) Yonetici panelinden duzenli "Yedek indir" yap; silinirse "Yedekten geri yukle" ile uyeleri geri getir.
 
 Not: index.html VE server.js dosyalarini GitHub'da guncelle, Render'da Manual Deploy yap.
+
+
+=== HIZLI OYUN VE LIDERLIK ===
+- Menude "Hizli oyun (puanli)" secilip "Rakip bul"a basan oyuncular o an arayanlarla rastgele eslesir, maci otomatik baslar.
+- Herkes 100 puanla baslar. Kazanan puan alir, kaybeden puan kaybeder (Elo mantigi: guclu rakibi yenmek daha cok puan verir). Puan 0'in altina inmez.
+- Puanlar sunucuda hesaplanir. Iki oyuncu da sonucu bildirir; sonuclar tutarliysa puan islenir. Maci terk eden kaybeder.
+  Ayni iki oyuncu 24 saatte en fazla 3 puanli mac yapabilir (puan ciftlemeyi onlemek icin).
+- "Liderlik tablosu" tum uyelere acik, kendiliginden yenilenir.
+- index.html VE server.js dosyalarini GitHub'da guncelle, Render'da Manual Deploy yap.
+
+
+=== YENILER ===
+- Oyun ici: Pes et, Beraberlik teklifi, hizli mesajlar, 5 dk + 4 sn saat (cevrimici), Rovans, davet baglantisi (lobi kodu panelindeki "Davet baglantisi").
+- Puanli maclar: sunucu hamle kaydini oyun motoruyla yeniden oynayip sonucu dogrular (sahte "mat" bildirimi puan getirmez). En az 8 kayit gerekir.
+- Profil: rozetler, gunluk gorev, sifre degistirme, hesap silme. Liderlik: Genel ve Bu ay (ay sonunda ilk 3 rozet alir).
+- Ana ekrana eklenebilir (PWA): tarayici menusunden "Ana ekrana ekle".
+- Ortam degiskenleri (istege bagli): ZS_MIN_LOG (varsayilan 8).
